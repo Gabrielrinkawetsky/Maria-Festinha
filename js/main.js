@@ -209,6 +209,29 @@
     document.querySelectorAll('.reveal').forEach(done);
   }
 
+  /* ---------- Flores desabrochando com o scroll ----------
+     Começam fechadas no canto (invisíveis, pequenas e giradas) e se abrem
+     conforme a seção entra na tela: um círculo cresce a partir do canto
+     (clip-path) enquanto o buquê cresce e "desenrola" a rotação. scrub
+     amarra o progresso ao scroll: rolar para cima fecha de novo. */
+  if (gsap && ST && !reduceMotion) {
+    document.querySelectorAll('.bloom').forEach(function (el) {
+      var img = el.querySelector('img');
+      var o = el.getAttribute('data-origin');
+      var dir = o.indexOf('100%') === 0 ? -1 : 1;   // lado direito gira ao contrário
+      gsap.set([el, img], { transformOrigin: o });
+      gsap.timeline({
+        scrollTrigger: { trigger: el.parentElement, start: 'top 92%', end: 'center 50%', scrub: 1 }
+      })
+        .fromTo(el,
+          { clipPath: 'circle(0% at ' + o + ')', scale: 0.3, rotation: -30 * dir, autoAlpha: 0 },
+          { clipPath: 'circle(150% at ' + o + ')', scale: 1, rotation: 0, autoAlpha: 1, ease: 'power2.out', duration: 1 })
+        .fromTo(img,
+          { rotation: 40 * dir, scale: 0.75 },
+          { rotation: 0, scale: 1, ease: 'back.out(1.6)', duration: 1 }, 0);
+    });
+  }
+
   /* ---------- Brilhos só animam quando a seção está na tela ---------- */
   if (ST) {
     document.querySelectorAll('.sparkle-field').forEach(function (field) {
