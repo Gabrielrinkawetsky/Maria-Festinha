@@ -224,32 +224,28 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .ribbon { position: absolute; pointer-events: none; z-index: 1; filter: drop-shadow(0 4px 6px rgba(154, 111, 36, .25)); }
 .bouquet { position: absolute; pointer-events: none; z-index: 1; filter: drop-shadow(0 8px 14px rgba(106, 78, 160, .2)); }
 
-/* ---------- Hero ---------- */
+/* ---------- Hero (animação por scroll) ---------- */
+/* Seção alta + área fixa (sticky): o scroll dentro da seção avança os frames do vídeo. */
 .hero {
   position: relative;
-  padding: 70px 0 40px;
+  height: 300vh;
   margin-top: -80px;
-  padding-top: 150px;
+}
+.hero-sticky {
+  position: sticky; top: 0;
+  height: 100vh; height: 100svh;
   overflow: hidden;
-  background:
-    radial-gradient(ellipse 55% 70% at 72% 40%, rgba(255, 244, 214, .9) 0%, rgba(240, 225, 255, .6) 40%, transparent 75%),
-    linear-gradient(100deg, #fbf8ff 0%, #f1e8fc 45%, #e3d3f6 75%, #d7c3f1 100%);
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 90px 0 28px;
+  background: #e9ddf7 url("../public/frames/frame-0001.webp") center / cover no-repeat;
 }
-.hero .sparkle-field {
-  left: 38%;
-  -webkit-mask-image: radial-gradient(ellipse 70% 80% at 60% 45%, #000 40%, transparent 85%);
-          mask-image: radial-gradient(ellipse 70% 80% at 60% 45%, #000 40%, transparent 85%);
+.hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
+.hero-veil {
+  /* clareia o lado do texto para manter a leitura */
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(90deg, rgba(251,248,255,.82) 0%, rgba(251,248,255,.55) 38%, rgba(251,248,255,0) 65%);
 }
-.hero::after {
-  /* reflexo de água/luz na base */
-  content: ""; position: absolute; left: 30%; right: 0; bottom: 110px; height: 90px; z-index: 0;
-  background: radial-gradient(ellipse at 60% 50%, rgba(255,255,255,.75), transparent 70%);
-  filter: blur(10px);
-}
-.ribbon-hero { width: 110px; height: 520px; right: 9%; top: 30px; transform: rotate(8deg); }
-.bouquet-hero-left { width: 200px; height: 280px; left: -60px; top: 150px; opacity: .95; }
-
-.hero-inner { min-height: 380px; display: flex; align-items: center; }
+.hero-inner { flex: 1; display: flex; align-items: center; }
 .hero-copy { max-width: 560px; padding-left: 40px; }
 .eyebrow {
   font-size: 12px; letter-spacing: .3em; text-transform: uppercase; color: var(--gold-600); margin-bottom: 14px; font-weight: 600;
@@ -268,7 +264,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 
 /* Barra de diferenciais */
 .feature-bar {
-  margin-top: 50px;
+  margin-top: 24px;
   display: grid; grid-template-columns: repeat(4, 1fr);
   background: rgba(255, 255, 255, .85);
   backdrop-filter: blur(8px);
@@ -588,9 +584,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   .steps::before { display: none; }
 
   .hero-copy { padding-left: 0; }
-  .hero .sparkle-field { left: 20%; }
-  .ribbon-hero { right: 2%; opacity: .8; }
-  .bouquet-hero-left { width: 140px; height: 200px; left: -70px; top: 120px; opacity: .6; }
+  .hero-veil { background: linear-gradient(180deg, rgba(251,248,255,.7) 0%, rgba(251,248,255,.35) 60%, rgba(251,248,255,0) 100%); }
   .testimonial-card { flex-direction: column; align-items: center; text-align: center; }
   .stars { justify-content: center; }
 }
@@ -603,15 +597,16 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   .brand-logo { width: 42px; height: 42px; }
   .brand-script { font-size: 26px; }
 
-  .hero { padding-top: 130px; padding-bottom: 30px; }
-  .hero .sparkle-field { left: 0; opacity: .7; }
-  .ribbon-hero { width: 70px; height: 340px; right: -10px; top: 70px; opacity: .6; }
-  .bouquet-hero-left { display: none; }
-  .hero-inner { min-height: 0; }
   .hero-actions .btn { flex: 1 1 100%; }
   .hero-badge { font-size: 13px; }
 
-  .feature-bar { grid-template-columns: 1fr 1fr; padding: 16px 6px; margin-top: 36px; }
+  .hero-sticky { padding: 76px 0 14px; }
+  .hero h1 { margin-bottom: 14px; }
+  .hero-sub { font-size: 14px; margin-bottom: 18px; }
+  .hero-actions { margin-bottom: 16px; gap: 10px; }
+  .hero-actions .btn { padding: 12px 20px; }
+  .feature-bar { grid-template-columns: 1fr 1fr; padding: 10px 4px; margin-top: 14px; row-gap: 8px; }
+  .feature-bar span { display: none; }
   .feature-bar li { padding: 4px 10px; gap: 10px; flex-direction: column; text-align: center; justify-content: center; }
   .feature-bar .gold-icon { width: 32px; height: 32px; }
   .feature-bar strong { font-size: 16px; }

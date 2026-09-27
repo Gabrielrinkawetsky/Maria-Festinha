@@ -49,6 +49,84 @@
     field.appendChild(frag);
   });
 
+  /* ---------- Hero: frames do vídeo controlados pelo scroll ---------- */
+  (function () {
+    var hero = document.getElementById('hero');
+    var canvas = hero && hero.querySelector('.hero-canvas');
+    if (!canvas) return;
+
+    var ctx = canvas.getContext('2d');
+    var total = parseInt(canvas.getAttribute('data-frames'), 10);
+    var base = canvas.getAttribute('data-src');
+    var PRELOAD = 12;          // frames carregados de imediato
+    var BATCH = 6;             // frames carregados por vez no restante
+    var frames = new Array(total);
+    var current = -1;
+    var queued = false;
+
+    function src(i) { return base + String(i + 1).padStart(4, '0') + '.webp'; }
+
+    function load(i) {
+      if (i < 0 || i >= total || frames[i]) return frames[i];
+      var img = new Image();
+      img.decoding = 'async';
+      img.onload = function () { img.ready = true; if (i === targetFrame()) draw(true); };
+      img.src = src(i);
+      frames[i] = img;
+      return img;
+    }
+
+    function targetFrame() {
+      var range = hero.offsetHeight - window.innerHeight;
+      var p = range > 0 ? (window.scrollY - hero.offsetTop) / range : 0;
+      p = Math.min(1, Math.max(0, p));
+      return Math.round(p * (total - 1));
+    }
+
+    function resize() {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(canvas.clientWidth * dpr);
+      canvas.height = Math.round(canvas.clientHeight * dpr);
+      draw(true);
+    }
+
+    function draw(force) {
+      queued = false;
+      var i = targetFrame();
+      // pede o frame certo e os vizinhos à frente, caso o usuário role rápido
+      for (var k = 0; k < 4; k++) load(i + k);
+      // se o frame ainda não chegou, usa o mais próximo já carregado antes dele
+      var j = i;
+      while (j > 0 && !(frames[j] && frames[j].ready)) j--;
+      var img = frames[j];
+      if (!img || !img.ready || (j === current && !force)) return;
+      current = j;
+
+      // equivalente a object-fit: cover
+      var cw = canvas.width, ch = canvas.height;
+      var s = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
+      var w = img.naturalWidth * s, h = img.naturalHeight * s;
+      ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
+    }
+
+    function onScroll() {
+      if (!queued) { queued = true; requestAnimationFrame(function () { draw(false); }); }
+    }
+
+    // carrega o restante aos poucos, sem travar a página
+    var next = PRELOAD;
+    function loadRest() {
+      for (var n = 0; n < BATCH && next < total; n++) load(next++);
+      if (next < total) setTimeout(loadRest, 150);
+    }
+
+    for (var i = 0; i < PRELOAD; i++) load(i);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', resize);
+    window.addEventListener('load', function () { setTimeout(loadRest, 300); });
+    resize();
+  })();
+
   /* ---------- Menu mobile ---------- */
   var toggle = document.querySelector('.menu-toggle');
   var nav = document.getElementById('menu');

@@ -150,13 +150,14 @@
 <main>
 
 <!-- ============ HERO ============ -->
-<section class="hero">
-  <div class="sparkle-field" data-sparkles="240" aria-hidden="true"></div>
-  <svg class="ribbon ribbon-hero" aria-hidden="true"><use href="#ribbon"/></svg>
-  <svg class="bouquet bouquet-hero-left" aria-hidden="true"><use href="#bouquet"/></svg>
+<section class="hero" id="hero">
+ <div class="hero-sticky">
+  <!-- Animação por scroll: frames em public/frames, desenhados no canvas por js/main.js -->
+  <canvas class="hero-canvas" data-frames="120" data-src="public/frames/frame-" aria-hidden="true"></canvas>
+  <div class="hero-veil" aria-hidden="true"></div>
 
   <div class="container hero-inner">
-    <div class="hero-copy reveal">
+    <div class="hero-copy">
       <p class="eyebrow">Ilhabela · SP</p>
       <h1>
         <span class="h1-lilac">Sua Festa.</span>
@@ -176,7 +177,7 @@
 
   <!-- Barra de diferenciais -->
   <div class="container">
-    <ul class="feature-bar reveal">
+    <ul class="feature-bar">
       <li>
         <svg class="gold-icon" aria-hidden="true"><use href="#i-balloon"/></svg>
         <div><strong>Decoração</strong><span>Festas e eventos</span></div>
@@ -195,6 +196,7 @@
       </li>
     </ul>
   </div>
+ </div>
 </section>
 
 <!-- ============ SERVIÇOS ============ -->
