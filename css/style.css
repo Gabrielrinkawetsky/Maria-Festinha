@@ -618,10 +618,8 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 }
 
 @media (max-width: 960px) {
-  /* Celular/tablet: menu à esquerda, logo no centro, botão de orçamento à direita */
-  .menu-toggle { display: inline-flex; order: -1; margin-left: 0; }
-  .header-bar .brand { margin: 0 auto; }
-  .header-cta { padding: 10px 16px; min-height: 44px; }
+  .menu-toggle { display: inline-flex; }
+  .header-cta { display: none; }
   .main-nav {
     position: absolute; top: calc(100% + 8px); left: 24px; right: 24px;
     flex-direction: column; gap: 0;
@@ -701,6 +699,11 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
    Celular: ajustes finos (carrosséis, toque, hero em telas baixas)
    ========================================================= */
 @media (max-width: 640px) {
+  /* Cabeçalho do celular: menu à esquerda, botão de orçamento à direita, sem logo */
+  .header-bar .brand { display: none; }
+  .menu-toggle { order: -1; margin-left: 0; }
+  .header-cta { display: inline-flex; margin-left: auto; padding: 10px 18px; min-height: 44px; }
+
   /* Leveza no celular: primeiro frame recortado, menos desfoque ao vivo, brilhos sem halo */
   .hero-sticky { background-image: url("../public/frames-m/frame-0001.webp"); }
   .header-bar { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
