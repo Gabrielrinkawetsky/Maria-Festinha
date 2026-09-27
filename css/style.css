@@ -694,6 +694,13 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
    Celular: ajustes finos (carrosséis, toque, hero em telas baixas)
    ========================================================= */
 @media (max-width: 640px) {
+  /* Leveza no celular: primeiro frame recortado, menos desfoque ao vivo, brilhos sem halo */
+  .hero-sticky { background-image: url("../public/frames-m/frame-0001.webp"); }
+  .header-bar { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .feature-bar { backdrop-filter: none; background: rgba(255, 255, 255, .92); }
+  .sparkle { box-shadow: none; }
+  .sparkle.heart svg { filter: none; }
+
   /* Fotos dos painéis 1 e 2 do hero, trocam junto com o texto */
   .hero-photo { display: block; margin: 18px 0 0; height: clamp(130px, 28svh, 240px); }
 

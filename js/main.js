@@ -87,7 +87,7 @@
 
   document.querySelectorAll('.sparkle-field').forEach(function (field) {
     var total = parseInt(field.getAttribute('data-sparkles'), 10) || 80;
-    if (window.innerWidth < 640) total = Math.round(total * 0.55);
+    if (window.innerWidth < 640) total = Math.round(total * 0.35);   // celular: menos brilhos animados
     var frag = document.createDocumentFragment();
 
     for (var i = 0; i < total; i++) {
@@ -201,7 +201,8 @@
     var groups = [0, 0.5].map(function () {
       var g = document.createElement('div');
       g.className = 'neon-group';
-      NEON_GLOW.forEach(function (l) {
+      // celular: só a linha e a aura fixa; as camadas desfocadas repintadas a cada quadro pesam
+      if (window.innerWidth > 640) NEON_GLOW.forEach(function (l) {
         var r = thick + amount * NEON_REACH * l.reach;
         var glowOuter = Math.ceil(r + l.blur * 2 + 4);   // área só do tamanho do brilho
         var gl = document.createElement('div');
@@ -250,8 +251,10 @@
     if (!canvas) return;
 
     var ctx = canvas.getContext('2d');
-    var total = parseInt(canvas.getAttribute('data-frames'), 10);
-    var base = canvas.getAttribute('data-src');
+    // no celular em pé só a faixa central do vídeo aparece: usa os frames recortados
+    var mobile = window.matchMedia('(max-width: 640px)').matches;
+    var total = parseInt(canvas.getAttribute(mobile ? 'data-frames-m' : 'data-frames'), 10);
+    var base = canvas.getAttribute(mobile ? 'data-src-m' : 'data-src');
     var PRELOAD = 12;          // frames carregados de imediato
     var BATCH = 6;             // frames carregados por vez no restante
     var frames = new Array(total);

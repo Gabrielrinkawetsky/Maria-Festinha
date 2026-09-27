@@ -13,6 +13,7 @@ js/main.js      → brilhos dourados, menu mobile, animações e formulário →
 img/logo.webp   → logo (cabeçalho e rodapé); img/favicon.png e apple-touch-icon.png → ícones da aba
 img/fotos/      → (coloque aqui as fotos reais)
 public/frames/  → 120 frames WebP (1920×1080) da animação do hero
+public/frames-m/ → 60 frames WebP (608×1080, centro do vídeo) usados no celular
 ```
 
 ## Como inserir as fotos reais
@@ -76,3 +77,13 @@ Lenis 1.3.26 + GSAP 3.15 / ScrollTrigger, salvos em `js/vendor/` (sem depender d
 - Intensidade da inércia: `lerp` em `js/main.js` (0.07 ≈ 1,4 s de deslize após soltar a roda; 0.06 ≈ 1,7 s; 0.09 ≈ 1,1 s).
 - No toque (celular) o scroll é o nativo do aparelho. Com “reduzir movimento” ativado no sistema, o Lenis não é ligado.
 - Links do menu deslizam até a seção respeitando a altura do cabeçalho (`scroll-padding-top`).
+
+## Celular leve
+
+No celular (até 640px) o hero usa `public/frames-m/`: 60 frames recortados no centro do vídeo (a parte que aparece com o celular em pé), em resolução cheia — ~1 MB no total, contra ~15 MB dos frames do computador. A página inteira fica em ~1,7 MB no celular. Também no celular: menos brilhos animados e sem halo, borda neon sem as camadas desfocadas (fica a linha e a aura), e menos desfoque de fundo no cabeçalho e na barra de diferenciais.
+
+Para regenerar os frames do celular:
+
+```bash
+ffmpeg -i video.mp4 -an -vf "fps=6,crop=608:1080:(iw-608)/2:0" -c:v libwebp -quality 92 public/frames-m/frame-%04d.webp
+```
