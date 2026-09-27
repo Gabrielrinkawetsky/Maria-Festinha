@@ -19,7 +19,7 @@
     document.documentElement.classList.add('gsap-on');
     if (window.Lenis && !reduceMotion) {
       lenis = new window.Lenis({
-        lerp: 0.09,           // inércia: menor = mais macio, maior = mais responsivo
+        lerp: 0.07,           // inércia: ~1,4 s de deslize após soltar a roda. Menor = desliza mais
         smoothWheel: true,
         wheelMultiplier: 1,
         anchors: true,        // links #secao deslizam (respeita scroll-padding-top)

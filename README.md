@@ -70,6 +70,6 @@ ffmpeg -i video.mp4 -an -vf fps=12 -c:v libwebp -quality 92 public/frames/frame-
 Lenis 1.3.26 + GSAP 3.15 / ScrollTrigger, salvos em `js/vendor/` (sem depender de CDN).
 
 - O ticker do GSAP comanda o Lenis, e cada passo do Lenis atualiza o ScrollTrigger: animação do hero e entradas das seções andam no mesmo frame do scroll.
-- Intensidade da inércia: `lerp` em `js/main.js` (0.09; menor = mais macio, maior = mais responsivo).
+- Intensidade da inércia: `lerp` em `js/main.js` (0.07 ≈ 1,4 s de deslize após soltar a roda; 0.06 ≈ 1,7 s; 0.09 ≈ 1,1 s).
 - No toque (celular) o scroll é o nativo do aparelho. Com “reduzir movimento” ativado no sistema, o Lenis não é ligado.
 - Links do menu deslizam até a seção respeitando a altura do cabeçalho (`scroll-padding-top`).
