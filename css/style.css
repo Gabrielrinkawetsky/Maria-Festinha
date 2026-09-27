@@ -743,3 +743,12 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   .hero-badge { font-size: 12px; }
   .hero-badge strong { font-size: 18px; }
 }
+
+/* Texto dobrando (FoldText): letras separadas pelo js/main.js */
+.fold-word { display: inline-block; white-space: nowrap; }
+.fold-char { display: inline-block; transform-origin: 50% 0%; backface-visibility: hidden; }
+/* textos com degradê dourado: o degradê vai em cada letra (é vertical, então fica igual) */
+.h1-gold .fold-char, .promo-gold .fold-char {
+  background: inherit; -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.h1-gold .fold-word, .promo-gold .fold-word { background: inherit; }

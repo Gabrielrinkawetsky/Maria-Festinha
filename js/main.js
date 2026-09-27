@@ -31,6 +31,47 @@
     }
   }
 
+  /* ---------- Texto dobrando (FoldText) ----------
+     Cada letra vira um <span> que "desdobra" a partir da borda de cima
+     (rotateX -90° → 0°, dobradiça no topo, perspectiva 700px), com sombra
+     de vinco (brilho 45% → 100%) e letras em cascata. Palavras não quebram. */
+  var FOLD = { duration: 0.65, stagger: 0.045, ease: 'power3.out', perspective: 700, crease: 0.55 };
+  var foldOn = !!(gsap && ST && !reduceMotion);
+
+  function splitChars(el) {
+    if (el.dataset.split) return el.querySelectorAll('.fold-char');
+    el.dataset.split = '1';
+    el.setAttribute('aria-label', el.textContent.replace(/\s+/g, ' ').trim());
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function (node) {
+      var frag = document.createDocumentFragment();
+      node.textContent.split(/(\s+)/).forEach(function (part) {
+        if (!part) return;
+        if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(' ')); return; }
+        var word = document.createElement('span');
+        word.className = 'fold-word';
+        word.setAttribute('aria-hidden', 'true');
+        Array.from(part).forEach(function (ch) {
+          var c = document.createElement('span');
+          c.className = 'fold-char';
+          c.textContent = ch;
+          word.appendChild(c);
+        });
+        frag.appendChild(word);
+      });
+      node.parentNode.replaceChild(frag, node);
+    });
+    return el.querySelectorAll('.fold-char');
+  }
+
+  var foldFrom = { rotationX: -90, transformPerspective: FOLD.perspective, autoAlpha: 0, filter: 'brightness(' + (1 - FOLD.crease) + ')' };
+  function foldTo(extra) {
+    return Object.assign({ rotationX: 0, autoAlpha: 1, filter: 'brightness(1)', duration: FOLD.duration, stagger: FOLD.stagger, ease: FOLD.ease }, extra);
+  }
+
+
   /* ---------- Brilhos dourados (confete, corações e bokeh) ---------- */
   var HEART = '<svg viewBox="0 0 32 30"><use href="#heart"/></svg>';
 
@@ -160,6 +201,7 @@
          (orçamento) entra e fica um trecho parado antes de liberar a página.
          Rolar para cima reverte tudo. */
       document.documentElement.classList.add('hero-seq');
+      gsap.fromTo(splitChars(hero.querySelector('[data-panel="1"] .hero-title')), foldFrom, foldTo({ delay: 0.3 }));
       var parts = function (n) {
         var p = '[data-panel="' + n + '"] ';
         return hero.querySelectorAll(p + '.hero-title > span, ' + p + '.hero-title ~ *');
@@ -180,12 +222,14 @@
       })
         .to(parts(1), out, 1.4)
         .fromTo(parts(2), from, into, 2.7)
+        .fromTo(splitChars(hero.querySelector('[data-panel="2"] .hero-title')), foldFrom, foldTo({ duration: 0.6, stagger: 0.03 }), 2.75)
         .to(parts(2), out, 5.2)
         // fotos do celular: leve zoom que assenta ao entrar e cresce ao sair
         .to('[data-panel="1"] .hero-photo img', { scale: 1.1, duration: 1.2, ease: 'power1.in' }, 1.4)
         .fromTo('[data-panel="2"] .hero-photo img', { scale: 1.18 }, { scale: 1, duration: 1.5, ease: 'power2.out' }, 2.7)
         .to('[data-panel="2"] .hero-photo img', { scale: 1.1, duration: 1.2, ease: 'power1.in' }, 5.2)
         .fromTo(parts(3), from, into, 6.5)
+        .fromTo(splitChars(hero.querySelector('[data-panel="3"] .hero-title')), foldFrom, foldTo({ duration: 0.6, stagger: 0.03 }), 6.55)
         .to({}, { duration: 1.6 });   // orçamento todo visível antes de soltar a página
     } else if (ST) {
       ST.create({ trigger: hero, start: 'top top', end: 'bottom bottom', onUpdate: onUpdate });
@@ -276,6 +320,17 @@
       .to(balloon, Object.assign({ y: rise(0.5), x: 34, rotation: 5 }, step))
       .to(balloon, Object.assign({ y: rise(0.68), x: 0, rotation: -4 }, step))
       .to(balloon, Object.assign({ y: rise(0.86), x: 28, rotation: 4, autoAlpha: 0 }, step));
+  }
+
+  if (foldOn) {
+    document.querySelectorAll(
+      '.section-title h2, .promo-band h2, .promo-gold, .final-cta h2, .final-script, ' +
+      '.service-card h3, .celebration-card h3, .venue-card h3, .steps h3, .site-footer h4'
+    ).forEach(function (el) {
+      gsap.fromTo(splitChars(el), foldFrom, foldTo({
+        scrollTrigger: { trigger: el, start: 'top 90%', toggleActions: 'play none none none' }
+      }));
+    });
   }
 
   /* ---------- Brilhos só animam quando a seção está na tela ---------- */
