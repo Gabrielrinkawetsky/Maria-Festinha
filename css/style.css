@@ -39,7 +39,7 @@
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scroll-padding-top: 96px; }
 
 body {
   margin: 0;
@@ -135,8 +135,9 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 
 /* ---------- Cabeçalho ---------- */
 .site-header {
-  position: sticky; top: 0; z-index: 50;
-  padding: 12px 0;
+  /* fixo sobre o hero: sem faixa de fundo acima do vídeo */
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  padding: 0 0 12px;
   transition: padding .3s ease;
 }
 .header-bar {
@@ -150,6 +151,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   padding: 10px 24px;
   max-width: calc(var(--container) - 48px);
 }
+.site-header.scrolled { padding-top: 12px; }
 .site-header.scrolled .header-bar { border-radius: 22px; }
 
 .brand { display: inline-flex; align-items: center; gap: 10px; }
@@ -229,7 +231,6 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .hero {
   position: relative;
   height: 300vh;
-  margin-top: -80px;
 }
 .hero-sticky {
   position: sticky; top: 0;
