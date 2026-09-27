@@ -328,7 +328,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 }
 .feature-bar li + li { border-left: 1px solid rgba(212, 169, 79, .35); }
 .feature-bar strong { display: block; font-family: var(--serif); font-size: 19px; color: var(--plum); font-weight: 600; line-height: 1.2; }
-.feature-bar span { font-size: 12px; color: var(--muted); }
+.feature-bar div > span { font-size: 12px; color: var(--muted); }  /* só a descrição, não as letras do FoldText */
 
 /* ---------- Seções ---------- */
 .section { position: relative; padding: 70px 0; }
@@ -659,7 +659,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   .hero-actions { margin-bottom: 16px; gap: 10px; }
   .hero-actions .btn { padding: 12px 20px; }
   .feature-bar { grid-template-columns: 1fr 1fr; padding: 10px 4px; margin-top: 14px; row-gap: 8px; }
-  .feature-bar span { display: none; }
+  .feature-bar div > span { display: none; }
   .feature-bar li { padding: 4px 10px; gap: 10px; flex-direction: column; text-align: center; justify-content: center; }
   .feature-bar .gold-icon { width: 32px; height: 32px; }
   .feature-bar strong { font-size: 16px; }

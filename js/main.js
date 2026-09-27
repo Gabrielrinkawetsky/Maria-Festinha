@@ -457,6 +457,30 @@
       .to(balloon, Object.assign({ y: rise(0.86), x: 28, rotation: 4, autoAlpha: 0 }, step));
   }
 
+  /* ---------- Entrada do cabeçalho e da barra de diferenciais ----------
+     Ao abrir o site, a barra do cabeçalho e a barra de diferenciais do hero
+     desdobram a partir da borda de cima, e os textos delas desdobram letra a
+     letra com o mesmo efeito dos títulos. */
+  if (foldOn) {
+    var bars = [document.querySelector('.header-bar'), document.querySelector('.feature-bar')];
+    var barFrom = { rotationX: -70, transformPerspective: 900, transformOrigin: '50% 0%', autoAlpha: 0, filter: 'brightness(' + (1 - FOLD.crease) + ')' };
+    var barTo = { rotationX: 0, autoAlpha: 1, filter: 'brightness(1)', duration: 0.9, ease: FOLD.ease, clearProps: 'transform,filter' };
+    gsap.fromTo(bars[0], barFrom, Object.assign({ delay: 0.05 }, barTo));
+    gsap.fromTo(bars[1], barFrom, Object.assign({ delay: 0.45 }, barTo));
+    var charsOf = function (sel) {
+      var list = [];
+      document.querySelectorAll(sel).forEach(function (el) { list.push.apply(list, splitChars(el)); });
+      return list;
+    };
+    gsap.fromTo(document.querySelectorAll('.header-bar .brand-logo, .menu-toggle'),
+      { autoAlpha: 0, scale: 0.6, rotation: -12, transition: 'none' },   // sem a transição de hover do CSS no meio
+      { autoAlpha: 1, scale: 1, rotation: 0, duration: 0.8, delay: 0.25, ease: 'back.out(1.7)', clearProps: 'transform,transition' });
+    gsap.fromTo(charsOf('.main-nav a, .header-cta'), foldFrom,
+      foldTo({ delay: 0.3, stagger: 0.012, clearProps: 'transform,filter' }));
+    gsap.fromTo(charsOf('.feature-bar strong, .feature-bar span'), foldFrom,
+      foldTo({ delay: 0.7, stagger: 0.012, clearProps: 'transform,filter' }));
+  }
+
   if (foldOn) {
     document.querySelectorAll(
       '.section-title h2, .promo-band h2, .promo-gold, .final-cta h2, .final-script, ' +
