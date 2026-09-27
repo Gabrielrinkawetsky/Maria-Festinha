@@ -181,6 +181,10 @@
         .to(parts(1), out, 1.4)
         .fromTo(parts(2), from, into, 2.7)
         .to(parts(2), out, 5.2)
+        // fotos do celular: leve zoom que assenta ao entrar e cresce ao sair
+        .to('[data-panel="1"] .hero-photo img', { scale: 1.1, duration: 1.2, ease: 'power1.in' }, 1.4)
+        .fromTo('[data-panel="2"] .hero-photo img', { scale: 1.18 }, { scale: 1, duration: 1.5, ease: 'power2.out' }, 2.7)
+        .to('[data-panel="2"] .hero-photo img', { scale: 1.1, duration: 1.2, ease: 'power1.in' }, 5.2)
         .fromTo(parts(3), from, into, 6.5)
         .to({}, { duration: 1.6 });   // orçamento todo visível antes de soltar a página
     } else if (ST) {
