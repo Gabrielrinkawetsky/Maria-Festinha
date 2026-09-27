@@ -39,7 +39,7 @@
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
 
-html { scroll-behavior: smooth; scroll-padding-top: 120px; }
+html { scroll-behavior: smooth; scroll-padding-top: 108px; }
 
 /* Lenis (scroll suave) */
 html.lenis, html.lenis body { height: auto; }
@@ -146,27 +146,22 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   padding: 12px 0;
 }
 .header-bar {
-  display: flex; align-items: center; gap: 24px;
-  background: rgba(255, 255, 255, .82);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(212, 169, 79, .35);
-  border-radius: 22px;
-  box-shadow: var(--shadow-soft);
-  padding: 10px 24px;
+  /* vidro: fundo quase transparente + desfoque do que passa por trás */
+  display: flex; align-items: center; gap: 22px;
+  background: linear-gradient(135deg, rgba(255,255,255,.28) 0%, rgba(255,255,255,.1) 100%);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, .55);
+  border-radius: 999px;
+  box-shadow: 0 8px 28px -12px rgba(74, 58, 107, .35), inset 0 1px 0 rgba(255, 255, 255, .6);
+  padding: 6px 10px 6px 12px;
   width: calc(100% - 24px); /* folga nas laterais também no celular */
-  max-width: calc(var(--container) - 48px);
-}
-/* No topo da página a barra fica transparente sobre o vídeo; ao rolar, volta o fundo branco */
-.header-bar { transition: background-color .4s ease, border-color .4s ease, box-shadow .4s ease, backdrop-filter .4s ease; }
-.site-header.at-top .header-bar {
-  background: transparent; border-color: transparent; box-shadow: none;
-  backdrop-filter: none; -webkit-backdrop-filter: none;
+  max-width: 1040px;
 }
 
 .brand { display: inline-flex; align-items: center; }
 .brand-logo {
-  width: 64px; height: 64px; border-radius: 50%;
+  width: 52px; height: 52px; border-radius: 50%;
   box-shadow: 0 4px 12px -4px rgba(106, 78, 160, .35);
   transition: transform .3s ease;
 }
@@ -187,7 +182,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .menu-toggle {
   display: none; margin-left: auto;
   width: 44px; height: 44px; border-radius: 12px;
-  border: 1px solid var(--gold-200); background: #fff; cursor: pointer;
+  border: 1px solid rgba(255,255,255,.7); background: rgba(255,255,255,.35); cursor: pointer;
   flex-direction: column; justify-content: center; align-items: center; gap: 5px;
 }
 .menu-toggle span { width: 20px; height: 2px; background: var(--lilac-600); border-radius: 2px; transition: transform .3s, opacity .3s; }
@@ -244,7 +239,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   height: 100vh; height: 100svh;
   overflow: hidden;
   display: flex; flex-direction: column; justify-content: center;
-  padding: 124px 0 28px;
+  padding: 112px 0 28px;
   background: #e9ddf7 url("../public/frames/frame-0001.webp") center / cover no-repeat;
 }
 .hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
@@ -606,9 +601,9 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 @media (max-width: 640px) {
   body { font-size: 14px; }
   .container { padding: 0 16px; }
-  .header-bar { padding: 8px 14px; gap: 12px; }
+  .header-bar { padding: 5px 8px 5px 8px; gap: 12px; }
   .main-nav { left: 16px; right: 16px; }
-  .brand-logo { width: 54px; height: 54px; }
+  .brand-logo { width: 46px; height: 46px; }
 
   .hero-actions .btn { flex: 1 1 100%; }
   .hero-badge { font-size: 13px; }
