@@ -538,6 +538,8 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   animation: pulse 2.6s ease-in-out infinite;
 }
 .wa-float:hover { transform: scale(1.08); }
+.wa-float { transition: transform .25s, opacity .3s, visibility .3s; }
+.wa-float.is-hidden { opacity: 0; visibility: hidden; transform: scale(.6); }
 .wa-float svg { width: 30px; height: 30px; }
 @keyframes pulse {
   0%, 100% { box-shadow: 0 10px 24px -8px rgba(154,111,36,.8), 0 0 0 0 rgba(212,169,79,.5); }
@@ -647,3 +649,66 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 /* Placeholder legível sobre o fundo lilás dos cards de celebração */
 .celebration-card .photo-ph span { color: var(--lilac-700); }
 .celebration-card .photo-ph small { color: var(--plum); opacity: .7; }
+
+/* =========================================================
+   Celular: ajustes finos (carrosséis, toque, hero em telas baixas)
+   ========================================================= */
+@media (max-width: 640px) {
+  /* Cards em carrossel horizontal com snap: menos rolagem, próximo card aparecendo */
+  .grid-3, .grid-4 {
+    display: flex; gap: 14px;
+    overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; scroll-padding: 0 16px;
+    margin: 0 -16px; padding: 6px 16px 26px;
+    scrollbar-width: none;
+  }
+  .grid-3::-webkit-scrollbar, .grid-4::-webkit-scrollbar { display: none; }
+  .grid-3 > *, .grid-4 > * { flex: 0 0 82%; scroll-snap-align: center; }
+  .grid-4 > * { flex-basis: 72%; }
+  .card:hover { transform: none; }
+
+  /* Títulos de seção: sem linhas laterais, que forçavam quebra de linha */
+  .section-title { margin-bottom: 22px; }
+  .section-title h2 { font-size: 21px; letter-spacing: .1em; }
+  .section-title h2::before, .section-title h2::after { display: none; }
+
+  /* Barra de diferenciais do hero: 1 linha, só ícone e nome */
+  .feature-bar { grid-template-columns: repeat(4, 1fr); padding: 10px 2px; margin-top: 12px; }
+  .feature-bar li { padding: 2px 4px; gap: 4px; }
+  .feature-bar li + li { border-left: 1px solid rgba(212, 169, 79, .35); }
+  .feature-bar .gold-icon { width: 26px; height: 26px; }
+  .feature-bar strong { font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: .02em; line-height: 1.25; }
+
+  /* Faixa lilás: flores nos cantos, longe do texto */
+  .bloom-promo-l, .bloom-promo-r { width: 120px; translate: none; }
+  .bloom-promo-l { left: -46px; top: -18px; }
+  .bloom-promo-r { right: -46px; top: auto; bottom: -22px; }
+  .promo-band h2 { font-size: 26px; }
+  .promo-gold { font-size: 28px; }
+
+  /* Área de toque de pelo menos 44px */
+  .btn-pill, .btn-xs { min-height: 44px; padding: 10px 24px; font-size: 12px; }
+  .btn-sm { min-height: 46px; font-size: 12px; }
+  .socials a { width: 44px; height: 44px; }
+  .site-footer ul li { margin: 0; }
+  .site-footer ul a, .contact-list a { display: inline-block; padding: 10px 0; }
+  .contact-list li > span { padding: 10px 0; }
+  .reviews-link a { display: inline-block; padding: 10px 0; }
+  .wa-form input { font-size: 16px; min-height: 46px; } /* 16px evita o zoom automático do iPhone */
+  .final-cta { padding: 64px 0 56px; }
+  .steps h3 { font-size: 15px; letter-spacing: .06em; }
+}
+
+/* Celulares baixos (ex.: 320×568): hero mais compacto para caber tudo na tela */
+@media (max-width: 640px) and (max-height: 700px) {
+  .hero-sticky { padding-top: 80px; }
+  .eyebrow { margin-bottom: 8px; }
+  .h1-lilac { font-size: 32px; }
+  .h1-gold { font-size: 34px; }
+  .hero-title { margin-bottom: 10px; }
+  .hero-sub { font-size: 13px; line-height: 1.5; margin-bottom: 12px; }
+  .hero-actions { gap: 8px; margin-bottom: 10px; }
+  .hero-actions .btn { padding: 11px 16px; min-height: 44px; }
+  .hero-badge { font-size: 12px; }
+  .hero-badge strong { font-size: 18px; }
+}

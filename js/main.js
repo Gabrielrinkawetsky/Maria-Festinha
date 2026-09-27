@@ -170,7 +170,12 @@
       gsap.timeline({
         defaults: { overwrite: 'auto' },
         scrollTrigger: {
-          trigger: hero, pin: true, start: 'top top', end: '+=260%', scrub: true, onUpdate: onUpdate
+          trigger: hero, pin: true, start: 'top top', end: '+=260%', scrub: true, onUpdate: onUpdate,
+          // o hero já tem o botão de orçamento: esconde o WhatsApp flutuante enquanto ele está fixo
+          onToggle: function (self) {
+            var fab = document.querySelector('.wa-float');
+            if (fab) fab.classList.toggle('is-hidden', self.isActive);
+          }
         }
       })
         .to(parts(1), out, 1.4)
