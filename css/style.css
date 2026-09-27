@@ -299,6 +299,11 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .hero-seq .hero { height: auto; }                      /* GSAP fixa (pin) o hero no lugar do sticky */
 .hero-seq .hero-sticky { position: relative; }
 @supports (height: 100lvh) { .hero-sticky { --bar: calc(100lvh - 100svh); } }
+/* Celular: quando a barra de endereço some ao rolar, a tela cresce (dvh passa de
+   svh para lvh). A barra de diferenciais desce deslizando o mesmo tanto e fica
+   colada embaixo da tela; quando a barra do navegador volta, ela sobe. */
+.feature-wrap { transition: transform .5s cubic-bezier(.22, 1, .36, 1); }
+@supports (height: 100dvh) { .feature-wrap { transform: translateY(calc(100dvh - 100svh)); } }
 .h1-lilac { display: block; font-size: clamp(42px, 6vw, 70px); color: var(--lilac-600); font-weight: 500; }
 .h1-gold {
   display: block; font-size: clamp(44px, 6.4vw, 76px); font-weight: 500;
