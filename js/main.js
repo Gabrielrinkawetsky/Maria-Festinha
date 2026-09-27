@@ -150,12 +150,36 @@
     }
 
     for (var i = 0; i < PRELOAD; i++) load(i);
-    if (ST) {
-      // desenha no mesmo tick do Lenis/ScrollTrigger: sem atraso entre scroll e frame
-      ST.create({
-        trigger: hero, start: 'top top', end: 'bottom bottom',
-        onUpdate: function (self) { progress = self.progress; draw(false); }
-      });
+
+    // desenha no mesmo tick do Lenis/ScrollTrigger: sem atraso entre scroll e frame
+    function onUpdate(self) { progress = self.progress; draw(false); }
+
+    if (gsap && ST && !reduceMotion) {
+      /* Sequência narrativa: o hero fica fixo (pin) e o scroll (scrub) conduz
+         vídeo e textos juntos. Painel 1 sai, painel 2 entra e sai, painel final
+         (orçamento) entra e fica um trecho parado antes de liberar a página.
+         Rolar para cima reverte tudo. */
+      document.documentElement.classList.add('hero-seq');
+      var parts = function (n) {
+        var p = '[data-panel="' + n + '"] ';
+        return hero.querySelectorAll(p + '.hero-title > span, ' + p + '.hero-title ~ *');
+      };
+      var out = { autoAlpha: 0, y: -48, duration: 1, stagger: 0.1, ease: 'power2.in' };
+      var from = { autoAlpha: 0, y: 48 };
+      var into = { autoAlpha: 1, y: 0, duration: 1.1, stagger: 0.12, ease: 'power2.out' };
+      gsap.timeline({
+        defaults: { overwrite: 'auto' },
+        scrollTrigger: {
+          trigger: hero, pin: true, start: 'top top', end: '+=260%', scrub: true, onUpdate: onUpdate
+        }
+      })
+        .to(parts(1), out, 1.4)
+        .fromTo(parts(2), from, into, 2.7)
+        .to(parts(2), out, 5.2)
+        .fromTo(parts(3), from, into, 6.5)
+        .to({}, { duration: 1.6 });   // orçamento todo visível antes de soltar a página
+    } else if (ST) {
+      ST.create({ trigger: hero, start: 'top top', end: 'bottom bottom', onUpdate: onUpdate });
     } else {
       window.addEventListener('scroll', onScroll, { passive: true });
       onScroll();

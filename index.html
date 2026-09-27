@@ -86,18 +86,38 @@
   <div class="container hero-inner">
     <div class="hero-copy">
       <p class="eyebrow">Ilhabela · SP</p>
-      <h1>
-        <span class="h1-lilac">Sua Festa.</span>
-        <span class="h1-gold">Perfeitamente Celebrada.</span>
-      </h1>
-      <p class="hero-sub">Decoração, recreação, casamentos, aniversários e buffet de pizza.<br>Maria Festinha • WR Recreação.</p>
-      <div class="hero-actions">
-        <a class="btn btn-gold" href="https://wa.me/5512991674881?text=Ol%C3%A1%2C%20Maria%20Festinha!%20Gostaria%20de%20um%20or%C3%A7amento." target="_blank" rel="noopener">Pedir orçamento</a>
-        <a class="btn btn-outline" href="#celebracoes">Ver nossos trabalhos</a>
-      </div>
-      <div class="hero-badge">
-        <svg class="gold-icon" aria-hidden="true"><use href="#i-rings"/></svg>
-        <span><strong>Desde 2014</strong> celebrando momentos em Ilhabela</span>
+      <!-- Sequência narrativa: os 3 painéis se alternam com o scroll (GSAP pin + scrub em js/main.js).
+           Sem JS ou com "reduzir movimento", só o painel final aparece. -->
+      <div class="hero-stage">
+        <div class="hero-panel" data-panel="1">
+          <h1 class="hero-title">
+            <span class="h1-lilac">Sua Festa.</span>
+            <span class="h1-gold">Seu Sonho.</span>
+          </h1>
+          <p class="hero-sub">Cada detalhe pensado para transformar sua comemoração em um momento inesquecível.</p>
+        </div>
+        <div class="hero-panel" data-panel="2">
+          <h2 class="hero-title">
+            <span class="h1-lilac">Momentos que</span>
+            <span class="h1-gold">Encantam.</span>
+          </h2>
+          <p class="hero-sub">Da decoração à recreação, criamos experiências cheias de alegria, carinho e magia.</p>
+        </div>
+        <div class="hero-panel hero-panel--final" data-panel="3">
+          <h2 class="hero-title">
+            <span class="h1-lilac">Sua Festa</span>
+            <span class="h1-gold">Começa Aqui.</span>
+          </h2>
+          <p class="hero-sub">Decoração, recreação, casamentos, aniversários e buffet de pizza.<br>Maria Festinha • WR Recreação.</p>
+          <div class="hero-actions">
+            <a class="btn btn-gold" href="https://wa.me/5512991674881?text=Ol%C3%A1%2C%20Maria%20Festinha!%20Gostaria%20de%20um%20or%C3%A7amento." target="_blank" rel="noopener">Pedir Orçamento</a>
+            <a class="btn btn-outline" href="#celebracoes">Ver nossos trabalhos</a>
+          </div>
+          <div class="hero-badge">
+            <svg class="gold-icon" aria-hidden="true"><use href="#i-rings"/></svg>
+            <span><strong>Desde 2014</strong> celebrando momentos em Ilhabela</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>

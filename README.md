@@ -56,7 +56,11 @@ Nenhum depoimento foi inventado. Os três cards da seção **Avaliações** est�
 
 O fundo do hero é o vídeo `HEROV1.mp4` convertido em 120 frames WebP (12 fps, 1920×1080 — resolução original —, qualidade 92, ~15 MB no total) em `public/frames/frame-0001.webp` … `frame-0120.webp`.
 
-- O hero ocupa a tela inteira e fica fixo enquanto se rola 3 alturas de tela (`.hero { height: 300vh }` em `css/style.css`). Durante esse trecho, o scroll avança do primeiro ao último frame. No último frame o hero é liberado e a página segue para “Nossos Serviços”.
+- O hero ocupa a tela inteira e fica fixo (GSAP ScrollTrigger `pin`) por 2,6 alturas de tela (`end: '+=260%'` em `js/main.js`). Nesse trecho, o scroll (`scrub`) avança do primeiro ao último frame do vídeo e conduz a sequência de textos:
+  1. “Sua Festa. Seu Sonho.”
+  2. “Momentos que Encantam.”
+  3. “Sua Festa Começa Aqui.” com o botão “Pedir Orçamento” (painel final), que fica um trecho parado antes de a página seguir para “Nossos Serviços”.
+  Rolar para cima reverte tudo. Sem JavaScript ou com “reduzir movimento”, aparece só o painel final.
 - `js/main.js` desenha os frames em um `<canvas>`. Os 12 primeiros são pré-carregados; os demais carregam em lotes após o carregamento da página, e o frame necessário é pedido na hora se o usuário rolar mais rápido.
 - Para trocar o vídeo, gere novos frames com o mesmo padrão de nome e ajuste `data-frames` no `<canvas>` do `index.html`:
 

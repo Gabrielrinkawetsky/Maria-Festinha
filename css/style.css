@@ -252,7 +252,14 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .eyebrow {
   font-size: 12px; letter-spacing: .3em; text-transform: uppercase; color: var(--gold-600); margin-bottom: 14px; font-weight: 600;
 }
-.hero h1 { font-family: var(--serif); line-height: 1.02; margin-bottom: 22px; }
+.hero-title { font-family: var(--serif); line-height: 1.02; margin-bottom: 22px; }
+/* Painéis da sequência narrativa: empilhados no mesmo lugar */
+.hero-stage { display: grid; }
+.hero-panel { grid-area: 1 / 1; align-self: start; }  /* títulos na mesma altura nos 3 painéis */
+.hero-panel:not(.hero-panel--final) { display: none; }  /* sem sequência: só o painel final */
+.hero-seq .hero-panel { display: block; }
+.hero-seq .hero { height: auto; }                      /* GSAP fixa (pin) o hero no lugar do sticky */
+.hero-seq .hero-sticky { position: relative; }
 .h1-lilac { display: block; font-size: clamp(42px, 6vw, 70px); color: var(--lilac-600); font-weight: 500; }
 .h1-gold {
   display: block; font-size: clamp(44px, 6.4vw, 76px); font-weight: 500;
@@ -601,7 +608,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   .hero-badge { font-size: 13px; }
 
   .hero-sticky { padding: 92px 0 14px; }
-  .hero h1 { margin-bottom: 14px; }
+  .hero-title { margin-bottom: 14px; }
   .hero-sub { font-size: 14px; margin-bottom: 18px; }
   .hero-actions { margin-bottom: 16px; gap: 10px; }
   .hero-actions .btn { padding: 12px 20px; }
