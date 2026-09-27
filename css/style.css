@@ -294,6 +294,15 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 
 /* ---------- Seções ---------- */
 .section { position: relative; padding: 70px 0; }
+
+/* Serviços: foto do espaço de fundo com véu escuro suave (escurece mais nas bordas) */
+#servicos {
+  --bg-espaco: url("../img/espaco-fundo.webp");
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 45%, rgba(24, 14, 38, .28) 0%, rgba(24, 14, 38, .55) 100%),
+    var(--bg-espaco) center / cover no-repeat;
+}
+#servicos .section-title h2 { color: #fff; text-shadow: 0 2px 12px rgba(0, 0, 0, .35); }
 .section-tight { padding: 40px 0 60px; }
 
 .section-title { text-align: center; margin-bottom: 36px; }
@@ -654,6 +663,8 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
    Celular: ajustes finos (carrosséis, toque, hero em telas baixas)
    ========================================================= */
 @media (max-width: 640px) {
+  #servicos { --bg-espaco: url("../img/espaco-fundo-800.webp"); }
+
   /* Cards em carrossel horizontal com snap: menos rolagem, próximo card aparecendo */
   .grid-3, .grid-4 {
     display: flex; gap: 14px;
