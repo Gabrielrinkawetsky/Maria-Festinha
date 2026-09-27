@@ -265,20 +265,35 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .hero-panel:not(.hero-panel--final) { display: none; }  /* sem sequência: só o painel final */
 .hero-seq .hero-panel { display: block; }
 /* Fotos dos painéis 1 e 2: trocam junto com o texto. Celular: abaixo do texto; computador: à direita */
-.hero-photo {
-  display: none; margin: 0;
-  border-radius: 24px; overflow: hidden;
+.hero-photo { display: none; position: relative; margin: 0; border-radius: 24px; }
+.hero-photo-frame {
+  position: absolute; inset: 0; border-radius: inherit; overflow: hidden;
   border: 2px solid rgba(255, 255, 255, .85);
   outline: 1px solid rgba(212, 169, 79, .55); outline-offset: 4px;
   box-shadow: 0 18px 36px -16px rgba(74, 58, 107, .55);
 }
 .hero-photo img { width: 100%; height: 100%; object-fit: cover; will-change: transform; }
+
+/* Borda neon dourada (versão em JS puro do "Neon Border"): dois arcos de luz
+   percorrem o contorno da foto; o js/main.js monta as camadas e move o --arc */
+.neon { position: absolute; inset: 0; z-index: 2; pointer-events: none; border-radius: inherit;
+  box-shadow: 0 0 60px 10px rgba(204, 145, 73, .22); }  /* aura larga fixa (barata) */
+.neon-group { position: absolute; inset: 0; }
+.neon-band, .neon-glow {
+  position: absolute; box-sizing: border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) border-box;
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) border-box;
+  mask-composite: exclude;
+}
+.neon-band { background: var(--arc); }
+.neon-on .hero-photo-frame { outline: none; }  /* o neon vira a moldura */
 .hero-panel { position: relative; }
 @media (min-width: 1081px) {
   .hero-photo {
     display: block; position: absolute; left: 510px; top: -30px;  /* texto termina em ~470px */
     width: clamp(380px, 30vw, 560px); aspect-ratio: 16 / 10;
-    border-radius: 28px; outline-offset: 5px;
+    border-radius: 28px;
   }
 }
 .hero-seq .hero { height: auto; }                      /* GSAP fixa (pin) o hero no lugar do sticky */

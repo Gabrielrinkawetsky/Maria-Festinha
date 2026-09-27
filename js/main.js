@@ -123,6 +123,126 @@
     field.appendChild(frag);
   });
 
+  /* ---------- Borda neon nas fotos do hero ----------
+     Versão em JS puro do componente "Neon Border" (Originkit), mesmos valores:
+     cor #CC9149, espessura 6, arco de 50%, brilho 100, movimento contínuo,
+     velocidade 16. Dois arcos opostos percorrem o contorno deslizando de canto
+     a canto; cada arco é um conic-gradient recalculado a cada quadro (--arc)
+     numa faixa recortada por máscara, mais 3 camadas de brilho desfocado.
+     A opacidade do .neon é controlada pela timeline do hero (some na troca). */
+  var NEON = { color: '#CC9149', thickness: 6, borderSize: 50, glow: 100, speed: 16 };
+  // A 3ª camada do original (desfoque de 57px, 18%) repintada a cada quadro
+  // custava ~35 ms/quadro; virou a aura fixa .neon (box-shadow no CSS).
+  var NEON_GLOW = [
+    { blur: 8, opacity: 0.5, reach: 0.3 },
+    { blur: 15, opacity: 0.3, reach: 0.6 }
+  ];
+  var NEON_REACH = 36, NEON_SAMPLES = 24;
+
+  function rgba(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + Math.max(0, Math.min(1, a)).toFixed(3) + ')';
+  }
+  function perimeterPoint(u, w, h) {
+    var d = (((u % 1) + 1) % 1) * 2 * (w + h);
+    if (d < w) return [d, 0];
+    if (d < w + h) return [w, d - w];
+    if (d < w * 2 + h) return [w - (d - w - h), h];
+    return [0, h - (d - w * 2 - h)];
+  }
+  function perimeterAngle(u, w, h) {
+    var p = perimeterPoint(u, w, h);
+    return Math.atan2(p[0] - w / 2, h / 2 - p[1]) * 180 / Math.PI;
+  }
+  function cornerLap(k, w, h) {
+    var per = 2 * (w + h), at = [0, w / per, (w + h) / per, (w * 2 + h) / per];
+    return Math.floor(k / 4) + at[((k % 4) + 4) % 4];
+  }
+  function buildArc(lap, w, h) {
+    var len = NEON.borderSize, span = Math.max(0.015, (len / 100) * 0.5), solid = len / 100;
+    var stops = [], base = 0, prev = 0, acc = 0;
+    for (var i = 0; i <= NEON_SAMPLES; i++) {
+      var f = i / NEON_SAMPLES, ang = perimeterAngle(lap + (f - 0.5) * span, w, h);
+      if (i === 0) base = ang;
+      else { var d = ang - prev; while (d > 180) d -= 360; while (d < -180) d += 360; acc += d; }
+      prev = ang;
+      var t = Math.abs(f - 0.5) * 2, k = t <= solid ? 1 : 1 - (t - solid) / (1 - solid);
+      stops.push(rgba(NEON.color, k * k * (3 - 2 * k)) + ' ' + acc.toFixed(2) + 'deg');
+    }
+    stops.push(rgba(NEON.color, 0) + ' ' + acc.toFixed(2) + 'deg', rgba(NEON.color, 0) + ' 360deg');
+    return 'conic-gradient(from ' + base.toFixed(2) + 'deg at 50% 50%, ' + stops.join(', ') + ')';
+  }
+  function bezier(x1, y1, x2, y2) {     // cubic-bezier(.65, 0, .35, 1) do original
+    var b = function (a, c, t) { var u = 1 - t; return 3 * u * u * t * a + 3 * u * t * t * c + t * t * t; };
+    return function (x) {
+      var s = x;
+      for (var i = 0; i < 8; i++) {
+        var u = 1 - s, dx = 3 * u * u * x1 + 6 * u * s * (x2 - x1) + 3 * s * s * (1 - x2);
+        if (Math.abs(dx) < 1e-6) break;
+        s = Math.max(0, Math.min(1, s - (b(x1, x2, s) - x) / dx));
+      }
+      return b(y1, y2, s);
+    };
+  }
+  var glide = bezier(0.65, 0, 0.35, 1);
+
+  function buildNeon(photo) {
+    var thick = NEON.thickness, amount = NEON.glow / 100;
+    var radius = parseFloat(getComputedStyle(photo).borderTopLeftRadius) || 0;
+    var neon = document.createElement('div');
+    neon.className = 'neon';
+    neon.setAttribute('aria-hidden', 'true');
+    var band = function (r, offset) {
+      var el = document.createElement('div');
+      el.className = 'neon-band';
+      el.style.cssText = 'inset:' + (offset - r) + 'px;padding:' + r + 'px;border-radius:' + (radius + r) + 'px';
+      return el;
+    };
+    var groups = [0, 0.5].map(function () {
+      var g = document.createElement('div');
+      g.className = 'neon-group';
+      NEON_GLOW.forEach(function (l) {
+        var r = thick + amount * NEON_REACH * l.reach;
+        var glowOuter = Math.ceil(r + l.blur * 2 + 4);   // área só do tamanho do brilho
+        var gl = document.createElement('div');
+        gl.className = 'neon-glow';
+        gl.style.cssText = 'inset:' + (-glowOuter) + 'px;padding:' + glowOuter + 'px;border-radius:' + (radius + glowOuter) +
+          'px;opacity:' + l.opacity + ';filter:blur(' + l.blur + 'px)';
+        gl.appendChild(band(r, glowOuter));
+        g.appendChild(gl);
+      });
+      g.appendChild(band(thick, 0));
+      g.appendChild(band(thick, 0));
+      neon.appendChild(g);
+      return g;
+    });
+    photo.appendChild(neon);
+    return { el: neon, photo: photo, groups: groups };
+  }
+
+  function runNeons(list) {
+    document.documentElement.classList.add('neon-on');
+    var cycle = 30 + (4 - 30) * (NEON.speed - 1) / 19;   // segundos por volta
+    var beat = cycle / 4, stepT = 0, corner = 0, last = performance.now();
+    function paint(now) {
+      var dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+      last = now;
+      stepT += dt / beat;
+      while (stepT >= 1) { stepT -= 1; corner += 1; }
+      list.forEach(function (n) {
+        // só desenha foto visível (economiza bateria durante o resto do site)
+        if (!n.photo.offsetParent || +getComputedStyle(n.el).opacity < 0.01) return;
+        var w = n.photo.offsetWidth || 100, h = n.photo.offsetHeight || 100;
+        var from = cornerLap(corner, w, h), to = cornerLap(corner + 1, w, h);
+        var lap = from + (to - from) * glide(stepT);
+        n.groups[0].style.setProperty('--arc', buildArc(lap, w, h));
+        n.groups[1].style.setProperty('--arc', buildArc(lap + 0.5, w, h));
+      });
+      requestAnimationFrame(paint);
+    }
+    requestAnimationFrame(paint);
+  }
+
   /* ---------- Hero: frames do vídeo controlados pelo scroll ---------- */
   (function () {
     var hero = document.getElementById('hero');
@@ -209,6 +329,9 @@
          (orçamento) entra e fica um trecho parado antes de liberar a página.
          Rolar para cima reverte tudo. */
       document.documentElement.classList.add('hero-seq');
+      var neon1 = buildNeon(hero.querySelector('[data-panel="1"] .hero-photo'));
+      var neon2 = buildNeon(hero.querySelector('[data-panel="2"] .hero-photo'));
+      runNeons([neon1, neon2]);
       gsap.fromTo(splitChars(hero.querySelector('[data-panel="1"] .hero-title')), foldFrom, foldTo({ delay: 0.3, clearProps: 'transform,filter' }));
       var parts = function (n) {
         var p = '[data-panel="' + n + '"] ';
@@ -236,6 +359,10 @@
         .to('[data-panel="1"] .hero-photo img', { scale: 1.1, duration: 1.2, ease: 'power1.in' }, 1.4)
         .fromTo('[data-panel="2"] .hero-photo img', { scale: 1.18 }, { scale: 1, duration: 1.5, ease: 'power2.out' }, 2.7)
         .to('[data-panel="2"] .hero-photo img', { scale: 1.1, duration: 1.2, ease: 'power1.in' }, 5.2)
+        // neon: enfraquece enquanto a foto sai e ganha força quando a nova chega
+        .to(neon1.el, { opacity: 0, duration: 0.8, ease: 'power2.in' }, 1.3)
+        .fromTo(neon2.el, { opacity: 0 }, { opacity: 1, duration: 1.3, ease: 'power2.in' }, 3.0)
+        .to(neon2.el, { opacity: 0, duration: 0.8, ease: 'power2.in' }, 5.1)
         .fromTo(parts(3), from, into, 6.5)
         .fromTo(splitChars(hero.querySelector('[data-panel="3"] .hero-title')), foldFrom, foldTo({ duration: 0.6, stagger: 0.03 }), 6.55)
         .to({}, { duration: 1.6 });   // orçamento todo visível antes de soltar a página
