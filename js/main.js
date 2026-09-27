@@ -106,6 +106,7 @@
       var cw = canvas.width, ch = canvas.height;
       var s = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
       var w = img.naturalWidth * s, h = img.naturalHeight * s;
+      ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
     }
 

@@ -12,7 +12,7 @@ css/style.css   → todo o visual (lilás e dourado)
 js/main.js      → brilhos dourados, menu mobile, animações e formulário → WhatsApp
 img/logo.png    → (coloque aqui o logo)
 img/fotos/      → (coloque aqui as fotos reais)
-public/frames/  → 120 frames WebP (1280×720) da animação do hero
+public/frames/  → 120 frames WebP (1920×1080) da animação do hero
 ```
 
 ## Como inserir as fotos reais
@@ -55,12 +55,12 @@ Nenhum depoimento foi inventado. Os três cards da seção **Avaliações** est�
 
 ## Animação do hero
 
-O fundo do hero é o vídeo `HEROV1.mp4` convertido em 120 frames WebP (12 fps, 1280×720, ~4 MB no total) em `public/frames/frame-0001.webp` … `frame-0120.webp`.
+O fundo do hero é o vídeo `HEROV1.mp4` convertido em 120 frames WebP (12 fps, 1920×1080 — resolução original —, qualidade 92, ~15 MB no total) em `public/frames/frame-0001.webp` … `frame-0120.webp`.
 
 - O hero ocupa a tela inteira e fica fixo enquanto se rola 3 alturas de tela (`.hero { height: 300vh }` em `css/style.css`). Durante esse trecho, o scroll avança do primeiro ao último frame. No último frame o hero é liberado e a página segue para “Nossos Serviços”.
 - `js/main.js` desenha os frames em um `<canvas>`. Os 12 primeiros são pré-carregados; os demais carregam em lotes após o carregamento da página, e o frame necessário é pedido na hora se o usuário rolar mais rápido.
 - Para trocar o vídeo, gere novos frames com o mesmo padrão de nome e ajuste `data-frames` no `<canvas>` do `index.html`:
 
 ```bash
-ffmpeg -i video.mp4 -an -vf "fps=12,scale=1280:-2" -c:v libwebp -quality 72 public/frames/frame-%04d.webp
+ffmpeg -i video.mp4 -an -vf fps=12 -c:v libwebp -quality 92 public/frames/frame-%04d.webp
 ```

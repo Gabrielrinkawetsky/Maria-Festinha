@@ -244,7 +244,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .hero-veil {
   /* clareia o lado do texto para manter a leitura */
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: linear-gradient(90deg, rgba(251,248,255,.82) 0%, rgba(251,248,255,.55) 38%, rgba(251,248,255,0) 65%);
+  background: linear-gradient(90deg, rgba(251,248,255,.6) 0%, rgba(251,248,255,.3) 30%, rgba(251,248,255,0) 50%);
 }
 .hero-inner { flex: 1; display: flex; align-items: center; }
 .hero-copy { max-width: 560px; padding-left: 40px; }
@@ -585,7 +585,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   .steps::before { display: none; }
 
   .hero-copy { padding-left: 0; }
-  .hero-veil { background: linear-gradient(180deg, rgba(251,248,255,.7) 0%, rgba(251,248,255,.35) 60%, rgba(251,248,255,0) 100%); }
+  .hero-veil { background: linear-gradient(180deg, rgba(251,248,255,.55) 0%, rgba(251,248,255,.2) 50%, rgba(251,248,255,0) 75%); }
   .testimonial-card { flex-direction: column; align-items: center; text-align: center; }
   .stars { justify-content: center; }
 }
