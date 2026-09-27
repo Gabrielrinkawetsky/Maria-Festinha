@@ -183,12 +183,6 @@
   nav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', closeMenu); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
 
-  /* ---------- Cabeçalho ao rolar ---------- */
-  var header = document.querySelector('.site-header');
-  function onScroll() { header.classList.toggle('scrolled', window.scrollY > 20); }
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
-
   /* ---------- Animação de entrada ---------- */
   function done(el) {
     // devolve o elemento ao CSS normal (hover dos cards volta a funcionar)
