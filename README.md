@@ -10,7 +10,7 @@ Site estático (HTML + CSS + JS puro), sem dependências. Basta abrir `index.htm
 index.html      → página completa
 css/style.css   → todo o visual (lilás e dourado)
 js/main.js      → brilhos dourados, menu mobile, animações e formulário → WhatsApp
-img/logo.png    → (coloque aqui o logo)
+img/logo.webp   → logo (cabeçalho e rodapé); img/favicon.png e apple-touch-icon.png → ícones da aba
 img/fotos/      → (coloque aqui as fotos reais)
 public/frames/  → 120 frames WebP (1920×1080) da animação do hero
 ```
@@ -21,7 +21,6 @@ Cada espaço de foto já aponta para um arquivo. Basta salvar a foto em `img/fot
 
 | Seção | Arquivo | Formato sugerido |
 |---|---|---|
-| Logo (cabeçalho e rodapé) | `img/logo.png` | quadrado, 300×300 |
 | Serviços — Decoração | `img/fotos/servico-decoracao.jpg` | 1200×750 (16:10) |
 | Serviços — Recreação | `img/fotos/servico-recreacao.jpg` | 1200×750 |
 | Serviços — Casamentos | `img/fotos/servico-casamentos.jpg` | 1200×750 |
