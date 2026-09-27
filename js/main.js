@@ -41,6 +41,7 @@
   function splitChars(el) {
     if (el.dataset.split) return el.querySelectorAll('.fold-char');
     el.dataset.split = '1';
+    el.classList.add('is-split');
     el.setAttribute('aria-label', el.textContent.replace(/\s+/g, ' ').trim());
     var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
     var nodes = [];
@@ -208,7 +209,7 @@
          (orçamento) entra e fica um trecho parado antes de liberar a página.
          Rolar para cima reverte tudo. */
       document.documentElement.classList.add('hero-seq');
-      gsap.fromTo(splitChars(hero.querySelector('[data-panel="1"] .hero-title')), foldFrom, foldTo({ delay: 0.3 }));
+      gsap.fromTo(splitChars(hero.querySelector('[data-panel="1"] .hero-title')), foldFrom, foldTo({ delay: 0.3, clearProps: 'transform,filter' }));
       var parts = function (n) {
         var p = '[data-panel="' + n + '"] ';
         return hero.querySelectorAll(p + '.hero-title > span, ' + p + '.hero-title ~ *');
@@ -335,7 +336,8 @@
       '.service-card h3, .celebration-card h3, .venue-card h3, .steps h3, .site-footer h4'
     ).forEach(function (el) {
       gsap.fromTo(splitChars(el), foldFrom, foldTo({
-        scrollTrigger: { trigger: el, start: 'top 90%', toggleActions: 'play none none none' }
+        scrollTrigger: { trigger: el, start: 'top 90%', toggleActions: 'play none none none' },
+        clearProps: 'transform,filter'
       }));
     });
   }
