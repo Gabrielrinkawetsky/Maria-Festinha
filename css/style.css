@@ -157,6 +157,12 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   width: calc(100% - 24px); /* folga nas laterais também no celular */
   max-width: calc(var(--container) - 48px);
 }
+/* No topo da página a barra fica transparente sobre o vídeo; ao rolar, volta o fundo branco */
+.header-bar { transition: background-color .4s ease, border-color .4s ease, box-shadow .4s ease, backdrop-filter .4s ease; }
+.site-header.at-top .header-bar {
+  background: transparent; border-color: transparent; box-shadow: none;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
 
 .brand { display: inline-flex; align-items: center; }
 .brand-logo {

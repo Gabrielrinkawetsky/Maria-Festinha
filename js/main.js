@@ -189,6 +189,12 @@
     resize();
   })();
 
+  /* ---------- Cabeçalho transparente no topo ---------- */
+  var header = document.querySelector('.site-header');
+  function onScroll() { header.classList.toggle('at-top', window.scrollY < 40); }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
   /* ---------- Menu mobile ---------- */
   var toggle = document.querySelector('.menu-toggle');
   var nav = document.getElementById('menu');
