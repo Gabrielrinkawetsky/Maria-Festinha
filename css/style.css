@@ -387,6 +387,16 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .service-card p { font-size: 13.5px; color: var(--text); max-width: 280px; margin-bottom: 18px; }
 .service-card .btn { margin-top: auto; }
 
+/* Balão dourado de Celebrações: invisível até o GSAP animar (decorativo) */
+.balloon {
+  position: absolute; z-index: 3; pointer-events: none;
+  width: 64px; height: auto;
+  left: max(12px, calc((100% - 1180px) / 2 - 80px)); bottom: 20px;
+  opacity: 0; visibility: hidden;
+  filter: drop-shadow(0 10px 14px rgba(154, 111, 36, .25));
+  will-change: transform, opacity;
+}
+
 /* Celebrações */
 .celebration-card .celebration-body {
   text-align: center; padding: 18px 16px 20px;
@@ -672,6 +682,8 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 @media (max-width: 640px) {
   /* Fotos dos painéis 1 e 2 do hero, trocam junto com o texto */
   .hero-photo { display: block; margin: 18px 0 0; height: clamp(130px, 28svh, 240px); }
+
+  .balloon { width: 42px; left: 4px; }
 
   /* Cards em carrossel horizontal com snap: menos rolagem, próximo card aparecendo */
   .grid-3, .grid-4 {

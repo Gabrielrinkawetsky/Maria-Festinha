@@ -259,6 +259,25 @@
     });
   }
 
+  /* ---------- Balão dourado em Celebrações ----------
+     Aparece aos poucos embaixo, sobe em zigue-zague acompanhando o scroll e
+     some perto do topo da seção. scrub: rolar para cima traz o balão de volta. */
+  var balloon = document.querySelector('.balloon');
+  if (balloon && gsap && ST && !reduceMotion) {
+    var sec = balloon.parentElement;
+    var rise = function (f) { return function () { return -sec.offsetHeight * f; }; };
+    var step = { duration: 1, ease: 'sine.inOut' };
+    gsap.timeline({
+      scrollTrigger: { trigger: sec, start: 'top 75%', end: 'bottom 35%', scrub: 1.2, invalidateOnRefresh: true }
+    })
+      .fromTo(balloon, { autoAlpha: 0, y: 60, x: 0, rotation: -4 },
+        { autoAlpha: 1, y: rise(0.14), x: 30, rotation: 5, duration: 1, ease: 'sine.out' })
+      .to(balloon, Object.assign({ y: rise(0.32), x: -4, rotation: -5 }, step))
+      .to(balloon, Object.assign({ y: rise(0.5), x: 34, rotation: 5 }, step))
+      .to(balloon, Object.assign({ y: rise(0.68), x: 0, rotation: -4 }, step))
+      .to(balloon, Object.assign({ y: rise(0.86), x: 28, rotation: 4, autoAlpha: 0 }, step));
+  }
+
   /* ---------- Brilhos só animam quando a seção está na tela ---------- */
   if (ST) {
     document.querySelectorAll('.sparkle-field').forEach(function (field) {
