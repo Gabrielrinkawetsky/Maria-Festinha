@@ -41,6 +41,12 @@
 
 html { scroll-behavior: smooth; scroll-padding-top: 96px; }
 
+/* Lenis (scroll suave) */
+html.lenis, html.lenis body { height: auto; }
+html.lenis { scroll-behavior: auto; }
+.lenis:not(.lenis-autoToggle).lenis-stopped { overflow: clip; }
+.lenis.lenis-smooth iframe { pointer-events: none; }
+
 body {
   margin: 0;
   font-family: var(--sans);
@@ -196,7 +202,9 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 /* ---------- Brilhos / confete ---------- */
 .sparkle-field {
   position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0;
+  contain: layout paint;
 }
+.sparkle-field.off .sparkle { animation-play-state: paused; }
 .sparkle {
   position: absolute; display: block; border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #fff7dc 0%, #e7c26a 45%, #b98a33 100%);
@@ -307,7 +315,6 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .card {
   position: relative;
   background: var(--card-bg);
-  backdrop-filter: blur(6px);
   border-radius: var(--radius);
   border: 1px solid var(--card-border);
   box-shadow: var(--shadow-card);
@@ -538,7 +545,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 
 /* ---------- Animação de entrada ---------- */
 .reveal { opacity: 0; transform: translateY(24px); transition: opacity .8s ease, transform .8s ease; }
-.reveal.visible { opacity: 1; transform: none; }
+.gsap-on .reveal { transition: none; } /* GSAP anima as entradas */
 .no-js .reveal { opacity: 1; transform: none; }
 
 @media (prefers-reduced-motion: reduce) {

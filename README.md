@@ -64,3 +64,12 @@ O fundo do hero é o vídeo `HEROV1.mp4` convertido em 120 frames WebP (12 fps, 
 ```bash
 ffmpeg -i video.mp4 -an -vf fps=12 -c:v libwebp -quality 92 public/frames/frame-%04d.webp
 ```
+
+## Scroll suave
+
+Lenis 1.3.26 + GSAP 3.15 / ScrollTrigger, salvos em `js/vendor/` (sem depender de CDN).
+
+- O ticker do GSAP comanda o Lenis, e cada passo do Lenis atualiza o ScrollTrigger: animação do hero e entradas das seções andam no mesmo frame do scroll.
+- Intensidade da inércia: `lerp` em `js/main.js` (0.09; menor = mais macio, maior = mais responsivo).
+- No toque (celular) o scroll é o nativo do aparelho. Com “reduzir movimento” ativado no sistema, o Lenis não é ligado.
+- Links do menu deslizam até a seção respeitando a altura do cabeçalho (`scroll-padding-top`).

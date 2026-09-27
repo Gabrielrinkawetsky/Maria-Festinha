@@ -6,6 +6,31 @@
   var WHATSAPP = '5512991674881';
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* ---------- Scroll suave: Lenis + GSAP ScrollTrigger ----------
+     Lenis move o scroll nativo da janela com inércia; o ticker do GSAP
+     comanda o raf do Lenis, e cada passo do Lenis atualiza o ScrollTrigger,
+     então tudo anda no mesmo frame. No toque (celular) o scroll é o nativo. */
+  var gsap = window.gsap;
+  var ST = window.ScrollTrigger;
+  var lenis = null;
+  if (gsap && ST) {
+    gsap.registerPlugin(ST);
+    ST.config({ ignoreMobileResize: true });
+    document.documentElement.classList.add('gsap-on');
+    if (window.Lenis && !reduceMotion) {
+      lenis = new window.Lenis({
+        lerp: 0.09,           // inércia: menor = mais macio, maior = mais responsivo
+        smoothWheel: true,
+        wheelMultiplier: 1,
+        anchors: true,        // links #secao deslizam (respeita scroll-padding-top)
+        autoRaf: false
+      });
+      lenis.on('scroll', ST.update);
+      gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
+      gsap.ticker.lagSmoothing(0);
+    }
+  }
+
   /* ---------- Brilhos dourados (confete, corações e bokeh) ---------- */
   var HEART = '<svg viewBox="0 0 32 30"><use href="#heart"/></svg>';
 
@@ -70,18 +95,18 @@
       if (i < 0 || i >= total || frames[i]) return frames[i];
       var img = new Image();
       img.decoding = 'async';
-      img.onload = function () { img.ready = true; if (i === targetFrame()) draw(true); };
       img.src = src(i);
+      // decodifica fora do scroll: o drawImage não trava decodificando o WebP
+      img.decode().then(function () {
+        img.ready = true;
+        if (i === targetFrame()) draw(true);
+      }, function () {});
       frames[i] = img;
       return img;
     }
 
-    function targetFrame() {
-      var range = hero.offsetHeight - window.innerHeight;
-      var p = range > 0 ? (window.scrollY - hero.offsetTop) / range : 0;
-      p = Math.min(1, Math.max(0, p));
-      return Math.round(p * (total - 1));
-    }
+    var progress = 0;
+    function targetFrame() { return Math.round(progress * (total - 1)); }
 
     function resize() {
       var dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -110,7 +135,10 @@
       ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
     }
 
+    // sem GSAP (falha ao carregar): calcula o progresso pelo scroll nativo
     function onScroll() {
+      var range = hero.offsetHeight - window.innerHeight;
+      progress = range > 0 ? Math.min(1, Math.max(0, (window.scrollY - hero.offsetTop) / range)) : 0;
       if (!queued) { queued = true; requestAnimationFrame(function () { draw(false); }); }
     }
 
@@ -122,7 +150,16 @@
     }
 
     for (var i = 0; i < PRELOAD; i++) load(i);
-    window.addEventListener('scroll', onScroll, { passive: true });
+    if (ST) {
+      // desenha no mesmo tick do Lenis/ScrollTrigger: sem atraso entre scroll e frame
+      ST.create({
+        trigger: hero, start: 'top top', end: 'bottom bottom',
+        onUpdate: function (self) { progress = self.progress; draw(false); }
+      });
+    } else {
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    }
     window.addEventListener('resize', resize);
     window.addEventListener('load', function () { setTimeout(loadRest, 300); });
     resize();
@@ -153,23 +190,36 @@
   onScroll();
 
   /* ---------- Animação de entrada ---------- */
-  var items = document.querySelectorAll('.reveal');
-  if ('IntersectionObserver' in window && !reduceMotion) {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          io.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-    items.forEach(function (el, i) {
-      el.style.transitionDelay = ((i % 4) * 0.08) + 's';
-      io.observe(el);
-    });
-  } else {
-    items.forEach(function (el) { el.classList.add('visible'); });
+  function done(el) {
+    // devolve o elemento ao CSS normal (hover dos cards volta a funcionar)
+    el.classList.remove('reveal');
+    el.style.opacity = el.style.transform = el.style.transition = '';
   }
+  if (gsap && ST && !reduceMotion) {
+    var show = function (batch) {
+      gsap.to(batch, {
+        opacity: 1, y: 0, duration: 0.9, ease: 'power3.out', overwrite: true,
+        stagger: Math.min(0.08, 0.4 / batch.length), // lote grande não demora mais que 0,4 s
+        onComplete: function () { batch.forEach(done); }
+      });
+    };
+    // onLeave cobre saltos (link, tecla End) que passam do elemento sem "entrar" nele
+    ST.batch('.reveal', { start: 'top 88%', once: true, onEnter: show, onLeave: show });
+  } else {
+    document.querySelectorAll('.reveal').forEach(done);
+  }
+
+  /* ---------- Brilhos só animam quando a seção está na tela ---------- */
+  if (ST) {
+    document.querySelectorAll('.sparkle-field').forEach(function (field) {
+      ST.create({
+        trigger: field.parentElement, start: 'top bottom', end: 'bottom top',
+        onToggle: function (self) { field.classList.toggle('off', !self.isActive); }
+      });
+    });
+  }
+
+  window.addEventListener('load', function () { if (ST) ST.refresh(); });
 
   /* ---------- Formulário → WhatsApp ---------- */
   var form = document.getElementById('waForm');
