@@ -277,7 +277,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 /* Borda neon dourada (versão em JS puro do "Neon Border"): dois arcos de luz
    percorrem o contorno da foto; o js/main.js monta as camadas e move o --arc */
 .neon { position: absolute; inset: 0; z-index: 2; pointer-events: none; border-radius: inherit;
-  box-shadow: 0 0 60px 10px rgba(204, 145, 73, .22); }  /* aura larga fixa (barata) */
+  box-shadow: 0 0 34px 2px rgba(204, 145, 73, .16); }  /* aura larga fixa (barata) */
 .neon-group { position: absolute; inset: 0; }
 .neon-band, .neon-glow {
   position: absolute; box-sizing: border-box;
