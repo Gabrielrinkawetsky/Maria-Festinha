@@ -211,9 +211,9 @@
 
   /* ---------- Flores desabrochando com o scroll ----------
      Começam fechadas no canto (invisíveis, pequenas e giradas) e se abrem
-     conforme a seção entra na tela: um círculo cresce a partir do canto
-     (clip-path) enquanto o buquê cresce e "desenrola" a rotação. scrub
-     amarra o progresso ao scroll: rolar para cima fecha de novo. */
+     conforme a seção entra na tela: o buquê cresce a partir do canto e
+     "desenrola" a rotação. Sem recorte: só o PNG transparente aparece.
+     scrub amarra o progresso ao scroll: rolar para cima fecha de novo. */
   if (gsap && ST && !reduceMotion) {
     document.querySelectorAll('.bloom').forEach(function (el) {
       var img = el.querySelector('img');
@@ -224,11 +224,11 @@
         scrollTrigger: { trigger: el.parentElement, start: 'top 92%', end: 'center 50%', scrub: 1 }
       })
         .fromTo(el,
-          { clipPath: 'circle(0% at ' + o + ')', scale: 0.3, rotation: -30 * dir, autoAlpha: 0 },
-          { clipPath: 'circle(150% at ' + o + ')', scale: 1, rotation: 0, autoAlpha: 1, ease: 'power2.out', duration: 1 })
+          { scale: 0.2, rotation: -15 * dir, autoAlpha: 0 },
+          { scale: 1, rotation: 0, autoAlpha: 1, ease: 'power2.out', duration: 1 })
         .fromTo(img,
-          { rotation: 40 * dir, scale: 0.75 },
-          { rotation: 0, scale: 1, ease: 'back.out(1.6)', duration: 1 }, 0);
+          { rotation: 20 * dir, scale: 0.8 },
+          { rotation: 0, scale: 1, ease: 'back.out(1.4)', duration: 1 }, 0);
     });
   }
 

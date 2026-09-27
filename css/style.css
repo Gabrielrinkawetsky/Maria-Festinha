@@ -400,8 +400,8 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 }
 .ribbon-promo-l { width: 80px; height: 340px; left: 12%; top: -60px; transform: rotate(-60deg); }
 .ribbon-promo-r { width: 90px; height: 380px; right: 12%; top: -40px; transform: rotate(20deg); }
-.bloom-promo-l { width: 290px; left: -80px; top: 50%; translate: 0 -50%; }
-.bloom-promo-r { width: 290px; right: -80px; top: 50%; translate: 0 -50%; }
+.bloom-promo-l { width: 250px; left: -70px; top: 50%; translate: 0 -50%; }
+.bloom-promo-r { width: 250px; right: -70px; top: 50%; translate: 0 -50%; }
 
 /* Passos */
 .steps {
@@ -433,9 +433,9 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .venue-card p { font-size: 12.5px; color: var(--muted); margin-bottom: 12px; }
 
 /* Avaliações */
-#avaliacoes { overflow: hidden; }
+#avaliacoes { overflow-x: clip; } /* sem corte reto em cima/embaixo das flores */
 .bloom-reviews-l { width: 320px; left: -90px; top: 0; }
-.bloom-reviews-r { width: 320px; right: -90px; bottom: -20px; }
+.bloom-reviews-r { width: 320px; right: -90px; bottom: 0; }
 
 .testimonial-card {
   display: flex; gap: 18px; align-items: flex-start; padding: 26px 24px;
