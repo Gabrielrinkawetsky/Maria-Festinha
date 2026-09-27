@@ -63,6 +63,13 @@
       });
       node.parentNode.replaceChild(frag, node);
     });
+    // um só invólucro: em títulos flex (com as linhas laterais) o texto continua quebrando linha
+    if (getComputedStyle(el).display.indexOf('flex') !== -1) {
+      var inner = document.createElement('span');
+      inner.className = 'fold-inner';
+      while (el.firstChild) inner.appendChild(el.firstChild);
+      el.appendChild(inner);
+    }
     return el.querySelectorAll('.fold-char');
   }
 
