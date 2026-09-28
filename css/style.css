@@ -493,6 +493,10 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .75) 0%, rgba(255, 255, 255, 0) 45%);
 }
 .photo-ph svg { width: 64px; height: 64px; color: var(--gold-600); opacity: .85; filter: drop-shadow(0 2px 6px rgba(255, 255, 255, .9)); }
+/* Cortina branca que desce e revela a foto ao entrar na tela (js/main.js).
+   Sem GSAP ou com "reduzir movimento" não aparece. */
+.photo-curtain { position: absolute; inset: 0; z-index: 3; background: #fff; pointer-events: none; }
+html:not(.curtain-on) .photo-curtain { display: none; }
 
 /* Serviços */
 .service-card { display: flex; flex-direction: column; }

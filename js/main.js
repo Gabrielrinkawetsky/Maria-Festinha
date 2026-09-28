@@ -681,6 +681,24 @@
       });
     };
     document.querySelectorAll('.reveal').forEach(function (el) { whenSeen(el, show); });
+
+    // cortina branca das fotos de serviços: desce e sai por baixo, revelando a foto.
+    // IntersectionObserver (e não whenSeen): no celular os cards viram carrossel
+    // horizontal e cada foto só deve abrir quando é arrastada para a tela.
+    if ('IntersectionObserver' in window) {
+      document.documentElement.classList.add('curtain-on');
+      var curtainIO = new IntersectionObserver(function (entries) {
+        var n = 0;
+        entries.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          curtainIO.unobserve(e.target);
+          gsap.to(e.target.querySelector('.photo-curtain'), {
+            yPercent: 100, duration: 0.7, delay: 0.1 + Math.min(n++ * 0.08, 0.3), ease: 'power3.inOut'
+          });
+        });
+      }, { threshold: 0.35 });
+      document.querySelectorAll('.photo-curtain').forEach(function (c) { curtainIO.observe(c.parentElement); });
+    }
   } else {
     document.querySelectorAll('.reveal').forEach(done);
   }
