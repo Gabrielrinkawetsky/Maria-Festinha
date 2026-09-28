@@ -397,7 +397,10 @@
     for (var i = 0; i < PRELOAD; i++) load(i);
 
     // desenha no mesmo tick do Lenis/ScrollTrigger: sem atraso entre scroll e frame
-    function onUpdate(self) { setProgress(self.progress); }
+    // mapa do painel final: só carrega quando a sequência se aproxima dele
+    var mapFrame = hero.querySelector('.hero-map iframe');
+    function loadMap() { if (mapFrame && !mapFrame.src) mapFrame.src = mapFrame.getAttribute('data-src'); }
+    function onUpdate(self) { setProgress(self.progress); if (self.progress > 0.4) loadMap(); }
 
     if (gsap && ST && !reduceMotion) {
       /* Sequência narrativa: o hero fica fixo (pin) e o scroll (scrub) conduz
@@ -407,7 +410,8 @@
       document.documentElement.classList.add('hero-seq');
       var neon1 = buildNeon(hero.querySelector('[data-panel="1"] .hero-photo'));
       var neon2 = buildNeon(hero.querySelector('[data-panel="2"] .hero-photo'));
-      runNeons([neon1, neon2]);
+      var neon3 = buildNeon(hero.querySelector('.hero-map'));
+      runNeons([neon1, neon2, neon3]);
       gsap.fromTo(splitChars(hero.querySelector('[data-panel="1"] .hero-title')), foldFrom, foldTo({ delay: 0.3, clearProps: 'transform,filter' }));
       var parts = function (n) {
         var p = '[data-panel="' + n + '"] ';
@@ -442,11 +446,16 @@
         .fromTo(neon2.el, { opacity: 0 }, { opacity: 1, duration: 1.3, ease: 'power2.in' }, 3.0)
         .to(neon2.el, { opacity: 0, duration: 0.8, ease: 'power2.in' }, 5.1)
         .fromTo(parts(3), from, into, 6.5)
+        // mapa do painel final: mesmo zoom de entrada e neon das fotos
+        .fromTo('.hero-map iframe', { scale: 1.18 }, { scale: 1, duration: 1.5, ease: 'power2.out' }, 6.5)
+        .fromTo(neon3.el, { opacity: 0 }, { opacity: 1, duration: 1.3, ease: 'power2.in' }, 6.8)
         .fromTo(splitChars(hero.querySelector('[data-panel="3"] .hero-title')), foldFrom, foldTo({ duration: 0.6, stagger: 0.03 }), 6.55)
         .to({}, { duration: 1.6 });   // orçamento todo visível antes de soltar a página
     } else if (ST) {
+      loadMap();   // sem a sequência, o painel final aparece desde o início
       ST.create({ trigger: hero, start: 'top top', end: 'bottom bottom', onUpdate: onUpdate });
     } else {
+      loadMap();
       window.addEventListener('scroll', onScroll, { passive: true });
       onScroll();
     }

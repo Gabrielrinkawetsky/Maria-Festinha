@@ -288,6 +288,36 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 }
 .neon-band { background: var(--arc); }
 .neon-on .hero-photo-frame { outline: none; }  /* o neon vira a moldura */
+
+/* Mapa do último painel do hero (Google Maps incorporado) */
+.hero-map iframe { display: block; width: 100%; height: 100%; border: 0; filter: saturate(.85) contrast(.97); will-change: transform; }
+.hero-map .hero-photo-frame { background: #efe7fb; }
+@media (min-width: 1081px) { .hero-photo.hero-map { left: 545px; } }  /* botões do painel final são mais largos que o texto das fotos */
+.hero-map .hero-photo-frame::after {
+  /* véu lilás leve para o mapa conversar com a paleta; não bloqueia o mapa */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(201, 178, 236, .16), rgba(154, 125, 208, .12));
+  mix-blend-mode: multiply;
+}
+.map-chip {
+  position: absolute; left: 14px; bottom: 14px; right: 14px; z-index: 2;
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px 9px 12px; border-radius: 16px;
+  background: rgba(255, 255, 255, .78);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(212, 169, 79, .5);
+  box-shadow: 0 8px 22px -12px rgba(74, 58, 107, .5);
+  color: var(--plum); font-size: 12.5px; line-height: 1.3;
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.map-chip:hover { transform: translateY(-2px); box-shadow: 0 12px 26px -12px rgba(74, 58, 107, .6); }
+.map-chip svg { width: 22px; height: 22px; color: var(--gold-600); flex-shrink: 0; }
+.map-chip span { flex: 1; }
+.map-chip strong { display: block; font-family: var(--serif); font-size: 16px; font-weight: 600; }
+.map-chip em {
+  font-style: normal; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: #5a3f12; background: var(--gold-grad); padding: 8px 14px; border-radius: 999px; white-space: nowrap;
+}
 .hero-panel { position: relative; }
 @media (min-width: 1081px) {
   .hero-photo {
@@ -714,6 +744,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 
   /* Fotos dos painéis 1 e 2 do hero, trocam junto com o texto */
   .hero-photo { display: block; margin: 18px 0 0; height: clamp(130px, 28svh, 240px); }
+  .hero-map { display: none; }  /* celular: o painel final já ocupa a tela; mapa só no computador */
 
   .balloon { width: 42px; left: 4px; }
 
