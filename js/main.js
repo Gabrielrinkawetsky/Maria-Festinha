@@ -130,7 +130,7 @@
      a canto; cada arco é um conic-gradient recalculado a cada quadro (--arc)
      numa faixa recortada por máscara, mais 3 camadas de brilho desfocado.
      A opacidade do .neon é controlada pela timeline do hero (some na troca). */
-  var NEON = { color: '#CC9149', thickness: 2.5, borderSize: 50, glow: 100, speed: 18 };  // 16 -> 18: volta em ~6,7 s (antes ~9,5 s)  // espessura 6 -> 2.5: linha mais fina
+  var NEON = { color: '#CC9149', thickness: 2.5, borderSize: 50, glow: 100, speed: 18 };  // linha 2.5px (mais fina); velocidade 18: volta em ~6,7 s
   // A 3ª camada do original (desfoque de 57px, 18%) repintada a cada quadro
   // custava ~35 ms/quadro; virou a aura fixa .neon (box-shadow no CSS).
   var NEON_GLOW = [
