@@ -401,10 +401,13 @@
 
     // desenha no mesmo tick do Lenis/ScrollTrigger: sem atraso entre scroll e frame
     // mapa do painel final: só carrega quando a sequência se aproxima dele
-    // Google Maps real só no computador com mouse. No toque (celular/tablet) o iframe
-    // atrapalhava o layout no iPhone; fica o mapa ilustrado, e tocar abre o Google Maps.
+    // Google Maps real em todo computador (inclusive notebook com tela touch ou zoom).
+    // Em iPhone/iPad/Android o iframe atrapalhava o layout; fica o mapa ilustrado,
+    // e tocar nele abre o Google Maps.
     var mapFrame = hero.querySelector('.hero-map iframe');
-    if (mapFrame && !window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 1024px)').matches) {
+    var handheld = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);   // iPad se identifica como Mac
+    if (mapFrame && handheld) {
       mapFrame.remove(); mapFrame = null;
     }
     function loadMap() {
