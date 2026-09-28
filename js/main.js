@@ -463,7 +463,6 @@
     }
     function loadMap() {
       if (!mapFrame || mapFrame.src) return;
-      mapFrame.addEventListener('load', function () { if (ST) ST.refresh(); });
       mapFrame.src = mapFrame.getAttribute('data-src');
     }
     function onUpdate(self) { setProgress(self.progress); if (self.progress > 0.4) loadMap(); }
