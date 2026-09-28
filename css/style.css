@@ -39,7 +39,7 @@
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
 
-html { scroll-behavior: smooth; scroll-padding-top: 108px; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 108px; }
 
 /* Lenis (scroll suave) */
 html.lenis, html.lenis body { height: auto; }
@@ -292,7 +292,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 /* Mapa do último painel do hero (Google Maps incorporado) */
 .hero-map iframe { display: block; width: 100%; height: 100%; border: 0; filter: saturate(.85) contrast(.97); will-change: transform; }
 .hero-map .hero-photo-frame { background: #efe7fb; }
-@media (min-width: 1081px) { .hero-photo.hero-map { left: 545px; } }  /* botões do painel final são mais largos que o texto das fotos */
+@media (min-width: 1024px) { .hero-photo.hero-map { left: 545px; } }  /* botões do painel final são mais largos que o texto das fotos */
 .hero-map .hero-photo-frame::after {
   /* véu lilás leve para o mapa conversar com a paleta; não bloqueia o mapa */
   content: ""; position: absolute; inset: 0; pointer-events: none;
@@ -321,7 +321,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   color: #5a3f12; background: var(--gold-grad); padding: 8px 14px; border-radius: 999px; white-space: nowrap;
 }
 .hero-panel { position: relative; }
-@media (min-width: 1081px) {
+@media (min-width: 1024px) {
   .hero-photo {
     display: block; position: absolute; left: 510px; top: -30px;  /* texto termina em ~470px */
     width: clamp(380px, 30vw, 560px); aspect-ratio: 16 / 10;
@@ -521,6 +521,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 
 /* Avaliações */
 #avaliacoes { overflow-x: clip; } /* sem corte reto em cima/embaixo das flores */
+@supports not (overflow: clip) { #avaliacoes { overflow: hidden; } }  /* iOS < 16: evita rolagem lateral */
 .bloom-reviews-l { width: 320px; left: -90px; top: 0; }
 .bloom-reviews-r { width: 320px; right: -90px; bottom: 0; }
 
@@ -731,6 +732,25 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 /* =========================================================
    Celular: ajustes finos (carrosséis, toque, hero em telas baixas)
    ========================================================= */
+/* Hero em coluna (celular e tablet em pé, até 1023px): o conteúdo ocupa só a altura
+   entre o cabeçalho e a barra de baixo; fotos e mapa ficam abaixo do texto e encolhem
+   para caber (fontes maiores, barra do navegador visível etc.) sem invadir a barra. */
+@media (max-width: 1023px) {
+  .hero-inner { align-items: stretch; min-height: 0; }
+  .hero-copy { display: flex; flex-direction: column; justify-content: center; min-height: 0; width: 100%; }
+  .hero-stage { flex: 0 1 auto; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+  .hero-seq .hero-panel, .hero-stage .hero-panel--final { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+  .hero-photo { display: block; margin: 22px 0 8px; flex: 0 1 340px; min-height: 96px; }
+  .hero-panel--final .hero-title { order: 1; }
+  .hero-panel--final .hero-sub { order: 2; }
+  .hero-panel--final .hero-map { order: 3; }
+  .hero-panel--final .hero-actions { order: 4; }
+  .hero-panel--final .hero-badge { order: 5; }
+  .hero-map { margin: 16px 0 18px; flex: 0 1 280px; min-height: 88px; }
+  .hero-map iframe { pointer-events: none; }   /* toque rola a página; tocar abre o Google Maps */
+  .map-open { display: block; }
+}
+
 @media (max-width: 640px) {
   /* Cabeçalho do celular: menu à esquerda, botão de orçamento à direita, sem logo */
   .header-bar .brand { display: none; }
@@ -745,23 +765,9 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   .sparkle.heart svg { filter: none; }
 
   /* Fotos dos painéis 1 e 2 do hero, trocam junto com o texto */
-  /* Hero no celular: o conteúdo ocupa só a altura que existe entre o cabeçalho e a barra
-     de baixo. Fotos e mapa são flexíveis e encolhem para caber (com fontes maiores, barra
-     do navegador visível etc.), em vez de terem altura fixa e invadirem a barra de baixo. */
-  .hero-inner { align-items: stretch; min-height: 0; }
-  .hero-copy { display: flex; flex-direction: column; justify-content: center; min-height: 0; width: 100%; }
-  .hero-stage { flex: 0 1 auto; min-height: 0; grid-template-rows: minmax(0, 1fr); }
-  .hero-seq .hero-panel, .hero-stage .hero-panel--final { display: flex; flex-direction: column; height: 100%; min-height: 0; }
-  .hero-photo { display: block; margin: 16px 0 6px; flex: 0 1 240px; min-height: 96px; }
-  /* Painel final no celular: título, texto, mapa, botões lado a lado, selo */
-  .hero-panel--final .hero-title { order: 1; }
-  .hero-panel--final .hero-sub { order: 2; }
-  .hero-panel--final .hero-map { order: 3; }
-  .hero-panel--final .hero-actions { order: 4; }
-  .hero-panel--final .hero-badge { order: 5; }
-  .hero-map { margin: 12px 0 14px; flex: 0 1 190px; min-height: 88px; }
-  .hero-map iframe { pointer-events: none; }
-  .map-open { display: block; }
+  /* Hero no celular: medidas menores (a estrutura em coluna está no bloco <= 1023px) */
+  .hero-photo { margin: 16px 0 6px; flex-basis: 240px; min-height: 96px; }
+  .hero-map { margin: 12px 0 14px; flex-basis: 190px; min-height: 88px; }
   .map-chip { left: 8px; right: 8px; bottom: 8px; padding: 6px 6px 6px 9px; gap: 7px; font-size: 11px; border-radius: 12px; }
   .map-chip svg { width: 18px; height: 18px; }
   .map-chip strong { font-size: 13.5px; }
@@ -835,7 +841,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 
 /* Texto dobrando (FoldText): letras separadas pelo js/main.js */
 .fold-word { display: inline-block; white-space: nowrap; }
-.fold-char { display: inline-block; transform-origin: 50% 0%; backface-visibility: hidden; }
+.fold-char { display: inline-block; transform-origin: 50% 0%; }
 /* Degradê com background-clip: text quebra quando as letras giram em 3D
    (aparece um bloco dourado). Com o texto separado, o dourado vira cor sólida
    com brilho claro em cima, que imita o degradê. */
@@ -852,4 +858,25 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   .hero-map { margin: 8px 0 10px; min-height: 80px; }
   .map-chip small { display: none; }            /* selo em uma linha: sobra mapa à vista */
   .map-chip strong { white-space: nowrap; }
+}
+
+/* Celular deitado (tela baixa): hero compacto só com texto e botões */
+@media (orientation: landscape) and (max-height: 500px) {
+  .hero-sticky { padding: 72px 0 calc(8px + var(--bar)); }
+  .hero-photo { display: none !important; }
+  .eyebrow, .hero-badge { display: none; }
+  .hero-copy { max-width: 620px; padding-left: 0; }
+  .h1-lilac { font-size: 30px; }
+  .h1-gold { font-size: 32px; }
+  .hero-title { margin-bottom: 8px; }
+  .hero-sub { font-size: 13px; line-height: 1.45; margin-bottom: 10px; }
+  .hero-actions { margin-bottom: 0; gap: 8px; }
+  .hero-actions .btn { padding: 10px 18px; min-height: 40px; }
+  .hero-panel--final .hero-actions .btn { flex: 0 0 auto; font-size: 11px; }
+  .feature-bar { grid-template-columns: repeat(4, 1fr); padding: 6px 4px; margin-top: 8px; }
+  .feature-bar li { padding: 2px 8px; gap: 8px; flex-direction: row; }
+  .feature-bar li:nth-child(3) { border-left: 1px solid rgba(212, 169, 79, .35); }
+  .feature-bar div > span { display: none; }
+  .feature-bar .gold-icon { width: 22px; height: 22px; }
+  .feature-bar strong { font-family: var(--sans); font-size: 12px; font-weight: 600; }
 }

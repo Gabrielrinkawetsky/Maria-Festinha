@@ -269,7 +269,8 @@
     if (!canvas) return;
 
     // no celular em pé só a faixa central do vídeo aparece: usa os frames recortados
-    var mobile = window.matchMedia('(max-width: 640px)').matches;
+    // celular em pé ou deitado (tela baixa): frames leves
+    var mobile = window.matchMedia('(max-width: 640px), (orientation: landscape) and (max-height: 500px)').matches;
     var total = parseInt(canvas.getAttribute(mobile ? 'data-frames-m' : 'data-frames'), 10);
     var base = canvas.getAttribute(mobile ? 'data-src-m' : 'data-src');
     // canvas opaco (sem mistura com o fundo) e sem esperar o compositor: desenho mais barato
@@ -302,7 +303,9 @@
       img.decoding = 'async';
       img.src = src(i);
       // decodifica antes de usar: o drawImage não trava decodificando o WebP
-      img.decode().then(function () { img.ready = true; dirty = true; kick(); }, function () {});
+      var done = function () { if (img.ready) return; img.ready = true; dirty = true; kick(); };
+      // decode() às vezes rejeita no Safari/iOS; nesse caso usa o load normal
+      img.decode().then(done, function () { if (img.complete && img.naturalWidth) done(); else img.onload = done; });
       frames[i] = img;
     }
 
