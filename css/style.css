@@ -139,6 +139,46 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 }
 .btn-outline:hover { background: #fff; border-color: var(--gold-400); }
 
+/* ---------- Botão especular (brilho que segue o mouse na borda) ---------- */
+.btn-specular {
+  position: relative;
+  isolation: isolate;
+}
+.btn-specular::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(from var(--spec-angle, 0deg),
+    transparent 0deg,
+    rgba(255, 255, 255, .95) var(--spec-size, 10deg),
+    transparent calc(var(--spec-size, 10deg) * 2 + var(--spec-fade, 40deg)));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: var(--spec-op, 0);
+  transition: opacity .35s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+.btn-specular::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(160px 160px at var(--spec-x, 50%) var(--spec-y, 50%),
+    rgba(255, 255, 255, .35), transparent 70%);
+  opacity: var(--spec-op, 0);
+  transition: opacity .35s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+  .btn-specular::before, .btn-specular::after { display: none; }
+}
+
 .btn-light {
   color: var(--lilac-700);
   background: #fff;

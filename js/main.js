@@ -795,6 +795,41 @@
     window.open('https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
   });
 
+  /* ---------- Botão especular: brilho na borda que segue o mouse ----------
+     Baseado num componente React (SpecularButton); aqui só o efeito visual,
+     recriado em CSS vars + mousemove. Some fora de um raio de 250px do botão
+     e em toque/"reduzir movimento" (fica só a borda normal do btn-outline). */
+  (function () {
+    if (reduceMotion) return;
+    var els = document.querySelectorAll('.btn-specular');
+    if (!els.length || matchMedia('(pointer: coarse)').matches) return;
+
+    var PROXIMITY = 250;
+    var raf = null, mx = 0, my = 0;
+
+    function update() {
+      raf = null;
+      els.forEach(function (el) {
+        var r = el.getBoundingClientRect();
+        var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        var dist = Math.hypot(mx - cx, my - cy);
+        if (dist > PROXIMITY) { el.style.setProperty('--spec-op', 0); return; }
+        var px = ((mx - r.left) / r.width) * 100;
+        var py = ((my - r.top) / r.height) * 100;
+        var angle = Math.atan2(my - cy, mx - cx) * 180 / Math.PI + 90;
+        el.style.setProperty('--spec-angle', angle + 'deg');
+        el.style.setProperty('--spec-x', px + '%');
+        el.style.setProperty('--spec-y', py + '%');
+        el.style.setProperty('--spec-op', 1 - dist / PROXIMITY);
+      });
+    }
+
+    window.addEventListener('mousemove', function (e) {
+      mx = e.clientX; my = e.clientY;
+      if (!raf) raf = requestAnimationFrame(update);
+    }, { passive: true });
+  })();
+
   /* ---------- Ano no rodapé ---------- */
   document.getElementById('year').textContent = new Date().getFullYear();
 })();
