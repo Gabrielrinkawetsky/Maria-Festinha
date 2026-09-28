@@ -787,11 +787,9 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   }
   .menu-toggle { order: -1; margin-left: 0; }
   .header-cta { display: inline-flex; margin-left: auto; padding: 10px 18px; min-height: 44px; }
-  .header-cta::after { display: none; }  /* sem o reflexo espelhado neste botão solto */
 
   /* Leveza no celular: primeiro frame recortado, menos desfoque ao vivo, brilhos sem halo */
   .hero-sticky { background-image: url("../public/frames-m/frame-0001.webp"); }
-  .header-bar { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
   .feature-bar { backdrop-filter: none; background: rgba(255, 255, 255, .92); }
   .sparkle { box-shadow: none; }
   .sparkle.heart svg { filter: none; }
