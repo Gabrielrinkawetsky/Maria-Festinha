@@ -93,6 +93,7 @@
 
   function splitChars(el) {
     if (el.dataset.split) return el.querySelectorAll('.fold-char');
+    el._foldHTML = el.innerHTML;
     el.dataset.split = '1';
     el.classList.add('is-split');
     el.setAttribute('aria-label', el.textContent.replace(/\s+/g, ' ').trim());
@@ -125,6 +126,16 @@
       el.appendChild(inner);
     }
     return el.querySelectorAll('.fold-char');
+  }
+
+  // depois da dobra, devolve o texto original: letras soltas perdem o kerning da fonte
+  function unsplit(el) {
+    if (!el._foldHTML) return;
+    el.innerHTML = el._foldHTML;
+    el._foldHTML = null;
+    el.classList.remove('is-split');
+    el.removeAttribute('data-split');
+    el.removeAttribute('aria-label');
   }
 
   var foldFrom = { rotationX: -90, transformPerspective: FOLD.perspective, autoAlpha: 0, filter: 'brightness(' + (1 - FOLD.crease) + ')' };
@@ -477,6 +488,7 @@
       var neon2 = buildNeon(hero.querySelector('[data-panel="2"] .hero-photo'));
       var neon3 = buildNeon(hero.querySelector('.hero-map'));
       runNeons([neon1, neon2, neon3]);
+      // (títulos da Hero continuam separados: a sequência de rolagem anima as linhas deles)
       gsap.fromTo(splitChars(hero.querySelector('[data-panel="1"] .hero-title')), foldFrom, foldTo({ delay: 0.3, clearProps: 'transform,filter' }));
       var parts = function (n) {
         var p = '[data-panel="' + n + '"] ';
@@ -668,13 +680,14 @@
       document.querySelectorAll(sel).forEach(function (el) { list.push.apply(list, splitChars(el)); });
       return list;
     };
+    var unsplitAll = function (sel) { return function () { document.querySelectorAll(sel).forEach(unsplit); }; };
     gsap.fromTo(document.querySelectorAll('.header-bar .brand-logo, .menu-toggle'),
       { autoAlpha: 0, scale: 0.6, rotation: -12, transition: 'none' },   // sem a transição de hover do CSS no meio
       { autoAlpha: 1, scale: 1, rotation: 0, duration: 0.8, delay: 0.25, ease: 'back.out(1.7)', clearProps: 'transform,transition' });
     gsap.fromTo(charsOf('.main-nav a, .header-cta'), foldFrom,
-      foldTo({ delay: 0.3, stagger: 0.012, clearProps: 'transform,filter' }));
-    gsap.fromTo(charsOf('.feature-bar strong, .feature-bar span'), foldFrom,
-      foldTo({ delay: 0.7, stagger: 0.012, clearProps: 'transform,filter' }));
+      foldTo({ delay: 0.3, stagger: 0.012, clearProps: 'transform,filter', onComplete: unsplitAll('.main-nav a, .header-cta') }));
+    gsap.fromTo(charsOf('.feature-bar strong, .feature-bar div > span'), foldFrom,
+      foldTo({ delay: 0.7, stagger: 0.012, clearProps: 'transform,filter', onComplete: unsplitAll('.feature-bar strong, .feature-bar div > span') }));
   }
 
   if (foldOn) {
@@ -685,7 +698,7 @@
       var chars = splitChars(el);
       gsap.set(chars, foldFrom);
       whenSeen(el, function (e, delay) {
-        var to = foldTo({ delay: delay, clearProps: 'transform,filter' });
+        var to = foldTo({ delay: delay, clearProps: 'transform,filter', onComplete: function () { unsplit(el); } });
         if (perf.lite) { delete to.filter; gsap.set(chars, { filter: 'none' }); }
         gsap.to(chars, to);
       });
