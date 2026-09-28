@@ -394,6 +394,10 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
     width: clamp(380px, 30vw, 560px); aspect-ratio: 16 / 10;
     border-radius: 28px;
   }
+  /* título limitado a ~470px: em telas mais estreitas (perto de 1024px) o clamp em
+     vw deixa a fonte grande o bastante para o texto encostar na foto; forçando a
+     quebra de linha aqui, o texto nunca chega nela (a foto não muda de lugar) */
+  .hero-title { max-width: 470px; }
 }
 /* Hero presa com position: sticky (CSS), não com pin do GSAP: o pin tira e recoloca a
    Hero no DOM a cada recálculo, o que recarregava o Google Maps e dava saltos no iPhone.
