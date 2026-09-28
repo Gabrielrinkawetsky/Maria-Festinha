@@ -1,0 +1,14 @@
+{
+  "buildCommand": "sed -i \"s/__V__/${VERCEL_GIT_COMMIT_SHA:-dev}/g\" index.html",
+  "outputDirectory": ".",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+    },
+    {
+      "source": "/public/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }]
+    }
+  ]
+}

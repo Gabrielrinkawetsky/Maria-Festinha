@@ -87,3 +87,7 @@ Para regenerar os frames do celular:
 ```bash
 ffmpeg -i video.mp4 -an -vf "fps=6,crop=608:1080:(iw-608)/2:0" -c:v libwebp -quality 92 public/frames-m/frame-%04d.webp
 ```
+
+## Publicação (Vercel) e cache
+
+`vercel.json` troca `__V__` no `index.html` pelo commit publicado (`?v=<commit>` no CSS e no JS), então cada publicação obriga os navegadores a baixar o CSS/JS novos. O HTML, o CSS e o JS são sempre revalidados (`max-age=0, must-revalidate`); os frames em `public/` ficam 1 dia em cache.
