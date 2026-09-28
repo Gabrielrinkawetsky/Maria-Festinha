@@ -623,8 +623,13 @@
      (ou quando já passaram, em saltos por link). Isso lê a posição real de cada
      elemento, sem depender das contas do ScrollTrigger: se elas ficarem erradas
      (no iPhone isso deixava títulos e cards invisíveis), nada some. */
-  var seen = [];
+  var seen = [], seenDirty = false;
   function sweep() {
+    // a lista mistura tipos (cards, títulos...): ordena pela posição no documento para o "stop" valer
+    if (seenDirty) {
+      seenDirty = false;
+      seen.sort(function (a, b) { return a.el === b.el ? 0 : (a.el.compareDocumentPosition(b.el) & 4) ? -1 : 1; });
+    }
     var limit = window.innerHeight * 0.98, far = limit + window.innerHeight * 2, n = 0, stop = false;
     seen = seen.filter(function (it) {
       if (stop) return true;
@@ -642,7 +647,7 @@
     sweepQueued = true;
     requestAnimationFrame(function () { sweepQueued = false; sweep(); });
   }
-  function whenSeen(el, fn) { seen.push({ el: el, fn: fn }); queueSweep(); }
+  function whenSeen(el, fn) { seen.push({ el: el, fn: fn }); seenDirty = true; queueSweep(); }
   window.addEventListener('scroll', queueSweep, { passive: true });
   window.addEventListener('resize', queueSweep);
 
