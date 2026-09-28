@@ -745,15 +745,21 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   .sparkle.heart svg { filter: none; }
 
   /* Fotos dos painéis 1 e 2 do hero, trocam junto com o texto */
-  .hero-photo { display: block; margin: 18px 0 0; height: clamp(130px, 28svh, 240px); }
+  /* Hero no celular: o conteúdo ocupa só a altura que existe entre o cabeçalho e a barra
+     de baixo. Fotos e mapa são flexíveis e encolhem para caber (com fontes maiores, barra
+     do navegador visível etc.), em vez de terem altura fixa e invadirem a barra de baixo. */
+  .hero-inner { align-items: stretch; min-height: 0; }
+  .hero-copy { display: flex; flex-direction: column; justify-content: center; min-height: 0; width: 100%; }
+  .hero-stage { flex: 0 1 auto; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+  .hero-seq .hero-panel, .hero-stage .hero-panel--final { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+  .hero-photo { display: block; margin: 16px 0 6px; flex: 0 1 240px; min-height: 96px; }
   /* Painel final no celular: título, texto, mapa, botões lado a lado, selo */
-  .hero-stage .hero-panel--final { display: flex; flex-direction: column; }
   .hero-panel--final .hero-title { order: 1; }
   .hero-panel--final .hero-sub { order: 2; }
   .hero-panel--final .hero-map { order: 3; }
   .hero-panel--final .hero-actions { order: 4; }
   .hero-panel--final .hero-badge { order: 5; }
-  .hero-map { margin: 14px 0 16px; height: clamp(112px, 21svh, 190px); }
+  .hero-map { margin: 12px 0 14px; flex: 0 1 190px; min-height: 88px; }
   .hero-map iframe { pointer-events: none; }
   .map-open { display: block; }
   .map-chip { left: 8px; right: 8px; bottom: 8px; padding: 6px 6px 6px 9px; gap: 7px; font-size: 11px; border-radius: 12px; }
@@ -843,7 +849,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 /* Celulares bem baixos (ex.: 320×568): com o mapa, o selo "Desde 2014" do painel final não cabe */
 @media (max-width: 640px) and (max-height: 600px) {
   .hero-panel--final .hero-badge { display: none; }
-  .hero-map { height: 104px; margin: 10px 0 12px; }
+  .hero-map { margin: 8px 0 10px; min-height: 80px; }
   .map-chip small { display: none; }            /* selo em uma linha: sobra mapa à vista */
   .map-chip strong { white-space: nowrap; }
 }
