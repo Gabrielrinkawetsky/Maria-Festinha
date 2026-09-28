@@ -351,8 +351,10 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
     border-radius: 28px;
   }
 }
-.hero-seq .hero { height: auto; }                      /* GSAP fixa (pin) o hero no lugar do sticky */
-.hero-seq .hero-sticky { position: relative; }
+/* Hero presa com position: sticky (CSS), não com pin do GSAP: o pin tira e recoloca a
+   Hero no DOM a cada recálculo, o que recarregava o Google Maps e dava saltos no iPhone.
+   Altura = 1 tela + 2,6 telas de rolagem da sequência. */
+.hero-seq .hero { height: 360vh; height: calc(100lvh + 260vh); }
 @supports (height: 100lvh) { .hero-sticky { --bar: calc(100lvh - 100svh); } }
 /* Celular: quando a barra de endereço some ao rolar, a tela cresce (dvh passa de
    svh para lvh). A barra de diferenciais desce deslizando o mesmo tanto e fica

@@ -57,7 +57,7 @@ Nenhum depoimento foi inventado. Os três cards da seção **Avaliações** est�
 
 O fundo do hero é o vídeo `HEROV1.mp4` convertido em 120 frames WebP (12 fps, 1920×1080 — resolução original —, qualidade 92, ~15 MB no total) em `public/frames/frame-0001.webp` … `frame-0120.webp`.
 
-- O hero ocupa a tela inteira e fica fixo (GSAP ScrollTrigger `pin`) por 2,6 alturas de tela (`end: '+=260%'` em `js/main.js`). Nesse trecho, o scroll (`scrub`) avança do primeiro ao último frame do vídeo e conduz a sequência de textos:
+- O hero ocupa a tela inteira e fica fixo por CSS (`position: sticky`) por 2,6 alturas de tela (`.hero-seq .hero { height: calc(100lvh + 260vh) }` em `css/style.css`). O GSAP ScrollTrigger não usa `pin` de propósito: o pin move a Hero no DOM a cada recálculo e isso recarregava o Google Maps. Nesse trecho, o scroll (`scrub`) avança do primeiro ao último frame do vídeo e conduz a sequência de textos:
   1. “Sua Festa. Seu Sonho.”
   2. “Momentos que Encantam.”
   3. “Sua Festa Começa Aqui.” com o botão “Pedir Orçamento” (painel final), que fica um trecho parado antes de a página seguir para “Nossos Serviços”.

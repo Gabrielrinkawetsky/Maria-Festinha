@@ -479,10 +479,10 @@
     function onUpdate(self) { setProgress(self.progress); if (self.progress > 0.4) loadMap(); }
 
     if (gsap && ST && !reduceMotion) {
-      /* Sequência narrativa: o hero fica fixo (pin) e o scroll (scrub) conduz
+      /* Sequência narrativa: o hero fica fixo (sticky) e o scroll (scrub) conduz
          vídeo e textos juntos. Painel 1 sai, painel 2 entra e sai, painel final
          (orçamento) entra e fica um trecho parado antes de liberar a página.
-         Rolar para cima reverte tudo. */
+         Rolar para cima reverte tudo. A Hero fica presa por CSS (sticky). */
       document.documentElement.classList.add('hero-seq');
       var neon1 = buildNeon(hero.querySelector('[data-panel="1"] .hero-photo'));
       var neon2 = buildNeon(hero.querySelector('[data-panel="2"] .hero-photo'));
@@ -497,12 +497,12 @@
       var out = { autoAlpha: 0, y: -48, duration: 1, stagger: 0.1, ease: 'power2.in' };
       var from = { autoAlpha: 0, y: 48 };
       var into = { autoAlpha: 1, y: 0, duration: 1.1, stagger: 0.12, ease: 'power2.out' };
-      gsap.timeline({
+      var seq = gsap.timeline({
         defaults: { overwrite: 'auto' },
         scrollTrigger: {
           // celular: scroll nativo chega aos saltos -> scrub com 0,4 s de suavização
           // (casa com o amortecimento do canvas); computador: o Lenis já suaviza
-          trigger: hero, pin: true, start: 'top top', end: '+=260%', scrub: mobile ? 0.4 : true, onUpdate: onUpdate,
+          trigger: hero, start: 'top top', end: 'bottom bottom', scrub: mobile ? 0.4 : true, onUpdate: onUpdate,
           // o hero já tem o botão de orçamento: esconde o WhatsApp flutuante enquanto ele está fixo
           onToggle: function (self) {
             var fab = document.querySelector('.wa-float');
@@ -528,6 +528,9 @@
         .fromTo(neon3.el, { opacity: 0 }, { opacity: 1, duration: 1.3, ease: 'power2.in' }, 6.8)
         .fromTo(splitChars(hero.querySelector('[data-panel="3"] .hero-title')), foldFrom, foldTo({ duration: 0.6, stagger: 0.03 }), 6.55)
         .to({}, { duration: 1.6 });   // orçamento todo visível antes de soltar a página
+      // aplica já o estado inicial (painéis 2 e 3 escondidos) antes da 1ª rolagem;
+      // com scrub suavizado o GSAP só renderizava depois de rolar
+      seq.progress(1).progress(0);
     } else if (ST) {
       loadMap();   // sem a sequência, o painel final aparece desde o início
       ST.create({ trigger: hero, start: 'top top', end: 'bottom bottom', onUpdate: onUpdate });
