@@ -151,7 +151,7 @@
 
   document.querySelectorAll('.sparkle-field').forEach(function (field) {
     var total = parseInt(field.getAttribute('data-sparkles'), 10) || 80;
-    if (window.innerWidth < 640) total = Math.round(total * 0.35);   // celular: menos brilhos animados
+    if (window.innerWidth < 640) total = Math.round(total * 0.2);   // celular: menos brilhos animados
     var frag = document.createDocumentFragment();
 
     for (var i = 0; i < total; i++) {
@@ -170,7 +170,7 @@
         s.className = 'sparkle';
         size = rand(2, 9);
       }
-      if (!reduceMotion && Math.random() < 0.35) s.className += ' floaty';
+      if (!reduceMotion && window.innerWidth >= 640 && Math.random() < 0.35) s.className += ' floaty';   // celular: sem deriva
 
       s.style.width = size + 'px';
       s.style.height = size + 'px';
@@ -289,6 +289,7 @@
     document.documentElement.classList.add('neon-on');
     var cycle = 30 + (4 - 30) * (NEON.speed - 1) / 19;   // segundos por volta
     var beat = cycle / 4, stepT = 0, corner = 0, last = performance.now();
+    var neonStep = window.innerWidth <= 640 ? 30 : 0;
     // tamanho das fotos medido só quando a tela muda, não a cada quadro (0 = foto oculta)
     function measure() {
       list.forEach(function (n) { n.w = n.photo.offsetParent ? n.photo.offsetWidth : 0; n.h = n.photo.offsetHeight; });
@@ -304,7 +305,7 @@
     }
     function paint(now) {
       requestAnimationFrame(paint);
-      if (perf.lite && now - last < 66) return;   // modo leve: ~15 quadros por segundo
+      if (now - last < (perf.lite ? 66 : neonStep)) return;   // modo leve: ~15 quadros por segundo; celular: ~30
       var dt = Math.min(perf.lite ? 0.1 : 0.05, Math.max(0, (now - last) / 1000));
       last = now;
       stepT += dt / beat;
@@ -623,9 +624,13 @@
      (no iPhone isso deixava títulos e cards invisíveis), nada some. */
   var seen = [];
   function sweep() {
-    var limit = window.innerHeight * 0.9, n = 0;
+    var limit = window.innerHeight * 0.9, far = limit + window.innerHeight * 2, n = 0, stop = false;
     seen = seen.filter(function (it) {
-      if (it.el.getBoundingClientRect().top > limit) return true;
+      if (stop) return true;
+      var top = it.el.getBoundingClientRect().top;
+      // em ordem do documento: um elemento 2 telas abaixo -> os seguintes também estão (não mede o resto)
+      if (top > far) { stop = true; return true; }
+      if (top > limit) return true;
       it.fn(it.el, Math.min(n++ * 0.08, 0.4));   // vários de uma vez entram em cascata
       return false;
     });
@@ -759,10 +764,12 @@
   /* ---------- Brilhos só animam quando a seção está na tela ---------- */
   if (ST) {
     document.querySelectorAll('.sparkle-field').forEach(function (field) {
-      ST.create({
+      // começa pausado: o onToggle só dispara na 1ª entrada na tela
+      var st = ST.create({
         trigger: field.parentElement, start: 'top bottom', end: 'bottom top',
         onToggle: function (self) { field.classList.toggle('off', !self.isActive); }
       });
+      field.classList.toggle('off', !st.isActive);
     });
   }
 
