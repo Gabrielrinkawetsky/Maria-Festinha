@@ -90,6 +90,7 @@
      de vinco (brilho 45% → 100%) e letras em cascata. Palavras não quebram. */
   var FOLD = { duration: 0.42, stagger: 0.016, ease: 'power3.out', perspective: 700, crease: 0.55 };
   var foldOn = !!(gsap && ST && !reduceMotion);
+  if (!foldOn) document.documentElement.classList.add('fold-skip');
 
   function splitChars(el) {
     if (el.dataset.split) return el.querySelectorAll('.fold-char');
@@ -742,6 +743,8 @@
       { autoAlpha: 1, scale: 1, rotation: 0, duration: 0.8, delay: 0.25, ease: 'back.out(1.7)', clearProps: 'transform,transition' });
     gsap.fromTo(charsOf('.main-nav a, .header-cta'), foldFrom,
       foldTo({ delay: 0.3, stagger: 0.012, clearProps: 'transform,filter', onComplete: unsplitAll('.main-nav a, .header-cta') }));
+    gsap.fromTo(charsOf('.hero-copy .eyebrow'), foldFrom,
+      foldTo({ delay: 0.5, stagger: 0.02, clearProps: 'transform,filter', onComplete: function () { unsplitAll('.hero-copy .eyebrow')(); document.querySelector('.hero-copy .eyebrow').classList.add('fold-shown'); } }));
     gsap.fromTo(charsOf('.feature-bar strong, .feature-bar div > span'), foldFrom,
       foldTo({ delay: 0.7, stagger: 0.012, clearProps: 'transform,filter', onComplete: unsplitAll('.feature-bar strong, .feature-bar div > span') }));
   }

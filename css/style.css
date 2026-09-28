@@ -280,6 +280,10 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   font-family: var(--serif); font-style: italic; font-size: 20px; font-weight: 500;
   color: var(--gold-700); margin-bottom: 10px;
 }
+/* some até o JS separar as letras (sem piscar antes do efeito); se o JS falhar, aparece após 2,5 s */
+.js-fold .eyebrow:not(.is-split):not(.fold-shown) { opacity: 0; animation: eb-safe 0s 2.5s forwards; }
+.js-fold.fold-skip .eyebrow { opacity: 1; animation: none; }
+@keyframes eb-safe { to { opacity: 1; } }
 .hero-title { font-family: var(--serif); line-height: 1.02; margin-bottom: 22px; }
 /* Painéis da sequência narrativa: empilhados no mesmo lugar */
 .hero-stage { display: grid; }
