@@ -401,8 +401,17 @@
 
     // desenha no mesmo tick do Lenis/ScrollTrigger: sem atraso entre scroll e frame
     // mapa do painel final: só carrega quando a sequência se aproxima dele
+    // Google Maps real só no computador com mouse. No toque (celular/tablet) o iframe
+    // atrapalhava o layout no iPhone; fica o mapa ilustrado, e tocar abre o Google Maps.
     var mapFrame = hero.querySelector('.hero-map iframe');
-    function loadMap() { if (mapFrame && !mapFrame.src) mapFrame.src = mapFrame.getAttribute('data-src'); }
+    if (mapFrame && !window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 1024px)').matches) {
+      mapFrame.remove(); mapFrame = null;
+    }
+    function loadMap() {
+      if (!mapFrame || mapFrame.src) return;
+      mapFrame.addEventListener('load', function () { if (ST) ST.refresh(); });
+      mapFrame.src = mapFrame.getAttribute('data-src');
+    }
     function onUpdate(self) { setProgress(self.progress); if (self.progress > 0.4) loadMap(); }
 
     if (gsap && ST && !reduceMotion) {
@@ -450,7 +459,7 @@
         .to(neon2.el, { opacity: 0, duration: 0.8, ease: 'power2.in' }, 5.1)
         .fromTo(parts(3), from, into, 6.5)
         // mapa do painel final: mesmo zoom de entrada e neon das fotos
-        .fromTo('.hero-map iframe', { scale: 1.18 }, { scale: 1, duration: 1.5, ease: 'power2.out' }, 6.5)
+        .fromTo('.hero-map .map-art', { scale: 1.18 }, { scale: 1, duration: 1.5, ease: 'power2.out' }, 6.5)
         .fromTo(neon3.el, { opacity: 0 }, { opacity: 1, duration: 1.3, ease: 'power2.in' }, 6.8)
         .fromTo(splitChars(hero.querySelector('[data-panel="3"] .hero-title')), foldFrom, foldTo({ duration: 0.6, stagger: 0.03 }), 6.55)
         .to({}, { duration: 1.6 });   // orçamento todo visível antes de soltar a página
@@ -485,6 +494,46 @@
   nav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', closeMenu); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
 
+  /* ---------- Entradas pela posição real na tela ----------
+     Cards e títulos aparecem quando o topo deles chega a 90% da altura da tela
+     (ou quando já passaram, em saltos por link). Isso lê a posição real de cada
+     elemento, sem depender das contas do ScrollTrigger: se elas ficarem erradas
+     (no iPhone isso deixava títulos e cards invisíveis), nada some. */
+  var seen = [];
+  function sweep() {
+    var limit = window.innerHeight * 0.9, n = 0;
+    seen = seen.filter(function (it) {
+      if (it.el.getBoundingClientRect().top > limit) return true;
+      it.fn(it.el, Math.min(n++ * 0.08, 0.4));   // vários de uma vez entram em cascata
+      return false;
+    });
+  }
+  var sweepQueued = false;
+  function queueSweep() {
+    if (sweepQueued) return;
+    sweepQueued = true;
+    requestAnimationFrame(function () { sweepQueued = false; sweep(); });
+  }
+  function whenSeen(el, fn) { seen.push({ el: el, fn: fn }); queueSweep(); }
+  window.addEventListener('scroll', queueSweep, { passive: true });
+  window.addEventListener('resize', queueSweep);
+
+  /* Recalcula o ScrollTrigger quando a página muda de tamanho depois do cálculo
+     inicial (fontes do Google, imagens, girar a tela...). Posição desatualizada
+     fazia a Hero soltar na hora errada e seções passarem por cima dela. */
+  if (ST) {
+    var lastH = 0, refreshTimer = 0;
+    var refreshSoon = function () { clearTimeout(refreshTimer); refreshTimer = setTimeout(function () { ST.refresh(); }, 250); };
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(refreshSoon);
+    window.addEventListener('orientationchange', refreshSoon);
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(function () {
+        var h = document.body.scrollHeight;
+        if (Math.abs(h - lastH) > 2) { lastH = h; refreshSoon(); }
+      }).observe(document.body);
+    }
+  }
+
   /* ---------- Animação de entrada ---------- */
   function done(el) {
     // devolve o elemento ao CSS normal (hover dos cards volta a funcionar)
@@ -492,15 +541,13 @@
     el.style.opacity = el.style.transform = el.style.transition = '';
   }
   if (gsap && ST && !reduceMotion) {
-    var show = function (batch) {
-      gsap.to(batch, {
-        opacity: 1, y: 0, duration: 0.9, ease: 'power3.out', overwrite: true,
-        stagger: Math.min(0.08, 0.4 / batch.length), // lote grande não demora mais que 0,4 s
-        onComplete: function () { batch.forEach(done); }
+    var show = function (el, delay) {
+      gsap.to(el, {
+        opacity: 1, y: 0, duration: 0.9, delay: delay, ease: 'power3.out', overwrite: true,
+        onComplete: function () { done(el); }
       });
     };
-    // onLeave cobre saltos (link, tecla End) que passam do elemento sem "entrar" nele
-    ST.batch('.reveal', { start: 'top 88%', once: true, onEnter: show, onLeave: show });
+    document.querySelectorAll('.reveal').forEach(function (el) { whenSeen(el, show); });
   } else {
     document.querySelectorAll('.reveal').forEach(done);
   }
@@ -576,10 +623,9 @@
       '.section-title h2, .promo-band h2, .promo-gold, .final-cta h2, .final-script, ' +
       '.service-card h3, .celebration-card h3, .venue-card h3, .steps h3, .site-footer h4'
     ).forEach(function (el) {
-      gsap.fromTo(splitChars(el), foldFrom, foldTo({
-        scrollTrigger: { trigger: el, start: 'top 90%', toggleActions: 'play none none none' },
-        clearProps: 'transform,filter'
-      }));
+      var chars = splitChars(el);
+      gsap.set(chars, foldFrom);
+      whenSeen(el, function (e, delay) { gsap.to(chars, foldTo({ delay: delay, clearProps: 'transform,filter' })); });
     });
   }
 
