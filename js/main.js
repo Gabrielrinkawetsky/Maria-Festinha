@@ -225,6 +225,12 @@
     document.documentElement.classList.add('neon-on');
     var cycle = 30 + (4 - 30) * (NEON.speed - 1) / 19;   // segundos por volta
     var beat = cycle / 4, stepT = 0, corner = 0, last = performance.now();
+    // tamanho das fotos medido só quando a tela muda, não a cada quadro (0 = foto oculta)
+    function measure() {
+      list.forEach(function (n) { n.w = n.photo.offsetParent ? n.photo.offsetWidth : 0; n.h = n.photo.offsetHeight; });
+    }
+    measure();
+    window.addEventListener('resize', measure);
     function paint(now) {
       var dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
       last = now;
@@ -232,8 +238,10 @@
       while (stepT >= 1) { stepT -= 1; corner += 1; }
       list.forEach(function (n) {
         // só desenha foto visível (economiza bateria durante o resto do site)
-        if (!n.photo.offsetParent || +getComputedStyle(n.el).opacity < 0.01) return;
-        var w = n.photo.offsetWidth || 100, h = n.photo.offsetHeight || 100;
+        // lê só o estilo inline que o GSAP escreve (sem forçar recálculo de layout)
+        var op = n.el.style.opacity;
+        if (!n.w || (op !== '' && +op < 0.01)) return;
+        var w = n.w, h = n.h;
         var from = cornerLap(corner, w, h), to = cornerLap(corner + 1, w, h);
         var lap = from + (to - from) * glide(stepT);
         n.groups[0].style.setProperty('--arc', buildArc(lap, w, h));
@@ -250,81 +258,136 @@
     var canvas = hero && hero.querySelector('.hero-canvas');
     if (!canvas) return;
 
-    var ctx = canvas.getContext('2d');
     // no celular em pé só a faixa central do vídeo aparece: usa os frames recortados
     var mobile = window.matchMedia('(max-width: 640px)').matches;
     var total = parseInt(canvas.getAttribute(mobile ? 'data-frames-m' : 'data-frames'), 10);
     var base = canvas.getAttribute(mobile ? 'data-src-m' : 'data-src');
-    var PRELOAD = 12;          // frames carregados de imediato
-    var BATCH = 6;             // frames carregados por vez no restante
+    // canvas opaco (sem mistura com o fundo) e sem esperar o compositor: desenho mais barato
+    var ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
     var frames = new Array(total);
-    var current = -1;
-    var queued = false;
+    // celular: 60 frames leves (~1 MB) -> baixa e decodifica todos logo de cara;
+    // computador: 12 na hora e o resto em lotes depois do carregamento
+    var PRELOAD = mobile ? total : 12;
+    var BATCH = 8;
+
+    /* Motor de reprodução
+       - O scroll só define o ALVO (target, 0..1); não desenha nada.
+       - Um laço requestAnimationFrame aproxima a posição mostrada (pos, em
+         frames e fracionária) do alvo com amortecimento exponencial
+         independente da taxa de quadros.
+       - Em posições fracionárias o canvas mistura o frame atual com o próximo
+         (globalAlpha), então avançar 1 ou 2 frames vira uma transição contínua
+         em vez de um salto.
+       - O laço para sozinho quando alcança o alvo: parado, não desenha nada. */
+    var TAU = mobile ? 0.11 : 0.05;   // s; no celular o scroll nativo chega aos saltos, suaviza mais
+    var target = 0, pos = 0, shown = -1;
+    var running = false, dirty = true, last = 0, painted = false;
+    var cw = 0, ch = 0, fit = null;
 
     function src(i) { return base + String(i + 1).padStart(4, '0') + '.webp'; }
 
     function load(i) {
-      if (i < 0 || i >= total || frames[i]) return frames[i];
+      if (i < 0 || i >= total || frames[i]) return;
       var img = new Image();
       img.decoding = 'async';
       img.src = src(i);
-      // decodifica fora do scroll: o drawImage não trava decodificando o WebP
-      img.decode().then(function () {
-        img.ready = true;
-        if (i === targetFrame()) draw(true);
-      }, function () {});
+      // decodifica antes de usar: o drawImage não trava decodificando o WebP
+      img.decode().then(function () { img.ready = true; dirty = true; kick(); }, function () {});
       frames[i] = img;
-      return img;
     }
 
-    var progress = 0;
-    function targetFrame() { return Math.round(progress * (total - 1)); }
+    function ready(i) { return i >= 0 && i < total && frames[i] && frames[i].ready; }
+    function nearestReady(i) {
+      for (var d = 0; d < total; d++) {
+        if (ready(i - d)) return i - d;
+        if (ready(i + d)) return i + d;
+      }
+      return -1;
+    }
+
+    // equivalente a object-fit: cover, calculado uma vez por tamanho de canvas
+    function cover(img) {
+      if (!fit || fit.nw !== img.naturalWidth) {
+        var sc = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
+        fit = { nw: img.naturalWidth, w: img.naturalWidth * sc, h: img.naturalHeight * sc };
+        fit.x = (cw - fit.w) / 2; fit.y = (ch - fit.h) / 2;
+      }
+      return fit;
+    }
+
+    function paint(p) {
+      var a = Math.floor(p), t = p - a;
+      var ia = ready(a) ? a : nearestReady(a);
+      if (ia < 0) return false;
+      var f = cover(frames[ia]);
+      ctx.globalAlpha = 1;
+      ctx.drawImage(frames[ia], f.x, f.y, f.w, f.h);
+      // mistura com o próximo frame proporcional à fração: sem "pulo" entre frames
+      if (ia === a && t > 0.02 && ready(a + 1)) {
+        ctx.globalAlpha = t;
+        ctx.drawImage(frames[a + 1], f.x, f.y, f.w, f.h);
+        ctx.globalAlpha = 1;
+      }
+      if (!painted) { painted = true; canvas.style.opacity = 1; }
+      return true;
+    }
+
+    function tick(now) {
+      var dt = Math.min(0.1, Math.max(0.001, (now - last) / 1000));
+      last = now;
+      var goal = target * (total - 1);
+      pos += (goal - pos) * (1 - Math.exp(-dt / TAU));
+      if (Math.abs(goal - pos) < 0.003) pos = goal;
+      // garante os vizinhos carregados (no computador, se o usuário rolar rápido)
+      var i = Math.round(pos);
+      for (var k = -2; k <= 3; k++) load(i + k);
+      if ((dirty || Math.abs(pos - shown) > 0.002) && paint(pos)) { shown = pos; dirty = false; }
+      if (pos !== goal || dirty) requestAnimationFrame(tick);
+      else running = false;
+    }
+
+    function kick() {
+      if (running || !cw) return;
+      running = true;
+      last = performance.now();
+      requestAnimationFrame(tick);
+    }
+
+    function setProgress(p) { target = p; kick(); }
 
     function resize() {
-      var dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(canvas.clientWidth * dpr);
-      canvas.height = Math.round(canvas.clientHeight * dpr);
-      draw(true);
-    }
-
-    function draw(force) {
-      queued = false;
-      var i = targetFrame();
-      // pede o frame certo e os vizinhos à frente, caso o usuário role rápido
-      for (var k = 0; k < 4; k++) load(i + k);
-      // se o frame ainda não chegou, usa o mais próximo já carregado antes dele
-      var j = i;
-      while (j > 0 && !(frames[j] && frames[j].ready)) j--;
-      var img = frames[j];
-      if (!img || !img.ready || (j === current && !force)) return;
-      current = j;
-
-      // equivalente a object-fit: cover
-      var cw = canvas.width, ch = canvas.height;
-      var s = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
-      var w = img.naturalWidth * s, h = img.naturalHeight * s;
-      ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
+      // DPR limitado: no celular 1.5 (os frames têm 608px de largura; mais que isso
+      // só gastaria memória e tempo de desenho), no computador 2
+      var dpr = Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 2);
+      var w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
+      if (w === canvas.width && h === canvas.height && cw) return;
+      canvas.width = cw = w;
+      canvas.height = ch = h;
+      fit = null;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = mobile ? 'medium' : 'high';  // redefinido após mudar o tamanho
+      dirty = true;
+      kick();
     }
 
     // sem GSAP (falha ao carregar): calcula o progresso pelo scroll nativo
     function onScroll() {
       var range = hero.offsetHeight - window.innerHeight;
-      progress = range > 0 ? Math.min(1, Math.max(0, (window.scrollY - hero.offsetTop) / range)) : 0;
-      if (!queued) { queued = true; requestAnimationFrame(function () { draw(false); }); }
+      setProgress(range > 0 ? Math.min(1, Math.max(0, (window.scrollY - hero.offsetTop) / range)) : 0);
     }
 
     // carrega o restante aos poucos, sem travar a página
     var next = PRELOAD;
     function loadRest() {
       for (var n = 0; n < BATCH && next < total; n++) load(next++);
-      if (next < total) setTimeout(loadRest, 150);
+      if (next < total) setTimeout(loadRest, 120);
     }
 
+    canvas.style.opacity = 0;   // até o 1º frame: mostra o fundo do CSS (evita flash preto do canvas opaco)
     for (var i = 0; i < PRELOAD; i++) load(i);
 
     // desenha no mesmo tick do Lenis/ScrollTrigger: sem atraso entre scroll e frame
-    function onUpdate(self) { progress = self.progress; draw(false); }
+    function onUpdate(self) { setProgress(self.progress); }
 
     if (gsap && ST && !reduceMotion) {
       /* Sequência narrativa: o hero fica fixo (pin) e o scroll (scrub) conduz
@@ -346,7 +409,9 @@
       gsap.timeline({
         defaults: { overwrite: 'auto' },
         scrollTrigger: {
-          trigger: hero, pin: true, start: 'top top', end: '+=260%', scrub: true, onUpdate: onUpdate,
+          // celular: scroll nativo chega aos saltos -> scrub com 0,4 s de suavização
+          // (casa com o amortecimento do canvas); computador: o Lenis já suaviza
+          trigger: hero, pin: true, start: 'top top', end: '+=260%', scrub: mobile ? 0.4 : true, onUpdate: onUpdate,
           // o hero já tem o botão de orçamento: esconde o WhatsApp flutuante enquanto ele está fixo
           onToggle: function (self) {
             var fab = document.querySelector('.wa-float');
