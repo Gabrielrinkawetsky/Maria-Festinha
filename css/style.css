@@ -881,3 +881,15 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   .feature-bar .gold-icon { width: 22px; height: 22px; }
   .feature-bar strong { font-family: var(--sans); font-size: 12px; font-weight: 600; }
 }
+
+/* Modo leve (js/main.js liga .lite: economia de energia, bateria baixa, FPS baixo).
+   Mesmo visual, menos trabalho contínuo para o celular/computador. */
+.lite .sparkle:nth-child(2n) { display: none; }                  /* metade dos brilhos */
+.lite .sparkle.floaty { animation: twinkle var(--d, 3s) ease-in-out var(--delay, 0s) infinite; }  /* sem deriva */
+.lite .sparkle, .lite .sparkle.heart svg { box-shadow: none; filter: none; }
+.lite .neon-glow { display: none; }                               /* neon: linha + aura fixa */
+.lite .header-bar { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(250, 246, 255, .86); }
+.lite .map-chip { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(255, 255, 255, .92); }
+.lite .wa-float { animation: none; }
+/* aba em segundo plano: nada de animação CSS rodando */
+.is-hidden *, .is-hidden *::before, .is-hidden *::after { animation-play-state: paused !important; }

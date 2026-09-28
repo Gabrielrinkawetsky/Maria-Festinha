@@ -15,6 +15,49 @@
   var WHATSAPP = '5512991674881';
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* ---------- Modo leve (economia de energia / aparelho fraco) ----------
+     Liga sozinho quando: o navegador pede economia de dados; o aparelho tem
+     pouca memória/núcleos; a bateria está baixa e fora da tomada; ou a tela
+     está rodando abaixo de ~40 FPS (economia de energia do iPhone/Android e
+     notebooks na bateria limitam a 30 FPS). O design não muda: só os efeitos
+     contínuos ficam mais baratos (brilhos, neon, mistura de frames, desfoques). */
+  var perf = { lite: false };
+  function goLite(reason) {
+    if (perf.lite) return;
+    perf.lite = true;
+    document.documentElement.classList.add('lite');
+    document.documentElement.setAttribute('data-lite', reason);
+    window.dispatchEvent(new Event('litechange'));
+  }
+  (function () {
+    var nav = navigator;
+    if (nav.connection && nav.connection.saveData) goLite('economia-de-dados');
+    if ((nav.deviceMemory && nav.deviceMemory <= 2) || (nav.hardwareConcurrency && nav.hardwareConcurrency <= 2)) goLite('aparelho-fraco');
+    if (nav.getBattery) nav.getBattery().then(function (bat) {
+      var check = function () { if (!bat.charging && bat.level <= 0.2) goLite('bateria-baixa'); };
+      check();
+      bat.addEventListener('levelchange', check);
+      bat.addEventListener('chargingchange', check);
+    }).catch(function () {});
+    // mede a taxa de quadros com a página parada (mediana de 60 quadros)
+    function sampleFps() {
+      if (perf.lite || document.hidden) return;
+      var d = [], prev = 0;
+      requestAnimationFrame(function f(t) {
+        if (prev) d.push(t - prev);
+        prev = t;
+        if (d.length < 60) return requestAnimationFrame(f);
+        d.sort(function (x, y) { return x - y; });
+        if (d[30] > 25) goLite('fps-baixo');   // mediana > 25 ms = menos de 40 FPS
+      });
+    }
+    window.addEventListener('load', function () { setTimeout(sampleFps, 1500); setTimeout(sampleFps, 15000); });
+    // aba em segundo plano: pausa as animações CSS contínuas
+    document.addEventListener('visibilitychange', function () {
+      document.documentElement.classList.toggle('is-hidden', document.hidden);
+    });
+  })();
+
   /* ---------- Scroll suave: Lenis + GSAP ScrollTrigger ----------
      Lenis move o scroll nativo da janela com inércia; o ticker do GSAP
      comanda o raf do Lenis, e cada passo do Lenis atualiza o ScrollTrigger,
@@ -241,8 +284,17 @@
     }
     measure();
     window.addEventListener('resize', measure);
+    // fora da tela (depois de passar da Hero) não calcula nada
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { e.target._neonOn = e.isIntersecting; });
+      });
+      list.forEach(function (n) { n.photo._neonOn = true; io.observe(n.photo); });
+    }
     function paint(now) {
-      var dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+      requestAnimationFrame(paint);
+      if (perf.lite && now - last < 66) return;   // modo leve: ~15 quadros por segundo
+      var dt = Math.min(perf.lite ? 0.1 : 0.05, Math.max(0, (now - last) / 1000));
       last = now;
       stepT += dt / beat;
       while (stepT >= 1) { stepT -= 1; corner += 1; }
@@ -250,14 +302,13 @@
         // só desenha foto visível (economiza bateria durante o resto do site)
         // lê só o estilo inline que o GSAP escreve (sem forçar recálculo de layout)
         var op = n.el.style.opacity;
-        if (!n.w || (op !== '' && +op < 0.01)) return;
+        if (!n.w || n.photo._neonOn === false || (op !== '' && +op < 0.01)) return;
         var w = n.w, h = n.h;
         var from = cornerLap(corner, w, h), to = cornerLap(corner + 1, w, h);
         var lap = from + (to - from) * glide(stepT);
         n.groups[0].style.setProperty('--arc', buildArc(lap, w, h));
         n.groups[1].style.setProperty('--arc', buildArc(lap + 0.5, w, h));
       });
-      requestAnimationFrame(paint);
     }
     requestAnimationFrame(paint);
   }
@@ -336,7 +387,7 @@
       ctx.globalAlpha = 1;
       ctx.drawImage(frames[ia], f.x, f.y, f.w, f.h);
       // mistura com o próximo frame proporcional à fração: sem "pulo" entre frames
-      if (ia === a && t > 0.02 && ready(a + 1)) {
+      if (!perf.lite && ia === a && t > 0.02 && ready(a + 1)) {
         ctx.globalAlpha = t;
         ctx.drawImage(frames[a + 1], f.x, f.y, f.w, f.h);
         ctx.globalAlpha = 1;
@@ -371,7 +422,7 @@
     function resize() {
       // DPR limitado: no celular 1.5 (os frames têm 608px de largura; mais que isso
       // só gastaria memória e tempo de desenho), no computador 2
-      var dpr = Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 2);
+      var dpr = perf.lite ? 1 : Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 2);
       var w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
       if (w === canvas.width && h === canvas.height && cw) return;
       canvas.width = cw = w;
@@ -475,6 +526,7 @@
       onScroll();
     }
     window.addEventListener('resize', resize);
+    window.addEventListener('litechange', resize);
     window.addEventListener('load', function () {
       setTimeout(loadRest, 300);
       // mapa real do computador: carrega logo depois da página, sem esperar o scroll.
@@ -633,7 +685,11 @@
     ).forEach(function (el) {
       var chars = splitChars(el);
       gsap.set(chars, foldFrom);
-      whenSeen(el, function (e, delay) { gsap.to(chars, foldTo({ delay: delay, clearProps: 'transform,filter' })); });
+      whenSeen(el, function (e, delay) {
+        var to = foldTo({ delay: delay, clearProps: 'transform,filter' });
+        if (perf.lite) { delete to.filter; gsap.set(chars, { filter: 'none' }); }
+        gsap.to(chars, to);
+      });
     });
   }
 
