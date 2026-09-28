@@ -3,6 +3,15 @@
 
   document.documentElement.classList.remove('no-js');
 
+  /* ---------- Recarregar (F5) sempre volta ao topo ----------
+     Sem isso o navegador restaura a posição anterior e as animações de
+     entrada (cabeçalho, hero, títulos) aparecem já terminadas ou pela metade. */
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+  window.scrollTo(0, 0);
+  // Safari/iOS às vezes ignora o 'manual': zera também ao sair da página
+  window.addEventListener('pagehide', function () { window.scrollTo(0, 0); });
+
   var WHATSAPP = '5512991674881';
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -15,6 +24,7 @@
   var lenis = null;
   if (gsap && ST) {
     gsap.registerPlugin(ST);
+    ST.clearScrollMemory('manual');   // ScrollTrigger também não restaura posição
     ST.config({ ignoreMobileResize: true });
     document.documentElement.classList.add('gsap-on');
     if (window.Lenis && !reduceMotion) {
