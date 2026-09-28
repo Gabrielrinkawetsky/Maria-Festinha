@@ -13,7 +13,7 @@ js/main.js      → brilhos dourados, menu mobile, animações e formulário →
 img/logo.webp   → logo (cabeçalho e rodapé); img/favicon.png e apple-touch-icon.png → ícones da aba
 img/fotos/      → (coloque aqui as fotos reais)
 public/frames/  → 120 frames WebP (1920×1080) da animação do hero
-public/frames-m/ → 60 frames WebP (1080×1920, retrato) usados no celular
+public/frames-m/ → 60 frames WebP (608×1080, retrato) usados no celular
 ```
 
 ## Como inserir as fotos reais
@@ -62,7 +62,7 @@ O fundo do hero é o vídeo `HEROV1.mp4` convertido em 120 frames WebP (12 fps, 
   2. “Momentos que Encantam.”
   3. “Sua Festa Começa Aqui.” com o botão “Pedir Orçamento” (painel final), que fica um trecho parado antes de a página seguir para “Nossos Serviços”.
   Rolar para cima reverte tudo. Sem JavaScript ou com “reduzir movimento”, aparece só o painel final.
-- `js/main.js` desenha os frames em um `<canvas>`. Os 12 primeiros são pré-carregados; os demais carregam em lotes após o carregamento da página, e o frame necessário é pedido na hora se o usuário rolar mais rápido.
+- `js/main.js` desenha os frames em um `<canvas>`. Os arquivos WebP ficam guardados comprimidos (no computador, os 12 primeiros na hora e o resto em lotes; no celular, todos logo de cara). Só uma janela de frames em volta da posição atual fica decodificada (`ImageBitmap`, decodificado fora da thread principal); os distantes são liberados. Assim o scroll não trava decodificando imagem e a memória fica baixa no iPhone.
 - Para trocar o vídeo, gere novos frames com o mesmo padrão de nome e ajuste `data-frames` no `<canvas>` do `index.html`:
 
 ```bash
@@ -80,7 +80,7 @@ Lenis 1.3.26 + GSAP 3.15 / ScrollTrigger, salvos em `js/vendor/` (sem depender d
 
 ## Celular leve
 
-No celular (até 640px) o hero usa `public/frames-m/`: 60 frames recortados no centro do vídeo (a parte que aparece com o celular em pé), em resolução cheia — ~1 MB no total, contra ~15 MB dos frames do computador. A página inteira fica em ~1,7 MB no celular. Também no celular: menos brilhos animados e sem halo, borda neon sem as camadas desfocadas (fica a linha e a aura), e menos desfoque de fundo no cabeçalho e na barra de diferenciais.
+No celular (até 640px) o hero usa `public/frames-m/`: 60 frames recortados no centro do vídeo (a parte que aparece com o celular em pé), em 608×1080 (o canvas do celular não passa de ~600 px de largura; frames maiores só gastam memória e travam o iPhone) — ~3 MB no total, contra ~15 MB dos frames do computador. A página inteira fica em ~1,7 MB no celular. Também no celular: menos brilhos animados e sem halo, borda neon sem as camadas desfocadas (fica a linha e a aura), e menos desfoque de fundo no cabeçalho e na barra de diferenciais.
 
 Para regenerar os frames do celular:
 

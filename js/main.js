@@ -337,8 +337,14 @@
     var base = canvas.getAttribute(mobile ? 'data-src-m' : 'data-src');
     // canvas opaco (sem mistura com o fundo) e sem esperar o compositor: desenho mais barato
     var ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
-    var frames = new Array(total);
-    // celular: 60 frames leves (~1 MB) -> baixa e decodifica todos logo de cara;
+    // files[i]: WebP comprimido (Blob), baixado uma vez.
+    // frames[i]: ImageBitmap já decodificado (fora da thread principal). Só uma janela
+    // em volta da posição atual fica decodificada: com <img> o navegador descartava e
+    // redecodificava o WebP a cada drawImage, o que travava o scroll no celular.
+    var files = new Array(total), frames = new Array(total);
+    var BEHIND = mobile ? 6 : 8, AHEAD = mobile ? 10 : 14, KEEP = 6;
+    var bitmaps = typeof createImageBitmap === 'function' && typeof fetch === 'function';
+    // celular: baixa todos os 60 arquivos leves logo de cara;
     // computador: 12 na hora e o resto em lotes depois do carregamento
     var PRELOAD = mobile ? total : 12;
     var BATCH = 8;
@@ -353,25 +359,59 @@
          em vez de um salto.
        - O laço para sozinho quando alcança o alvo: parado, não desenha nada. */
     var TAU = mobile ? 0.11 : 0.05;   // s; no celular o scroll nativo chega aos saltos, suaviza mais
-    var target = 0, pos = 0, shown = -1;
+    var target = 0, pos = 0, shown = -1, center = -1;
     var running = false, dirty = true, last = 0, painted = false;
     var cw = 0, ch = 0, fit = null;
 
     function src(i) { return base + String(i + 1).padStart(4, '0') + '.webp'; }
 
-    function load(i) {
+    // baixa o arquivo (só o WebP comprimido fica guardado)
+    function fetchFile(i) {
+      if (i < 0 || i >= total || files[i]) return;
+      files[i] = fetch(src(i)).then(function (r) {
+        if (!r.ok) throw new Error(r.status);
+        return r.blob();
+      }).then(function (b) { files[i] = b; if (frames[i] === 'wait') { frames[i] = null; want(i); } })
+        .catch(function () { files[i] = null; });
+    }
+
+    // decodifica o frame i (se estiver na janela)
+    function want(i) {
       if (i < 0 || i >= total || frames[i]) return;
+      if (!bitmaps) return legacy(i);
+      var f = files[i];
+      if (!(f instanceof Blob)) { frames[i] = 'wait'; fetchFile(i); return; }
+      frames[i] = 'busy';
+      createImageBitmap(f).then(function (bmp) {
+        if (frames[i] !== 'busy') { bmp.close(); return; }   // saiu da janela enquanto decodificava
+        frames[i] = bmp; dirty = true; kick();
+      }, function () { frames[i] = null; bitmaps = false; want(i); });
+    }
+
+    // navegador sem createImageBitmap: <img> decodificada como antes
+    function legacy(i) {
       var img = new Image();
       img.decoding = 'async';
       img.src = src(i);
-      // decodifica antes de usar: o drawImage não trava decodificando o WebP
-      var done = function () { if (img.ready) return; img.ready = true; dirty = true; kick(); };
-      // decode() às vezes rejeita no Safari/iOS; nesse caso usa o load normal
+      var done = function () { if (frames[i] !== img) return; img.ready = true; dirty = true; kick(); };
       img.decode().then(done, function () { if (img.complete && img.naturalWidth) done(); else img.onload = done; });
       frames[i] = img;
     }
 
-    function ready(i) { return i >= 0 && i < total && frames[i] && frames[i].ready; }
+    // libera a memória dos frames longe da posição atual
+    function trim(c) {
+      for (var j = 0; j < total; j++) {
+        var f = frames[j];
+        if (!f || (j >= c - BEHIND - KEEP && j <= c + AHEAD + KEEP)) continue;
+        if (f.close) f.close();
+        frames[j] = null;
+      }
+    }
+
+    function ready(i) {
+      var f = i >= 0 && i < total && frames[i];
+      return !!f && typeof f === 'object' && (f.ready || (!!f.close && f.width > 0));
+    }
     function nearestReady(i) {
       for (var d = 0; d < total; d++) {
         if (ready(i - d)) return i - d;
@@ -382,9 +422,10 @@
 
     // equivalente a object-fit: cover, calculado uma vez por tamanho de canvas
     function cover(img) {
-      if (!fit || fit.nw !== img.naturalWidth) {
-        var sc = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
-        fit = { nw: img.naturalWidth, w: img.naturalWidth * sc, h: img.naturalHeight * sc };
+      var nw = img.naturalWidth || img.width, nh = img.naturalHeight || img.height;
+      if (!fit || fit.nw !== nw) {
+        var sc = Math.max(cw / nw, ch / nh);
+        fit = { nw: nw, w: nw * sc, h: nh * sc };
         fit.x = (cw - fit.w) / 2; fit.y = (ch - fit.h) / 2;
       }
       return fit;
@@ -413,9 +454,15 @@
       var goal = target * (total - 1);
       pos += (goal - pos) * (1 - Math.exp(-dt / TAU));
       if (Math.abs(goal - pos) < 0.003) pos = goal;
-      // garante os vizinhos carregados (no computador, se o usuário rolar rápido)
+      // mantém decodificada só a janela em volta da posição (na direção do scroll, mais à frente)
       var i = Math.round(pos);
-      for (var k = -2; k <= 3; k++) load(i + k);
+      if (i !== center) {
+        var fwd = goal >= pos;
+        for (var k = 0; k <= AHEAD; k++) want(fwd ? i + k : i - k);
+        for (k = 1; k <= BEHIND; k++) want(fwd ? i - k : i + k);
+        trim(i);
+        center = i;
+      }
       if ((dirty || Math.abs(pos - shown) > 0.002) && paint(pos)) { shown = pos; dirty = false; }
       if (pos !== goal || dirty) requestAnimationFrame(tick);
       else running = false;
@@ -454,12 +501,13 @@
     // carrega o restante aos poucos, sem travar a página
     var next = PRELOAD;
     function loadRest() {
-      for (var n = 0; n < BATCH && next < total; n++) load(next++);
+      for (var n = 0; n < BATCH && next < total; n++) fetchFile(next++);
       if (next < total) setTimeout(loadRest, 120);
     }
 
     canvas.style.opacity = 0;   // até o 1º frame: mostra o fundo do CSS (evita flash preto do canvas opaco)
-    for (var i = 0; i < PRELOAD; i++) load(i);
+    for (var i = 0; i < PRELOAD; i++) fetchFile(i);
+    for (i = 0; i <= AHEAD; i++) want(i);
 
     // desenha no mesmo tick do Lenis/ScrollTrigger: sem atraso entre scroll e frame
     // mapa do painel final: só carrega quando a sequência se aproxima dele
