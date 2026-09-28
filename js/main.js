@@ -88,7 +88,7 @@
      Cada letra vira um <span> que "desdobra" a partir da borda de cima
      (rotateX -90° → 0°, dobradiça no topo, perspectiva 700px), com sombra
      de vinco (brilho 45% → 100%) e letras em cascata. Palavras não quebram. */
-  var FOLD = { duration: 0.65, stagger: 0.045, ease: 'power3.out', perspective: 700, crease: 0.55 };
+  var FOLD = { duration: 0.42, stagger: 0.016, ease: 'power3.out', perspective: 700, crease: 0.55 };
   var foldOn = !!(gsap && ST && !reduceMotion);
 
   function splitChars(el) {
@@ -618,20 +618,20 @@
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
 
   /* ---------- Entradas pela posição real na tela ----------
-     Cards e títulos aparecem quando o topo deles chega a 90% da altura da tela
+     Cards e títulos aparecem quando o topo deles chega a 98% da altura da tela
      (ou quando já passaram, em saltos por link). Isso lê a posição real de cada
      elemento, sem depender das contas do ScrollTrigger: se elas ficarem erradas
      (no iPhone isso deixava títulos e cards invisíveis), nada some. */
   var seen = [];
   function sweep() {
-    var limit = window.innerHeight * 0.9, far = limit + window.innerHeight * 2, n = 0, stop = false;
+    var limit = window.innerHeight * 0.98, far = limit + window.innerHeight * 2, n = 0, stop = false;
     seen = seen.filter(function (it) {
       if (stop) return true;
       var top = it.el.getBoundingClientRect().top;
       // em ordem do documento: um elemento 2 telas abaixo -> os seguintes também estão (não mede o resto)
       if (top > far) { stop = true; return true; }
       if (top > limit) return true;
-      it.fn(it.el, Math.min(n++ * 0.08, 0.4));   // vários de uma vez entram em cascata
+      it.fn(it.el, Math.min(n++ * 0.05, 0.2));   // vários de uma vez entram em cascata
       return false;
     });
   }
@@ -670,7 +670,7 @@
   if (gsap && ST && !reduceMotion) {
     var show = function (el, delay) {
       gsap.to(el, {
-        opacity: 1, y: 0, duration: 0.9, delay: delay, ease: 'power3.out', overwrite: true,
+        opacity: 1, y: 0, duration: 0.6, delay: delay, ease: 'power3.out', overwrite: true,
         onComplete: function () { done(el); }
       });
     };
