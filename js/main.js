@@ -475,7 +475,12 @@
       onScroll();
     }
     window.addEventListener('resize', resize);
-    window.addEventListener('load', function () { setTimeout(loadRest, 300); });
+    window.addEventListener('load', function () {
+      setTimeout(loadRest, 300);
+      // mapa real do computador: carrega logo depois da página, sem esperar o scroll.
+      // (loading="lazy" saiu: o Chrome adiava o mapa escondido dentro da Hero presa)
+      setTimeout(loadMap, 1500);
+    });
     resize();
   })();
 
