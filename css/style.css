@@ -310,10 +310,12 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   color: var(--plum); font-size: 12.5px; line-height: 1.3;
   transition: transform .25s ease, box-shadow .25s ease;
 }
+.map-open { display: none; position: absolute; inset: 0; z-index: 1; }
 .map-chip:hover { transform: translateY(-2px); box-shadow: 0 12px 26px -12px rgba(74, 58, 107, .6); }
 .map-chip svg { width: 22px; height: 22px; color: var(--gold-600); flex-shrink: 0; }
 .map-chip span { flex: 1; }
 .map-chip strong { display: block; font-family: var(--serif); font-size: 16px; font-weight: 600; }
+.map-chip small { display: block; font-size: inherit; }
 .map-chip em {
   font-style: normal; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
   color: #5a3f12; background: var(--gold-grad); padding: 8px 14px; border-radius: 999px; white-space: nowrap;
@@ -744,7 +746,25 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 
   /* Fotos dos painéis 1 e 2 do hero, trocam junto com o texto */
   .hero-photo { display: block; margin: 18px 0 0; height: clamp(130px, 28svh, 240px); }
-  .hero-map { display: none; }  /* celular: o painel final já ocupa a tela; mapa só no computador */
+  /* Painel final no celular: título, texto, mapa, botões lado a lado, selo */
+  .hero-stage .hero-panel--final { display: flex; flex-direction: column; }
+  .hero-panel--final .hero-title { order: 1; }
+  .hero-panel--final .hero-sub { order: 2; }
+  .hero-panel--final .hero-map { order: 3; }
+  .hero-panel--final .hero-actions { order: 4; }
+  .hero-panel--final .hero-badge { order: 5; }
+  .hero-map { margin: 14px 0 16px; height: clamp(112px, 21svh, 190px); }
+  .hero-map iframe { pointer-events: none; }
+  .map-open { display: block; }
+  .map-chip { left: 8px; right: 8px; bottom: 8px; padding: 6px 6px 6px 9px; gap: 7px; font-size: 11px; border-radius: 12px; }
+  .map-chip svg { width: 18px; height: 18px; }
+  .map-chip strong { font-size: 13.5px; }
+  .map-chip em { padding: 7px 10px; font-size: 9.5px; letter-spacing: .08em; }
+  .hero-panel--final .hero-actions { flex-wrap: nowrap; }
+  .hero-panel--final .hero-actions .btn {
+    flex: 1 1 0; min-width: 0; padding: 10px 8px; min-height: 44px;
+    white-space: normal; line-height: 1.25; text-align: center; font-size: 10.5px; letter-spacing: .08em;
+  }
 
   .balloon { width: 42px; left: 4px; }
 
@@ -819,3 +839,11 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 }
 .is-split .h1-gold { color: #bf8f37; text-shadow: 0 -1px 0 rgba(255, 244, 214, .7), 0 2px 2px rgba(255, 255, 255, .6); }
 .promo-gold.is-split { color: #f0cf7a; text-shadow: 0 2px 4px rgba(74, 58, 107, .35); }
+
+/* Celulares bem baixos (ex.: 320×568): com o mapa, o selo "Desde 2014" do painel final não cabe */
+@media (max-width: 640px) and (max-height: 600px) {
+  .hero-panel--final .hero-badge { display: none; }
+  .hero-map { height: 104px; margin: 10px 0 12px; }
+  .map-chip small { display: none; }            /* selo em uma linha: sobra mapa à vista */
+  .map-chip strong { white-space: nowrap; }
+}
