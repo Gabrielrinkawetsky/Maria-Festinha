@@ -13,7 +13,7 @@ js/main.js      → brilhos dourados, menu mobile, animações e formulário →
 img/logo.webp   → logo (cabeçalho e rodapé); img/favicon.png e apple-touch-icon.png → ícones da aba
 img/fotos/      → (coloque aqui as fotos reais)
 public/frames/  → 120 frames WebP (1920×1080) da animação do hero
-public/frames-m/ → 60 frames WebP (608×1080, centro do vídeo) usados no celular
+public/frames-m/ → 60 frames WebP (1080×1920, retrato) usados no celular
 ```
 
 ## Como inserir as fotos reais
