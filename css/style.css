@@ -419,6 +419,9 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 30px; }
 .hero-badge { display: flex; align-items: center; gap: 14px; color: var(--plum); font-size: 14px; }
 .hero-badge strong { font-family: var(--serif); font-size: 22px; color: var(--lilac-700); margin-right: 4px; font-weight: 600; }
+/* brilho suave: branco em volta das letras, dourado em volta do ícone */
+.hero-badge span { text-shadow: 0 0 6px rgba(255,255,255,.75), 0 0 14px rgba(255,255,255,.45); }
+.hero-badge .gold-icon { filter: drop-shadow(0 0 5px rgba(212,169,79,.8)) drop-shadow(0 0 12px rgba(212,169,79,.45)); }
 
 /* Barra de diferenciais */
 .feature-bar {
