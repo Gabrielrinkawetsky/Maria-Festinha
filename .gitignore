@@ -1,0 +1,6 @@
+# nunca versionar chaves/segredos
+.env
+.env.*
+*.pem
+*.key
+secrets*
