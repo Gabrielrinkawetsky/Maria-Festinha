@@ -30,22 +30,31 @@ Todos os espaços de foto dos cards são **quadrados** (como no Instagram). Salv
 | Serviços — Aniversários | `img/fotos/servico-aniversarios.jpg` | post Dc6sjHCgzOs |
 | Serviços — Buffet de Pizza | `img/fotos/servico-buffet-pizza.jpg` | post DXV2zymAeeq de @flordelotuspizzariaa (Calabresa Especial) |
 | Serviços — Espaço | `img/fotos/servico-espaco.jpg` | post Dans_dklnPD, foto 3 |
+| Serviços — Infláveis | `img/fotos/servico-inflaveis.jpg` | post CdvuVOwO1uk (pula-pula inflável) |
+| Serviços — Pipoca e Algodão-doce | `img/fotos/servico-pipoca-algodao-doce.jpg` | **falta a foto** (o card mostra o espaço decorado até ela existir) |
+| Serviços — Decoração Minimalista | `img/fotos/servico-minimalista.jpg` | post CkHQ1uuujUP |
 | Celebrações — 15 Anos | `img/fotos/celebracao-1.jpg` | post fixado DbtH_bLuvBM |
 | Celebrações — Chá de Bebê | `img/fotos/celebracao-2.jpg` | post fixado DBbcdnxOX5M |
 | Celebrações — Decoração Floral | `img/fotos/celebracao-3.jpg` | post fixado CkoPRhHOTe9, foto 7 |
+| Celebrações — Minimalista | `img/fotos/celebracao-minimalista.jpg` | post DeezLPHxnlW (14/10/2026) |
+| Celebrações — Bolofofos | `img/fotos/celebracao-bolofofos.jpg` | post Ccx39n4OZgv, foto 3 |
+| Celebrações — Bob Esponja | `img/fotos/celebracao-bob-esponja.jpg` | post CbTARkNO0dw, foto 2 |
+| Celebrações — Sereia | `img/fotos/celebracao-sereia.jpg` | post Cb_DyzvO4n5 |
+| Celebrações — GTA | `img/fotos/celebracao-gta.jpg` | post Cb_DaBIuKIO |
+| Celebrações — Masha e o Urso | `img/fotos/celebracao-masha.jpg` | destaque “Marcha e urso” (story) |
 | Destaques — Casamento | `img/fotos/destaque-casamento.jpg` | post Cle9N9JOUWx |
 | Destaques — Chá de Casa Nova | `img/fotos/destaque-cha-casa-nova.jpg` | post ChAtRz0Ow2u, foto 8 |
 | Destaques — Aniversários | `img/fotos/destaque-aniversarios.jpg` | post DYxG5B3OaO4 |
-| Destaques — Nosso Espaço | `img/fotos/destaque-espaco.jpg` | post Dans_dklnPD, foto 1 |
-| Avaliações — clientes 1 a 3 | `img/fotos/cliente-1.jpg` … `cliente-3.jpg` | quadrado, 300×300 |
+| Destaques — Flor de Lótus | `img/fotos/destaque-espaco.jpg` | post Dans_dklnPD, foto 1 |
+| Avaliações — clientes | `img/fotos/cliente-1.jpg`, `cliente-2.jpg`… | quadrado, 300×300 |
 
-Os títulos das celebrações (15 Anos, Chá de Bebê, Decoração Floral) vêm dos posts fixados no Instagram; troque-os em `index.html` se usar outras fotos. Para ver um post: `instagram.com/p/<código>/`.
+Os títulos das celebrações vêm dos posts e destaques do Instagram citados acima; troque-os em `index.html` se usar outras fotos. O tema futebol já aparece na foto do card “Aniversários” (Serviços), por isso não entrou de novo na galeria. Para ver um post: `instagram.com/p/<código>/`.
 
 ## Avaliações
 
-Nenhum depoimento foi inventado. Aparecem os 3 cards: o da Waleska com o depoimento e os da Maria Eduarda e do João com a caixa “Espaço reservado para o depoimento de um cliente”, até terem o texto. Para completar um card:
+Nenhum depoimento foi inventado. Aparece só o card da Waleska; os cards de teste (Maria Eduarda e João, sem texto) foram tirados. Com um card só, ele fica centralizado e mais largo. Para acrescentar um depoimento real:
 
-1. Troque o `<p class="quote-ph">…</p>` por `<blockquote>texto do cliente</blockquote>`;
+1. Copie o `<article class="card testimonial-card">` da Waleska e troque a inicial, as estrelas, o texto do `<blockquote>` e o nome;
 2. Se tiver foto, salve em `img/fotos/cliente-X.jpg` e coloque `<img src="img/fotos/cliente-X.jpg" alt="">` dentro do `<figure class="avatar">`, antes da inicial (sem foto aparece a inicial do nome; o `<img>` só entra quando a foto existe, para o navegador não procurar um arquivo que não está lá).
 
 As estrelas ficam douradas; com a classe `is-empty` no `<article>` ficam só no contorno. A frase embaixo da seção leva ao Instagram (o antigo destaque “⭐ Avaliações” não existe mais).
