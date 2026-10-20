@@ -43,17 +43,29 @@ Os títulos das celebrações (15 Anos, Chá de Bebê, Decoração Floral) vêm 
 
 ## Avaliações
 
-Nenhum depoimento foi inventado. Os três cards da seção **Avaliações** estão preparados para receber depoimentos reais (ver comentário no `index.html`, acima da seção):
+Nenhum depoimento foi inventado. Hoje aparece só o da Waleska (centralizado e mais largo quando está sozinho). Os cards da Maria Eduarda e do João estão guardados num comentário do `index.html`, logo abaixo dele, até terem o texto do depoimento. Para mostrar um card:
 
-1. Troque o `<p class="quote-ph">…</p>` por `<blockquote>texto do cliente</blockquote>`;
-2. Troque “Nome do cliente” pelo nome real;
-3. Remova a classe `is-empty` do `<article>` (as estrelas ficam preenchidas).
+1. Tire o `<!--` e o `-->` em volta dele;
+2. Troque o `<p class="quote-ph">…</p>` por `<blockquote>texto do cliente</blockquote>`;
+3. Se tiver foto, salve em `img/fotos/cliente-X.jpg` (sem foto aparece a inicial do nome).
+
+As estrelas ficam douradas; com a classe `is-empty` no `<article>` ficam só no contorno. A frase embaixo da seção leva ao Instagram (o antigo destaque “⭐ Avaliações” não existe mais).
 
 ## Contato configurado
 
 - WhatsApp: (12) 99167-4881 — `wa.me/5512991674881`
 - Instagram: [@mariafestinhailhabela](https://www.instagram.com/mariafestinhailhabela/)
-- Ilhabela, SP
+- Endereço: Av. São Paulo, 1057 – Barra Velha, Ilhabela – SP (rodapé, com link para o Google Maps, e mapa no fim do hero)
+- Os botões “Ver no Instagram” dos **Destaques** abrem o post de onde veio a foto de cada card (ver a tabela de fotos acima).
+
+## Google (busca)
+
+- `robots.txt` libera o site todo e aponta para o `sitemap.xml` (que lista a página principal).
+- `<link rel="canonical">` no `<head>`: diz ao Google o endereço oficial, para as cópias de teste da Vercel e links com `?fbclid=…` não contarem como sites diferentes.
+- Ficha da empresa (dados estruturados `LocalBusiness`, bloco `<script type="application/ld+json">` no `<head>`): nome, endereço, telefone, Instagram, ano de fundação e serviços. Mantenha igual ao que o site mostra. Horário (`openingHoursSpecification`) e cidades atendidas (`areaServed`) ainda não entraram: faltam os dados. Para conferir: search.google.com/test/rich-results.
+- Título e descrição falam em “decoração de festas em Ilhabela”, que é o que as pessoas pesquisam.
+- Com domínio próprio, troque `maria-festinha.vercel.app` no `<head>`, no `robots.txt` e no `sitemap.xml`.
+- Fora do código (precisa da conta Google da empresa): cadastrar o site no Google Search Console e enviar o sitemap; criar/atualizar o Perfil da Empresa no Google com o link do site.
 
 ## Prévia do link (WhatsApp, Instagram, Facebook)
 
