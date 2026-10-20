@@ -31,10 +31,13 @@ Todos os espaços de foto dos cards são **quadrados** (como no Instagram). Salv
 | Serviços — Buffet de Pizza | `img/fotos/servico-buffet-pizza.jpg` | post DXV2zymAeeq de @flordelotuspizzariaa (Calabresa Especial) |
 | Serviços — Espaço | `img/fotos/servico-espaco.jpg` | post Dans_dklnPD, foto 3 |
 | Serviços — Infláveis | `img/fotos/servico-inflaveis.jpg` | post CdvuVOwO1uk (pula-pula inflável) |
-| Serviços — Pipoca e Algodão-doce | `img/fotos/servico-pipoca-algodao-doce.jpg` | **falta a foto** (o card mostra o espaço decorado até ela existir) |
+| Serviços — Pipoca e Algodão-doce | `img/fotos/servico-pipoca-algodao-doce.jpg` | imagem gerada por IA (`dev-web/output/imagegen/pipoca-e-algodao-doce.png`, 1254→900) |
 | Serviços — Decoração Minimalista | `img/fotos/servico-minimalista.jpg` | post CkHQ1uuujUP |
 | Celebrações — 15 Anos | `img/fotos/celebracao-1.jpg` | post fixado DbtH_bLuvBM |
 | Celebrações — Chá de Bebê | `img/fotos/celebracao-2.jpg` | post fixado DBbcdnxOX5M |
+| Celebrações — Chá Revelação | `img/fotos/celebracao-cha-revelacao.jpg` | post Ck_zRcsOEsY (legenda “a festa mais procurada e vendida por aqui”) |
+| Celebrações — Chá Revelação na Praia | `img/fotos/celebracao-cha-revelacao-praia.jpg` | post DHL-4zyOSMq |
+| Celebrações — Batizado | `img/fotos/celebracao-batizado.jpg` | post C9-S1UcOKsp, foto 1 |
 | Celebrações — Decoração Floral | `img/fotos/celebracao-3.jpg` | post fixado CkoPRhHOTe9, foto 7 |
 | Celebrações — Minimalista | `img/fotos/celebracao-minimalista.jpg` | post DeezLPHxnlW (14/10/2026) |
 | Celebrações — Bolofofos | `img/fotos/celebracao-bolofofos.jpg` | post Ccx39n4OZgv, foto 3 |
@@ -46,6 +49,8 @@ Todos os espaços de foto dos cards são **quadrados** (como no Instagram). Salv
 | Destaques — Chá de Casa Nova | `img/fotos/destaque-cha-casa-nova.jpg` | post ChAtRz0Ow2u, foto 8 |
 | Destaques — Aniversários | `img/fotos/destaque-aniversarios.jpg` | post DYxG5B3OaO4 |
 | Destaques — Flor de Lótus | `img/fotos/destaque-espaco.jpg` | post Dans_dklnPD, foto 1 |
+| Quem Somos — foto grande | `img/fotos/sobre-mesa.jpg` | post fixado CkoPRhHOTe9, foto 5 (original 854×1068, sem corte) |
+| Quem Somos — foto menor | `img/fotos/sobre-bolo.jpg` | post fixado CkoPRhHOTe9, foto 3 (original 1280×854, sem corte) |
 | Avaliações — clientes | `img/fotos/cliente-1.jpg`, `cliente-2.jpg`… | quadrado, 300×300 |
 
 Os títulos das celebrações vêm dos posts e destaques do Instagram citados acima; troque-os em `index.html` se usar outras fotos. O tema futebol já aparece na foto do card “Aniversários” (Serviços), por isso não entrou de novo na galeria. Para ver um post: `instagram.com/p/<código>/`.

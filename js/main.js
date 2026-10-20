@@ -825,13 +825,13 @@
       seenDirty = false;
       seen.sort(function (a, b) { return a.el === b.el ? 0 : (a.el.compareDocumentPosition(b.el) & 4) ? -1 : 1; });
     }
-    var limit = window.innerHeight * 0.98, far = limit + window.innerHeight * 2, n = 0, stop = false;
+    var vh = window.innerHeight, far = vh * 2.98, n = 0, stop = false;
     seen = seen.filter(function (it) {
       if (stop) return true;
       var top = it.el.getBoundingClientRect().top;
       // em ordem do documento: um elemento 2 telas abaixo -> os seguintes também estão (não mede o resto)
       if (top > far) { stop = true; return true; }
-      if (top > limit) return true;
+      if (top > vh * it.at) return true;
       it.fn(it.el, Math.min(n++ * 0.05, 0.2));   // vários de uma vez entram em cascata
       return false;
     });
@@ -842,7 +842,8 @@
     sweepQueued = true;
     requestAnimationFrame(function () { sweepQueued = false; sweep(); });
   }
-  function whenSeen(el, fn) { seen.push({ el: el, fn: fn }); seenDirty = true; queueSweep(); }
+  // at: fração da altura da tela que o topo do elemento precisa passar (padrão 98%)
+  function whenSeen(el, fn, at) { seen.push({ el: el, fn: fn, at: at || 0.98 }); seenDirty = true; queueSweep(); }
   window.addEventListener('scroll', queueSweep, { passive: true });
   window.addEventListener('resize', queueSweep);
 
@@ -908,6 +909,80 @@
   } else {
     document.querySelectorAll('.reveal').forEach(done);
   }
+
+  /* ---------- AnimatedContent (React Bits, versão sem React) ----------
+     Elementos com [data-ac] entram ao rolar: sobem `distance` px, aparecem e, com
+     stagger, cada filho direto entra em sequência. As opções seguem as props do
+     componente, em data-ac-*: data-ac-distance="100", data-ac-direction="horizontal",
+     data-ac-stagger="0.08", data-ac-blur="6", data-ac-scale="0.9", data-ac-wipe="up"...
+     O disparo usa whenSeen (posição real na tela) em vez do ScrollTrigger: no iPhone
+     as contas dele deixavam coisas invisíveis. Sem GSAP ou com "reduzir movimento",
+     o conteúdo só aparece. */
+  var AC_WIPES = {
+    up: 'linear-gradient(to top, #000 calc(var(--ac-wipe) * 140% - 40%), transparent calc(var(--ac-wipe) * 140%))',
+    down: 'linear-gradient(to bottom, #000 calc(var(--ac-wipe) * 140% - 40%), transparent calc(var(--ac-wipe) * 140%))',
+    left: 'linear-gradient(to left, #000 calc(var(--ac-wipe) * 140% - 40%), transparent calc(var(--ac-wipe) * 140%))',
+    right: 'linear-gradient(to right, #000 calc(var(--ac-wipe) * 140% - 40%), transparent calc(var(--ac-wipe) * 140%))',
+    center: 'radial-gradient(farthest-corner at 50% 50%, #000 calc(var(--ac-wipe) * 140% - 40%), transparent calc(var(--ac-wipe) * 140%))'
+  };
+  var AC_DEFAULTS = {
+    distance: 100, direction: 'vertical', reverse: false, duration: 0.8, ease: 'power3.out',
+    initialOpacity: 0, animateOpacity: true, scale: 1, blur: 0, rotate: 0, tilt: 0, wipe: 'none',
+    threshold: 0.1, delay: 0, stagger: 0, staggerFrom: 'start'
+  };
+  function acOptions(el) {
+    var o = {};
+    Object.keys(AC_DEFAULTS).forEach(function (k) {
+      var raw = el.getAttribute('data-ac-' + k.replace(/[A-Z]/g, function (c) { return '-' + c.toLowerCase(); }));
+      var def = AC_DEFAULTS[k];
+      if (raw === null) o[k] = def;
+      else if (typeof def === 'number') o[k] = parseFloat(raw);
+      else if (typeof def === 'boolean') o[k] = raw !== 'false';
+      else o[k] = raw;
+    });
+    // cards em carrossel horizontal (celular): entram de lado, acompanhando o arraste
+    if (el.hasAttribute('data-ac-carousel') && window.matchMedia('(max-width: 640px)').matches) o.direction = 'horizontal';
+    return o;
+  }
+  function animatedContent(el) {
+    var o = acOptions(el);
+    var targets = o.stagger > 0 && el.children.length ? Array.prototype.slice.call(el.children) : [el];
+    var horizontal = o.direction === 'horizontal';
+    var axis = horizontal ? 'x' : 'y';
+    var sign = o.reverse ? -1 : 1;
+    var mask = AC_WIPES[o.wipe];
+
+    var from = { scale: o.scale, opacity: o.animateOpacity ? o.initialOpacity : 1 };
+    var to = { scale: 1, opacity: 1, duration: o.duration, ease: o.ease };
+    from[axis] = o.distance * sign; to[axis] = 0;
+    if (o.blur > 0) { from.filter = 'blur(' + o.blur + 'px)'; to.filter = 'blur(0px)'; }
+    if (o.rotate) { from.rotation = o.rotate * sign; to.rotation = 0; }
+    if (o.tilt) {
+      var tiltAxis = horizontal ? 'rotationY' : 'rotationX';
+      from[tiltAxis] = horizontal ? -o.tilt * sign : o.tilt * sign; to[tiltAxis] = 0;
+      from.transformPerspective = to.transformPerspective = 900;
+    }
+    if (mask) {
+      gsap.set(targets, { maskImage: mask, webkitMaskImage: mask });
+      from['--ac-wipe'] = 0; to['--ac-wipe'] = 1;
+    }
+    if (o.stagger > 0) to.stagger = { each: o.stagger, from: o.staggerFrom };
+    // ao terminar, devolve o elemento ao CSS normal (hover dos cards volta a funcionar)
+    to.onComplete = function () {
+      gsap.set(targets, { clearProps: mask ? 'filter,transform,maskImage,webkitMaskImage' : 'filter,transform' });
+    };
+
+    gsap.set(targets, from);
+    gsap.set(el, { visibility: 'visible' });
+    whenSeen(el, function () {
+      to.delay = Math.max(o.delay, 0);
+      gsap.to(targets, to);
+    }, 1 - o.threshold);
+  }
+  document.querySelectorAll('[data-ac]').forEach(function (el) {
+    if (gsap && !reduceMotion) animatedContent(el);
+    else el.style.visibility = 'visible';
+  });
 
   /* ---------- Passos acendendo com o scroll ----------
      Um feixe dourado corre pela linha pontilhada, preenchendo-a, com um ponto de
@@ -1124,6 +1199,50 @@
       });
     });
   }
+
+  /* ---------- ScrollFloat (Quem Somos) ----------
+     Versão sem React do ScrollFloat do React Bits, efeito "float": cada letra sobe
+     esticada (scaleY 2.3) de dentro da própria palavra e assenta conforme o scroll
+     (scrub). A etiqueta "Quem Somos" fica de fora; sem GSAP ou com "reduzir
+     movimento" o título aparece normal. */
+  (function () {
+    var title = document.querySelector('.about-title');
+    if (!title || !gsap || !ST || reduceMotion) return;
+    var SF = { stagger: 0.03, stretch: 2.3, distance: 120, ease: 'back.inOut(2)', start: 'center bottom+=50%', end: 'clamp(bottom bottom-=40%)' };
+
+    title.setAttribute('aria-label', title.textContent.replace(/\s+/g, ' ').trim());
+    var walker = document.createTreeWalker(title, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (n) { return n.parentElement.closest('.about-kicker') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT; }
+    });
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function (node) {
+      var frag = document.createDocumentFragment();
+      node.textContent.split(/(\s+)/).forEach(function (part) {
+        if (!part) return;
+        if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(' ')); return; }
+        var word = document.createElement('span');
+        word.className = 'sf-word';
+        word.setAttribute('aria-hidden', 'true');
+        Array.from(part).forEach(function (ch) {
+          var c = document.createElement('span');
+          c.className = 'sf-char';
+          c.textContent = ch;
+          word.appendChild(c);
+        });
+        frag.appendChild(word);
+      });
+      node.parentNode.replaceChild(frag, node);
+    });
+    title.querySelector('.about-kicker').setAttribute('aria-hidden', 'true');
+
+    var chars = title.querySelectorAll('.sf-char');
+    gsap.timeline({
+      scrollTrigger: { trigger: title, start: SF.start, end: SF.end, scrub: true, invalidateOnRefresh: true }
+    }).fromTo(chars,
+      { willChange: 'opacity, transform', opacity: 0, yPercent: SF.distance, scaleY: SF.stretch, scaleX: Math.pow(SF.stretch, -0.43), transformOrigin: '50% 0%' },
+      { duration: 1, stagger: SF.stagger, ease: SF.ease, opacity: 1, yPercent: 0, scaleY: 1, scaleX: 1 }, 0);
+  })();
 
   /* ---------- Brilhos só animam quando a seção está na tela ---------- */
   if (ST) {
