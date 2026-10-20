@@ -863,7 +863,7 @@ html:not(.curtain-on) .photo-curtain { display: none; }
    Dentro da faixa lilás do CTA final (corações, brilhos e fita por trás): cards de
    vidro claro com texto ameixa e um brilho lilás saindo da esquerda; a aberta brilha mais. */
 .final-cta.has-faq { text-align: left; padding: 90px 0 80px; }
-.faq-inner { z-index: 3; scroll-margin-top: 90px; }
+.faq-inner { z-index: 3; }   /* o recuo do cabeçalho já vem do scroll-padding-top do html */
 .faq-inner .section-title h2 { color: #fff; text-shadow: 0 3px 14px rgba(74, 58, 107, .35); }
 .faq-inner .section-title h2::before { background: linear-gradient(90deg, transparent, #fff3cf); }
 .faq-inner .section-title h2::after { background: linear-gradient(90deg, #fff3cf, transparent); }
@@ -880,13 +880,13 @@ html:not(.curtain-on) .photo-curtain { display: none; }
 /* brilho lilás: nasce na borda esquerda, atrás do texto */
 .faq details::before {
   content: ""; position: absolute; z-index: -1; pointer-events: none;
-  left: -10%; top: 35%; width: 58%; height: 140%;
-  background: radial-gradient(closest-side, rgba(182, 156, 224, .7), rgba(210, 192, 239, .45) 45%, transparent 100%);
-  filter: blur(14px); opacity: .6; transform-origin: 0 50%;
+  left: -10%; top: 30%; width: 62%; height: 150%;
+  background: radial-gradient(closest-side, rgba(154, 125, 208, .85), rgba(182, 156, 224, .6) 40%, rgba(210, 192, 239, .3) 70%, transparent 100%);
+  filter: blur(14px); opacity: .8; transform-origin: 0 50%;
   transition: opacity .35s ease, transform .35s ease;
 }
 .faq details:hover { border-color: var(--gold-200); }
-.faq details:hover::before { opacity: .85; }
+.faq details:hover::before { opacity: 1; }
 .faq details[open] { background: rgba(255, 255, 255, .92); border-color: var(--gold-400); }
 .faq details[open]::before { opacity: 1; top: 10%; transform: scale(1.25, 1.1); }
 .faq summary {
@@ -991,7 +991,8 @@ html:not(.curtain-on) .photo-curtain { display: none; }
 }
 .wa-float:hover { transform: scale(1.08); }
 .wa-float { transition: transform .25s, opacity .3s, visibility .3s; }
-.wa-float.is-hidden { opacity: 0; visibility: hidden; transform: scale(.6); }
+.wa-float.is-hidden,
+.wa-float.over-faq { opacity: 0; visibility: hidden; transform: scale(.6); }   /* over-faq: cobriria o + das perguntas (js/main.js) */
 .wa-float svg { width: 30px; height: 30px; }
 @keyframes pulse {
   0%, 100% { box-shadow: 0 10px 24px -8px rgba(154,111,36,.8), 0 0 0 0 rgba(212,169,79,.5); }

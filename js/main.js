@@ -1500,6 +1500,31 @@
     }, { passive: true });
   })();
 
+  /* ---------- WhatsApp flutuante some sobre as perguntas ----------
+     No celular e no tablet o botão fica em cima do "+" das perguntas do FAQ. Enquanto
+     as perguntas estão na tela e o botão cai sobre elas, ele se esconde (o CTA logo
+     abaixo tem o "Pedir orçamento"). No computador largo não há sobreposição. */
+  (function () {
+    var fabBtn = document.querySelector('.wa-float');
+    var faqList = document.querySelector('.faq');
+    if (!fabBtn || !faqList || !('IntersectionObserver' in window)) return;
+    var faqOnScreen = false;
+    function check() {
+      var over = false;
+      if (faqOnScreen) {
+        // borda esquerda do botão pelo CSS (offsetWidth ignora a escala de quando está escondido)
+        var fabLeft = window.innerWidth - (parseFloat(getComputedStyle(fabBtn).right) || 0) - fabBtn.offsetWidth;
+        over = faqList.getBoundingClientRect().right > fabLeft - 8;
+      }
+      fabBtn.classList.toggle('over-faq', over);
+    }
+    new IntersectionObserver(function (entries) {
+      faqOnScreen = entries[0].isIntersecting;
+      check();
+    }).observe(faqList);
+    window.addEventListener('resize', check);
+  })();
+
   /* ---------- Ano no rodapé ---------- */
   var yearEl = document.getElementById('year');
   yearEl.textContent = new Date().getFullYear();
