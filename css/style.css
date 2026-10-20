@@ -793,7 +793,7 @@ html:not(.curtain-on) .photo-curtain { display: none; }
   .main-nav { gap: 18px; }
   .main-nav a { font-size: 11px; }
   .footer-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .footer-grid > div:nth-child(4) { border-left: 0; padding-left: 0; }
+  .footer-grid > div:nth-child(5) { border-left: 0; padding-left: 0; }   /* "Peça seu orçamento" começa a 3ª linha */
   .footer-grid > div:first-child { grid-column: 1 / -1; }
   .footer-grid > div:nth-child(2) { border-left: 0; padding-left: 0; }
 }
@@ -1049,6 +1049,36 @@ html:not(.curtain-on) .photo-curtain { display: none; }
   .h1-lilac { font-size: 26px; }
   .h1-gold { font-size: 28px; }
   .hero-copy { justify-content: flex-start; }
+}
+
+/* Notebook com tela baixa (1366×768 e 1280×720: ~600–680 px úteis no navegador): o hero
+   não cabia, a barra de diferenciais saía por baixo da tela e a foto/mapa subia para
+   baixo do cabeçalho. Títulos, foto e espaços menores para tudo caber. */
+@media (min-width: 1024px) and (max-height: 760px) {
+  .hero-sticky { padding: 92px 0 calc(16px + var(--bar)); }
+  .eyebrow { font-size: 17px; margin-bottom: 6px; }
+  .h1-lilac { font-size: clamp(36px, 4.2vw, 54px); }
+  .h1-gold { font-size: clamp(38px, 4.5vw, 58px); }
+  .hero-title { margin-bottom: 14px; }
+  .hero-sub { margin-bottom: 18px; }
+  .hero-actions { margin-bottom: 16px; }
+  .hero-photo { top: 0; width: clamp(340px, 27vw, 460px); }
+  .feature-bar { margin-top: 14px; }
+}
+
+/* Tablet/janela de tamanho médio com pouca altura: as fotos do hero ficavam atrás da
+   barra de diferenciais; como no celular deitado, fica só texto e botões */
+@media (min-width: 641px) and (max-width: 1023px) and (max-height: 760px) {
+  .hero-photo { display: none !important; }
+}
+@media (min-width: 641px) and (max-width: 1023px) and (max-height: 620px) {
+  .hero-badge { display: none; }   /* selo "Desde 2014" não cabe acima da barra */
+  .hero-sticky { padding-top: 88px; }
+  .h1-lilac { font-size: 36px; }
+  .h1-gold { font-size: 38px; }
+  .hero-title { margin-bottom: 12px; }
+  .hero-sub { font-size: 14px; margin-bottom: 14px; }
+  .hero-actions { margin-bottom: 0; }
 }
 
 /* Nenhum conteúdo do hero passa da largura da tela (iPhone Pro Max etc.) */

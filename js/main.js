@@ -693,10 +693,11 @@
           // celular: scroll nativo -> scrub com 0,2 s de suavização (perto do
           // amortecimento do canvas: textos e vídeo andam juntos); computador: o Lenis já suaviza
           trigger: hero, start: 'top top', end: 'bottom bottom', scrub: mobile ? 0.2 : true, onUpdate: onUpdate,
-          // o hero já tem o botão de orçamento: esconde o WhatsApp flutuante enquanto ele está fixo
+          // o hero já tem o botão de orçamento: esconde o WhatsApp flutuante enquanto ele está
+          // na tela (também no topo, antes de rolar: senão o botão cobre a barra de diferenciais)
           onToggle: function (self) {
             var fab = document.querySelector('.wa-float');
-            if (fab) fab.classList.toggle('is-hidden', self.isActive);
+            if (fab) fab.classList.toggle('is-hidden', self.progress < 1);
           }
         }
       })
@@ -724,6 +725,8 @@
       // com scrub suavizado o GSAP só renderizava depois de rolar
       seq.progress(1).progress(0);
       trig = seq.scrollTrigger;
+      var fab0 = document.querySelector('.wa-float');
+      if (fab0) fab0.classList.toggle('is-hidden', trig.progress < 1);
       snapPanels(seq, [2.7, 6.5]);   // início da entrada dos painéis 2 e 3 na timeline acima
     } else if (ST) {
       loadMap();   // sem a sequência, o painel final aparece desde o início

@@ -47,7 +47,7 @@ Nenhum depoimento foi inventado. Hoje aparece só o da Waleska (centralizado e m
 
 1. Tire o `<!--` e o `-->` em volta dele;
 2. Troque o `<p class="quote-ph">…</p>` por `<blockquote>texto do cliente</blockquote>`;
-3. Se tiver foto, salve em `img/fotos/cliente-X.jpg` (sem foto aparece a inicial do nome).
+3. Se tiver foto, salve em `img/fotos/cliente-X.jpg` e coloque `<img src="img/fotos/cliente-X.jpg" alt="">` dentro do `<figure class="avatar">`, antes da inicial (sem foto aparece a inicial do nome; o `<img>` só entra quando a foto existe, para o navegador não procurar um arquivo que não está lá).
 
 As estrelas ficam douradas; com a classe `is-empty` no `<article>` ficam só no contorno. A frase embaixo da seção leva ao Instagram (o antigo destaque “⭐ Avaliações” não existe mais).
 
