@@ -990,7 +990,7 @@
      props do componente: from, direction (up/down), duration (s), delay (s),
      easing (easeOut/linear/expo/spring), decimals, separator, prefix, suffix,
      format (standard/compact), replay ("false" desliga o replay ao passar o mouse).
-     data-count="year" conta até o ano atual (rodapé).
+     Usado só no selo "Desde 2014" (hero e Quem Somos) e no 4 de "Sua festa em 4 passos".
      Só começa quando o número está de fato visível: dentro de um card que ainda vai
      entrar, de um painel escondido do hero, de um título com as letras ainda separadas
      (o FoldText troca o HTML do título ao terminar, por isso o número é achado de novo
@@ -1502,5 +1502,5 @@
 
   /* ---------- Ano no rodapé ---------- */
   var yearEl = document.getElementById('year');
-  if (!yearEl.hasAttribute('data-cu')) yearEl.textContent = new Date().getFullYear();   // com CountUp, ele mesmo escreve o ano
+  yearEl.textContent = new Date().getFullYear();
 })();

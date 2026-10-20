@@ -862,12 +862,12 @@ html:not(.curtain-on) .photo-curtain { display: none; }
 /* Perguntas frequentes (<details> nativo: abre e fecha sem JS)
    Visual escuro com brilho saindo da esquerda de cada pergunta (referência FAQ.PNG),
    em lilás no lugar do laranja; a pergunta aberta brilha mais. */
-#faq { background: #120c1c; }
+#faq { background: linear-gradient(180deg, #3b2d58 0%, #33264d 100%); }   /* ameixa do tema (--plum), escurecido */
 #faq .section-title h2 { color: #f3edfc; }
 .faq { max-width: 860px; margin: 0 auto; display: grid; gap: 10px; }
 .faq details {
   position: relative; isolation: isolate; overflow: hidden;
-  background: #0b0712; border: 1px solid rgba(214, 196, 245, .12); border-radius: 14px;
+  background: #241a38; border: 1px solid rgba(214, 196, 245, .16); border-radius: 14px;
   transition: border-color .3s ease;
 }
 /* brilho lilás: nasce na borda esquerda, atrás do texto */
