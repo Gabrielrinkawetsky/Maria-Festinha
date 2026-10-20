@@ -699,10 +699,6 @@
       var neon2 = buildNeon(hero.querySelector('[data-panel="2"] .hero-photo'));
       var neon3 = buildNeon(hero.querySelector('.hero-map'));
       runNeons([neon1, neon2, neon3]);
-      // cortina branca das fotos (mesmo efeito dos cards): a do painel 1 abre logo na
-      // abertura do site; a do painel 2 abre com o scroll, junto com a entrada do painel
-      document.documentElement.classList.add('curtain-on');
-      openCurtain(hero.querySelector('[data-panel="1"] .hero-photo-frame'), 0.35);
       // (títulos da Hero continuam separados: a sequência de rolagem anima as linhas deles)
       gsap.fromTo(splitChars(hero.querySelector('[data-panel="1"] .hero-title')), foldFrom, foldTo({ delay: 0.3, clearProps: 'transform,filter' }));
       var parts = function (n) {
@@ -731,8 +727,6 @@
         .to('[data-panel="1"] .hero-photo img', { scale: 1.1, duration: 1.2, ease: 'power1.in' }, 1.4)
         .fromTo('[data-panel="2"] .hero-photo img', { scale: 1.18 }, { scale: 1, duration: 1.5, ease: 'power2.out' }, 2.7)
         .to('[data-panel="2"] .hero-photo img', { scale: 1.1, duration: 1.2, ease: 'power1.in' }, 5.2)
-        // cortina da foto 2: desce enquanto o painel entra (rolar para cima fecha de novo)
-        .fromTo('[data-panel="2"] .photo-curtain', { yPercent: 0 }, { yPercent: 100, duration: 1.2, ease: 'power3.inOut' }, 2.8)
         // neon: enfraquece enquanto a foto sai e ganha força quando a nova chega
         .to(neon1.el, { opacity: 0, duration: 0.8, ease: 'power2.in' }, 1.3)
         .fromTo(neon2.el, { opacity: 0 }, { opacity: 1, duration: 1.3, ease: 'power2.in' }, 3.0)
@@ -835,7 +829,7 @@
   }
 
   /* ---------- Animação de entrada ---------- */
-  // abre a cortina branca de uma foto (card ou moldura do hero) quando a foto já chegou
+  // abre a cortina branca de uma foto de card quando a foto já chegou
   function openCurtain(box, delay) {
     var curtain = box.querySelector('.photo-curtain');
     var img = box.querySelector('img');
@@ -861,7 +855,7 @@
     // sai por baixo, revelando a foto. IntersectionObserver (e não whenSeen): no
     // celular os cards viram carrossel horizontal e cada foto só deve abrir quando é
     // arrastada para a tela. Se a foto ainda está baixando, espera ela chegar.
-    // (as cortinas das fotos do hero são abertas pela sequência do hero)
+    // (as fotos do hero não têm cortina: aparecem direto)
     var cardCurtains = document.querySelectorAll('.photo > .photo-curtain');
     if ('IntersectionObserver' in window) {
       document.documentElement.classList.add('curtain-on');
