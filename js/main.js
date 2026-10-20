@@ -13,6 +13,9 @@
   window.addEventListener('pagehide', function () { window.scrollTo(0, 0); });
 
   var WHATSAPP = '5512991674881';
+  // zoom de pinça (celular ou touchpad): a tela "encolhe" (no Safari o innerWidth muda),
+  // mas o layout da página é o mesmo. Nada deve ser recalculado nem rolado sozinho.
+  function zoomed() { return !!window.visualViewport && window.visualViewport.scale > 1.01; }
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ---------- Modo leve (economia de energia / aparelho fraco) ----------
@@ -624,14 +627,28 @@
         return null;
       }
 
+      // pinça com dois dedos (zoom) não é rolagem: até tirar os dedos, a assistência não age
+      var pinching = false;
       function input(kind) {
         mode = kind; pending = true; snapping = false;
         lastInput = performance.now();
       }
-      window.addEventListener('wheel', function () { input('wheel'); }, { passive: true });
-      window.addEventListener('touchstart', function () { touching = true; input('touch'); }, { passive: true });
-      window.addEventListener('touchend', function () { touching = false; lastInput = performance.now(); }, { passive: true });
-      window.addEventListener('touchcancel', function () { touching = false; }, { passive: true });
+      window.addEventListener('wheel', function (e) {
+        if (e.ctrlKey) { pending = false; return; }   // pinça no touchpad = zoom
+        input('wheel');
+      }, { passive: true });
+      window.addEventListener('touchstart', function (e) {
+        touching = true;
+        if (e.touches && e.touches.length > 1) pinching = true;
+        if (pinching) { pending = false; return; }
+        input('touch');
+      }, { passive: true });
+      window.addEventListener('touchend', function (e) {
+        if (!e.touches || !e.touches.length) { touching = false; pinching = false; }
+        lastInput = performance.now();
+      }, { passive: true });
+      window.addEventListener('touchcancel', function () { touching = false; pinching = false; }, { passive: true });
+      window.addEventListener('gesturestart', function () { pinching = true; pending = false; });   // Safari
       window.addEventListener('keydown', function (e) {
         if (/^(Arrow(Up|Down)|Page(Up|Down)|Home|End| )$/.test(e.key)) input('key');
       });
@@ -644,6 +661,7 @@
 
       gsap.ticker.add(function () {
         if (!pending || touching || snapping) return;
+        if (pinching || zoomed()) { pending = false; return; }
         var now = performance.now();
         if (now - lastInput < 140) return;                         // ainda girando a roda / apertando tecla
         if (mode !== 'wheel' && now - lastScroll < 120) return;   // toque: espera o embalo do dedo acabar
@@ -913,8 +931,10 @@
     }
 
     var ctx = null, builtW = 0, rebuildTimer = 0;
+    // largura do layout (não muda com o zoom de pinça, ao contrário do innerWidth no Safari)
+    var layoutW = function () { return document.documentElement.clientWidth; };
     function build() {
-      builtW = window.innerWidth;
+      builtW = layoutW();
       if (ctx) ctx.revert();
       var col = window.matchMedia('(max-width: 699px)').matches;
       // centro de cada ícone em relação à lista: a = ao longo da linha, b = na outra direção
@@ -951,7 +971,7 @@
     build();
     // remede quando a largura muda (girar a tela, redimensionar) ou as fontes chegam (o texto quebra diferente)
     window.addEventListener('resize', function () {
-      if (window.innerWidth === builtW) return;   // celular: barra de endereço mexe só na altura
+      if (zoomed() || layoutW() === builtW) return;   // zoom, ou celular com a barra de endereço mexendo só na altura
       clearTimeout(rebuildTimer);
       rebuildTimer = setTimeout(build, 200);
     });
