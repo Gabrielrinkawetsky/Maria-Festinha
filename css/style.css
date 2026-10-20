@@ -502,8 +502,8 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .75) 0%, rgba(255, 255, 255, 0) 45%);
 }
 .photo-ph svg { width: 64px; height: 64px; color: var(--gold-600); opacity: .85; filter: drop-shadow(0 2px 6px rgba(255, 255, 255, .9)); }
-/* Cortina branca que desce e revela a foto ao entrar na tela (js/main.js).
-   Sem GSAP ou com "reduzir movimento" não aparece. */
+/* Cortina branca que desce e revela a foto ao entrar na tela (js/main.js): em todas
+   as fotos dos cards e nas fotos do hero. Sem GSAP ou com "reduzir movimento" não aparece. */
 .photo-curtain { position: absolute; inset: 0; z-index: 3; background: #fff; pointer-events: none; }
 html:not(.curtain-on) .photo-curtain { display: none; }
 
@@ -683,7 +683,7 @@ html:not(.curtain-on) .photo-curtain { display: none; }
 /* sem foto do cliente: mostra a inicial do nome, como no avatar do Google */
 .avatar-letter { font-family: var(--serif); font-size: 32px; font-weight: 600; color: var(--lilac-700); }
 .stars { display: flex; gap: 3px; margin-bottom: 10px; }
-.stars svg { width: 17px; height: 17px; color: var(--gold-400); }
+.stars svg { width: 17px; height: 17px; color: var(--gold-400); fill: none; }
 .testimonial-card:not(.is-empty) .stars svg { fill: var(--gold-400); }
 .testimonial-card blockquote { margin: 0 0 10px; font-size: 14px; font-style: italic; color: var(--plum); }
 .quote-ph {
@@ -814,6 +814,8 @@ html:not(.curtain-on) .photo-curtain { display: none; }
 
   .grid-3 { grid-template-columns: repeat(2, 1fr); }
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  /* 3 cards em 2 colunas: o que sobra sozinho na última linha fica no centro */
+  .grid-3 > :last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc((100% - 26px) / 2); }
   .feature-bar { grid-template-columns: repeat(2, 1fr); row-gap: 18px; }
   .feature-bar li { justify-content: flex-start; }
   .feature-bar li:nth-child(3) { border-left: 0; }
@@ -925,17 +927,21 @@ html:not(.curtain-on) .photo-curtain { display: none; }
 
   .balloon { width: 42px; left: 4px; }
 
-  /* Cards em carrossel horizontal com snap: menos rolagem, próximo card aparecendo */
+  /* Cards em carrossel horizontal com snap: menos rolagem, vizinhos aparecendo.
+     Sobra igual dos dois lados (metade da tela menos metade do card), assim o
+     primeiro e o último card também param no centro. O 100% do padding é a
+     largura do .container sem o recuo de 16px de cada lado, daí o + 32px. */
   .grid-3, .grid-4 {
+    --card-w: 82vw;
     display: flex; gap: 14px;
     overflow-x: auto; overscroll-behavior-x: contain;
-    scroll-snap-type: x mandatory; scroll-padding: 0 16px;
-    margin: 0 -16px; padding: 6px 16px 26px;
+    scroll-snap-type: x mandatory;
+    margin: 0 -16px; padding: 6px calc((100% + 32px - var(--card-w)) / 2) 26px;
     scrollbar-width: none;
   }
+  .grid-4 { --card-w: 72vw; }
   .grid-3::-webkit-scrollbar, .grid-4::-webkit-scrollbar { display: none; }
-  .grid-3 > *, .grid-4 > * { flex: 0 0 82%; scroll-snap-align: center; }
-  .grid-4 > * { flex-basis: 72%; }
+  .grid-3 > *, .grid-4 > * { flex: 0 0 var(--card-w); scroll-snap-align: center; }
   .card:hover { transform: none; }
 
   /* Texto dos cards mais enxuto: a foto é o destaque */

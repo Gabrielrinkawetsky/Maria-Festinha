@@ -581,26 +581,29 @@
     function onUpdate(self) { setProgress(self.progress); if (self.progress > 0.4) loadMap(); }
 
     /* Assistência de rolagem nos painéis da Hero
-       Se a pessoa para de rolar no meio de uma troca de painel (letras e foto pela
-       metade, entrando ou saindo), a página desliza sozinha até o painel completo
-       mais próximo: segue na direção em que ela vinha se a troca já passou de 20%,
-       senão volta. Parada com um painel completo na tela, nada acontece. O vídeo do
-       fundo só acompanha o scroll, como sempre.
+       Só age DEPOIS da troca de foto e letras: se a pessoa já passou do ponto em que
+       o painel novo começa a entrar (um pouquinho além dele) e para no meio da
+       entrada, a página completa sozinha até o painel novo inteiro. Subindo, o mesmo
+       ao contrário (passou do ponto de troca para cima: volta ao painel anterior
+       inteiro). Antes do ponto de troca nada acontece: a pessoa rola no próprio ritmo.
+       O vídeo do fundo só acompanha o scroll, como sempre.
        - Roda do mouse: assim que a roda para, o deslize do Lenis é redirecionado ao
          painel no mesmo embalo (sem parar e recomeçar).
        - Toque e teclado: espera o embalo do dedo acabar e desliza com aceleração suave.
        - Qualquer toque ou roda durante o deslize devolve o controle na hora. */
-    function snapPanels(seq) {
-      // trechos de troca (tempo da timeline): do 1º elemento que sai ao último que termina de entrar
-      function zone(from, to) {
+    function snapPanels(seq, swaps) {
+      // trechos de troca (tempo da timeline): do 1º elemento que sai ao último que termina
+      // de entrar; "swap" é o ponto em que o painel novo começa a entrar
+      function zone(from, to, swap) {
         var a = Infinity, b = 0;
         seq.getChildren(false, true, true).forEach(function (t) {
           var s = t.startTime();
           if (s >= from && s < to) { a = Math.min(a, s); b = Math.max(b, s + t.totalDuration()); }
         });
-        return [a, b];
+        return [a, b, swap];
       }
-      var zones = [zone(1, 5), zone(5, 7.5)];   // painel 1 → 2 e 2 → 3 (posições da timeline acima)
+      var zones = [zone(1, 5, swaps[0]), zone(5, 7.5, swaps[1])];   // painel 1 → 2 e 2 → 3 (posições da timeline abaixo)
+      var PAST = 0.05;   // "um frame depois" do ponto de troca (tempo da timeline, ~10 px de rolagem)
       var pending = false, touching = false, snapping = false, mode = '';
       var lastInput = 0, lastScroll = 0, lastY = window.scrollY, dir = 1;
       var easeInOut = function (x) { return -(Math.cos(Math.PI * x) - 1) / 2; };
@@ -609,11 +612,13 @@
         if (!trig || trig.end <= trig.start) return null;
         var D = seq.duration(), span = trig.end - trig.start, t = (y - trig.start) / span * D;
         for (var z = 0; z < zones.length; z++) {
-          var a = zones[z][0], b = zones[z][1];
+          var a = zones[z][0], b = zones[z][1], swap = zones[z][2];
           if (t <= a || t >= b) continue;
-          var k = (t - a) / (b - a);
-          var fwd = dir >= 0 ? k > 0.2 : k > 0.8;
-          var to = Math.max(0, Math.min(D, fwd ? b + 0.12 : a - 0.12));   // um pouco dentro do painel completo
+          var to;
+          if (dir > 0 && t >= swap + PAST) to = b + 0.12;        // desceu além da troca: completa o painel novo
+          else if (dir < 0 && t <= swap - PAST) to = a - 0.12;   // subiu além da troca: volta ao painel anterior
+          else return null;                                      // antes da troca: não interfere
+          to = Math.max(0, Math.min(D, to));   // (± 0,12: um pouco dentro do painel completo)
           return trig.start + to / D * span;
         }
         return null;
@@ -669,6 +674,10 @@
       var neon2 = buildNeon(hero.querySelector('[data-panel="2"] .hero-photo'));
       var neon3 = buildNeon(hero.querySelector('.hero-map'));
       runNeons([neon1, neon2, neon3]);
+      // cortina branca das fotos (mesmo efeito dos cards): a do painel 1 abre logo na
+      // abertura do site; a do painel 2 abre com o scroll, junto com a entrada do painel
+      document.documentElement.classList.add('curtain-on');
+      openCurtain(hero.querySelector('[data-panel="1"] .hero-photo-frame'), 0.35);
       // (títulos da Hero continuam separados: a sequência de rolagem anima as linhas deles)
       gsap.fromTo(splitChars(hero.querySelector('[data-panel="1"] .hero-title')), foldFrom, foldTo({ delay: 0.3, clearProps: 'transform,filter' }));
       var parts = function (n) {
@@ -699,6 +708,8 @@
         .to('[data-panel="1"] .hero-photo img', { scale: 1.1, duration: 1.2, ease: 'power1.in' }, 1.4)
         .fromTo('[data-panel="2"] .hero-photo img', { scale: 1.18 }, { scale: 1, duration: 1.5, ease: 'power2.out' }, 2.7)
         .to('[data-panel="2"] .hero-photo img', { scale: 1.1, duration: 1.2, ease: 'power1.in' }, 5.2)
+        // cortina da foto 2: desce enquanto o painel entra (rolar para cima fecha de novo)
+        .fromTo('[data-panel="2"] .photo-curtain', { yPercent: 0 }, { yPercent: 100, duration: 1.2, ease: 'power3.inOut' }, 2.8)
         // neon: enfraquece enquanto a foto sai e ganha força quando a nova chega
         .to(neon1.el, { opacity: 0, duration: 0.8, ease: 'power2.in' }, 1.3)
         .fromTo(neon2.el, { opacity: 0 }, { opacity: 1, duration: 1.3, ease: 'power2.in' }, 3.0)
@@ -713,7 +724,7 @@
       // com scrub suavizado o GSAP só renderizava depois de rolar
       seq.progress(1).progress(0);
       trig = seq.scrollTrigger;
-      snapPanels(seq);
+      snapPanels(seq, [2.7, 6.5]);   // início da entrada dos painéis 2 e 3 na timeline acima
     } else if (ST) {
       loadMap();   // sem a sequência, o painel final aparece desde o início
       trig = ST.create({ trigger: hero, start: 'top top', end: 'bottom bottom', onUpdate: onUpdate });
@@ -800,6 +811,14 @@
   }
 
   /* ---------- Animação de entrada ---------- */
+  // abre a cortina branca de uma foto (card ou moldura do hero) quando a foto já chegou
+  function openCurtain(box, delay) {
+    var curtain = box.querySelector('.photo-curtain');
+    var img = box.querySelector('img');
+    var go = function () { gsap.to(curtain, { yPercent: 100, duration: 0.7, delay: delay, ease: 'power3.inOut' }); };
+    if (!img || img.complete) go();
+    else { img.addEventListener('load', go, { once: true }); img.addEventListener('error', go, { once: true }); }
+  }
   function done(el) {
     // devolve o elemento ao CSS normal (hover dos cards volta a funcionar)
     el.classList.remove('reveal');
@@ -814,9 +833,12 @@
     };
     document.querySelectorAll('.reveal').forEach(function (el) { whenSeen(el, show); });
 
-    // cortina branca das fotos de serviços: desce e sai por baixo, revelando a foto.
-    // IntersectionObserver (e não whenSeen): no celular os cards viram carrossel
-    // horizontal e cada foto só deve abrir quando é arrastada para a tela.
+    // cortina branca das fotos dos cards (Serviços, Celebrações, Destaques): desce e
+    // sai por baixo, revelando a foto. IntersectionObserver (e não whenSeen): no
+    // celular os cards viram carrossel horizontal e cada foto só deve abrir quando é
+    // arrastada para a tela. Se a foto ainda está baixando, espera ela chegar.
+    // (as cortinas das fotos do hero são abertas pela sequência do hero)
+    var cardCurtains = document.querySelectorAll('.photo > .photo-curtain');
     if ('IntersectionObserver' in window) {
       document.documentElement.classList.add('curtain-on');
       var curtainIO = new IntersectionObserver(function (entries) {
@@ -824,12 +846,12 @@
         entries.forEach(function (e) {
           if (!e.isIntersecting) return;
           curtainIO.unobserve(e.target);
-          gsap.to(e.target.querySelector('.photo-curtain'), {
-            yPercent: 100, duration: 0.7, delay: 0.1 + Math.min(n++ * 0.08, 0.3), ease: 'power3.inOut'
-          });
+          openCurtain(e.target, 0.1 + Math.min(n++ * 0.08, 0.3));
         });
       }, { threshold: 0.35 });
-      document.querySelectorAll('.photo-curtain').forEach(function (c) { curtainIO.observe(c.parentElement); });
+      cardCurtains.forEach(function (c) { curtainIO.observe(c.parentElement); });
+    } else {
+      cardCurtains.forEach(function (c) { c.remove(); });
     }
   } else {
     document.querySelectorAll('.reveal').forEach(done);
