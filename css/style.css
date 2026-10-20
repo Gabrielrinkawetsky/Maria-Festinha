@@ -402,7 +402,26 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 /* Hero presa com position: sticky (CSS), não com pin do GSAP: o pin tira e recoloca a
    Hero no DOM a cada recálculo, o que recarregava o Google Maps e dava saltos no iPhone.
    Altura = 1 tela + 2,6 telas de rolagem da sequência. */
-.hero-seq .hero { height: 360vh; height: calc(100lvh + 260vh); }
+.hero-seq .hero { height: 460vh; height: calc(200lvh + 260vh); }
+
+/* Troca de seção com borda curva: o resto da página (.page-rest) sobe por cima da Hero
+   parada. A Hero ganha +1 tela de altura e o .page-rest sobe 1 tela (margem negativa):
+   as seções continuam no mesmo lugar e a Hero fica presa enquanto é coberta.
+   --curve (px) é a altura do arco no topo; o js/main.js leva de ~18% da largura a 0
+   conforme a seção sobe. A sombra e o fio dourado acompanham o arco. */
+.page-rest {
+  position: relative; z-index: 3;
+  background:
+    radial-gradient(900px 700px at 100% 40%, #f1eafb 0%, transparent 60%),
+    linear-gradient(180deg, #fbf9ff 0%, #f5f0fc 50%, #fbf9ff 100%);
+}
+.hero-seq .page-rest { margin-top: -100vh; margin-top: -100lvh; }
+.curve-top { border-radius: 50% 50% 0 0 / var(--curve, 0px) var(--curve, 0px) 0 0; }
+.page-rest.curve-top { box-shadow: 0 -22px 44px -18px rgba(74, 58, 107, .4), inset 0 2px 0 rgba(212, 169, 79, .7); }
+.promo-band.curve-top {
+  box-shadow: 0 -16px 34px -18px rgba(74, 58, 107, .45), inset 0 2px 0 #dcb563, inset 0 -1px 0 rgba(255,255,255,.4);
+}
+.final-cta.curve-top { box-shadow: 0 -16px 34px -18px rgba(74, 58, 107, .45), inset 0 1px 0 rgba(255, 255, 255, .5); }
 @supports (height: 100lvh) { .hero-sticky { --bar: calc(100lvh - 100svh); } }
 /* Celular: quando a barra de endereço some ao rolar, a tela cresce (dvh passa de
    svh para lvh). A barra de diferenciais desce deslizando o mesmo tanto e fica

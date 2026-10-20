@@ -710,7 +710,10 @@
         scrollTrigger: {
           // celular: scroll nativo -> scrub com 0,2 s de suavização (perto do
           // amortecimento do canvas: textos e vídeo andam juntos); computador: o Lenis já suaviza
-          trigger: hero, start: 'top top', end: 'bottom bottom', scrub: mobile ? 0.2 : true, onUpdate: onUpdate,
+          // fim: a Hero tem 1 tela a mais para o resto da página (.page-rest) subir por cima
+          // dela; a sequência termina quando o topo dele aparece embaixo da tela
+          trigger: hero, start: 'top top', endTrigger: '.page-rest', end: 'top bottom',
+          scrub: mobile ? 0.2 : true, onUpdate: onUpdate,
           // o hero já tem o botão de orçamento: esconde o WhatsApp flutuante enquanto ele está
           // na tela (também no topo, antes de rolar: senão o botão cobre a barra de diferenciais)
           onToggle: function (self) {
@@ -998,6 +1001,28 @@
         .fromTo(img,
           { rotation: 20 * dir, scale: 0.8 },
           { rotation: 0, scale: 1, ease: 'back.out(1.4)', duration: 1 }, 0);
+    });
+  }
+
+  /* ---------- Borda curva na troca de seção ----------
+     A seção nova sobe com o topo em arco (bordas mais baixas que o meio) e o arco
+     vai se achatando até virar reta quando ela chega no alto da tela. O resto da
+     página faz isso por cima da Hero parada; as faixas lilás, por cima do conteúdo
+     claro. Amarrado ao scroll: rolar para cima curva de novo. */
+  if (gsap && ST && !reduceMotion && document.documentElement.classList.contains('hero-seq')) {
+    [
+      // [elemento, altura do arco (fração da largura, máximo em px), onde fica reto]
+      ['.page-rest', 0.18, 240, 'top 6%'],
+      ['.promo-band', 0.12, 150, 'top 35%'],
+      ['.final-cta', 0.12, 150, 'top 35%']
+    ].forEach(function (c) {
+      var el = document.querySelector(c[0]);
+      if (!el) return;
+      el.classList.add('curve-top');
+      gsap.fromTo(el,
+        { '--curve': function () { return Math.min(window.innerWidth * c[1], c[2]) + 'px'; } },
+        { '--curve': '0px', ease: 'none',
+          scrollTrigger: { trigger: el, start: 'top bottom', end: c[3], scrub: true, invalidateOnRefresh: true } });
     });
   }
 
