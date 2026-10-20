@@ -482,17 +482,18 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 }
 .card:hover { transform: translateY(-6px); box-shadow: 0 26px 50px -20px rgba(106, 78, 160, .55); }
 
-/* Espaço para foto */
+/* Espaço para foto: quadrado, como no Instagram. As fotos de img/fotos já vêm
+   quadradas (foto inteira no centro, sobras preenchidas com ela mesma desfocada),
+   então o "cover" abaixo não corta nada. */
 .photo {
   position: relative; margin: 0;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   background:
     radial-gradient(circle at 20% 20%, rgba(255,255,255,.7), transparent 50%),
     repeating-linear-gradient(45deg, rgba(255,255,255,.25) 0 10px, transparent 10px 20px),
     linear-gradient(135deg, #e9def8 0%, #d6c4f0 55%, #c3abe6 100%);
 }
-.photo[data-ratio="4/3"] { aspect-ratio: 4 / 3; }
 .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; transition: transform .6s ease; }
 .card:hover .photo img { transform: scale(1.05); }
 .photo-ph {
@@ -574,23 +575,83 @@ html:not(.curtain-on) .photo-curtain { display: none; }
 /* Passos */
 .steps {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; position: relative;
-  counter-reset: step;
+  counter-reset: step; --icon: 88px;
 }
 .steps::before {
-  content: ""; position: absolute; top: 44px; left: 12.5%; right: 12.5%; height: 0;
+  content: ""; position: absolute; top: calc(var(--icon) / 2 - 1px); left: 12.5%; right: 12.5%; height: 0;
   border-top: 2px dotted var(--gold-400); z-index: 0;
 }
 .steps li { text-align: center; position: relative; z-index: 1; }
 .step-icon {
-  width: 88px; height: 88px; margin: 0 auto 16px; border-radius: 50%;
+  width: var(--icon); height: var(--icon); margin: 0 auto 16px; border-radius: 50%;
   display: grid; place-items: center;
   background: radial-gradient(circle at 35% 30%, #fff 0%, #f5eefd 70%);
   border: 1px solid var(--gold-200);
   box-shadow: 0 0 0 6px rgba(255,255,255,.7), var(--shadow-soft);
 }
-.step-icon svg { width: 44px; height: 44px; color: var(--gold-600); }
+.step-icon svg { width: calc(var(--icon) / 2); height: calc(var(--icon) / 2); color: var(--gold-600); }
 .steps h3 { font-family: var(--serif); font-size: 17px; letter-spacing: .12em; text-transform: uppercase; color: var(--plum); font-weight: 600; margin-bottom: 6px; }
 .steps p { font-size: 13px; color: var(--muted); max-width: 200px; margin: 0 auto; }
+
+/* Tablet e celular deitado: os 4 passos continuam em linha, mais compactos */
+@media (max-width: 960px) {
+  .steps { gap: 12px; --icon: 76px; }
+  .steps h3 { font-size: 14px; letter-spacing: .08em; }
+  .steps p { font-size: 12.5px; }
+}
+/* Celular em pé: linha do tempo vertical (ícone à esquerda, texto à direita) */
+@media (max-width: 699px) {
+  .steps { grid-template-columns: 1fr; row-gap: 32px; max-width: 460px; margin: 0 auto; --icon: 64px; }
+  .steps::before { display: none; }   /* com JS a linha vertical é desenhada pelo .steps-track */
+  .steps li { display: grid; grid-template-columns: var(--icon) 1fr; column-gap: 18px; align-items: center; text-align: left; }
+  .step-icon { grid-row: 1 / span 2; margin: 0; }
+  .steps h3 { grid-column: 2; align-self: end; margin-bottom: 2px; font-size: 15px; letter-spacing: .06em; }
+  .steps p { grid-column: 2; align-self: start; margin: 0; max-width: none; }
+}
+
+/* Passos acendendo com o scroll (elementos criados em js/main.js; sem JS fica o desenho acima).
+   --ring (0..1) no .step-icon: quanto do anel dourado já carregou. */
+.step-icon { position: relative; --ring: 0; }
+.step-ring, .step-dot, .step-glow, .step-burst { position: absolute; border-radius: 50%; pointer-events: none; }
+.step-ring {
+  inset: -5px;   /* sobre a faixa branca em volta do círculo */
+  background: conic-gradient(from 0deg, var(--gold-200), var(--gold-400) calc(var(--ring) * 1turn), transparent 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+}
+/* ponto de luz na ponta do anel enquanto ele carrega */
+.step-dot { inset: -5px; transform: rotate(calc(var(--ring) * 1turn)); opacity: 0; }
+.step-dot::before {
+  content: ""; position: absolute; top: -5px; left: 50%; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 22%, #fff3cf 40%, rgba(241, 213, 140, 0) 72%);
+  box-shadow: 0 0 10px 3px rgba(241, 213, 140, .6);
+}
+.step-glow {
+  inset: -26px; z-index: -1; opacity: 0;
+  background: radial-gradient(circle, rgba(241, 213, 140, .8) 0%, rgba(241, 213, 140, .3) 50%, rgba(241, 213, 140, 0) 71%);
+}
+.step-burst { inset: -5px; border: 1.5px solid var(--gold-400); opacity: 0; }
+
+/* Linha com o feixe de luz: o JS mede o centro do 1º e do último ícone e posiciona o
+   .steps-track entre eles (horizontal, ou vertical com .is-col), com a linha pontilhada
+   própria no lugar do .steps::before. */
+.steps-lit::before { display: none; }
+.steps > .steps-track { position: absolute; z-index: 0; pointer-events: none; list-style: none; }
+.steps-track::before { content: ""; position: absolute; inset: 0; border-top: 2px dotted var(--gold-400); }
+.steps-track.is-col::before { border-top: 0; border-left: 2px dotted var(--gold-400); }
+.steps-fill {
+  position: absolute; inset: 0; border-radius: 2px;
+  background: linear-gradient(90deg, var(--gold-200), var(--gold-400) 45%, var(--gold-600));
+  box-shadow: 0 0 6px rgba(212, 169, 79, .75), 0 0 16px rgba(212, 169, 79, .35);
+  will-change: transform;
+}
+.is-col .steps-fill { background: linear-gradient(180deg, var(--gold-200), var(--gold-400) 45%, var(--gold-600)); }
+.steps-spark {
+  position: absolute; left: -10px; top: -10px; width: 22px; height: 22px; border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 16%, #fff3cf 32%, rgba(241, 213, 140, .55) 50%, rgba(212, 169, 79, 0) 72%);
+  box-shadow: 0 0 16px 5px rgba(241, 213, 140, .5);
+  opacity: 0; will-change: transform, opacity;
+}
 
 /* Destaques */
 .venue-card .venue-body {
@@ -757,8 +818,6 @@ html:not(.curtain-on) .photo-curtain { display: none; }
   .feature-bar li { justify-content: flex-start; }
   .feature-bar li:nth-child(3) { border-left: 0; }
 
-  .steps { grid-template-columns: repeat(2, 1fr); row-gap: 36px; }
-  .steps::before { display: none; }
 
   .hero-copy { padding-left: 0; }
   .hero-veil { background: linear-gradient(180deg, rgba(251,248,255,.55) 0%, rgba(251,248,255,.2) 50%, rgba(251,248,255,0) 75%); }
@@ -793,9 +852,6 @@ html:not(.curtain-on) .photo-curtain { display: none; }
   .section-title h2::before, .section-title h2::after { width: 24px; }
 
   .grid-3, .grid-4 { grid-template-columns: 1fr; }
-  .steps { grid-template-columns: 1fr 1fr; gap: 14px; row-gap: 28px; }
-  .step-icon { width: 72px; height: 72px; }
-  .step-icon svg { width: 36px; height: 36px; }
 
   .promo-band { padding: 44px 0; }
   .bloom-promo-l, .bloom-promo-r { width: 130px; }
@@ -882,6 +938,16 @@ html:not(.curtain-on) .photo-curtain { display: none; }
   .grid-4 > * { flex-basis: 72%; }
   .card:hover { transform: none; }
 
+  /* Texto dos cards mais enxuto: a foto é o destaque */
+  .service-card .card-body { padding: 14px 16px 16px; }
+  .service-card h3 { font-size: 17px; margin-bottom: 4px; }
+  .service-card p { font-size: 13px; line-height: 1.5; margin-bottom: 12px; }
+  .celebration-card .celebration-body { padding: 12px 14px 14px; }
+  .celebration-card h3 { font-size: 16px; }
+  .celebration-card p { font-size: 14px; }
+  .venue-card .venue-body { padding: 12px 10px 14px; }
+  .venue-card h3 { margin-bottom: 8px; }
+
   /* Títulos de seção: sem linhas laterais, que forçavam quebra de linha */
   .section-title { margin-bottom: 22px; }
   .section-title h2 { font-size: 21px; letter-spacing: .1em; }
@@ -911,7 +977,6 @@ html:not(.curtain-on) .photo-curtain { display: none; }
   .reviews-link a { display: inline-block; padding: 10px 0; }
   .wa-form input { font-size: 16px; min-height: 46px; } /* 16px evita o zoom automático do iPhone */
   .final-cta { padding: 64px 0 56px; }
-  .steps h3 { font-size: 15px; letter-spacing: .06em; }
 }
 
 /* Celulares baixos (ex.: 320×568): hero mais compacto para caber tudo na tela */

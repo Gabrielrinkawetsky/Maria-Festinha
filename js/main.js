@@ -332,166 +332,225 @@
     var canvas = hero && hero.querySelector('.hero-canvas');
     if (!canvas) return;
 
-    // no celular em pé só a faixa central do vídeo aparece: usa os frames recortados
-    // celular em pé ou deitado (tela baixa): frames leves
+    // celular em pé ou deitado (tela baixa): vídeo vertical, frames leves
     var mobile = window.matchMedia('(max-width: 640px), (orientation: landscape) and (max-height: 500px)').matches;
     var total = parseInt(canvas.getAttribute(mobile ? 'data-frames-m' : 'data-frames'), 10);
     var base = canvas.getAttribute(mobile ? 'data-src-m' : 'data-src');
-    // canvas opaco (sem mistura com o fundo) e sem esperar o compositor: desenho mais barato
-    var ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
-    // files[i]: WebP comprimido (Blob), baixado uma vez.
-    // frames[i]: ImageBitmap já decodificado (fora da thread principal). Só uma janela
-    // em volta da posição atual fica decodificada: com <img> o navegador descartava e
-    // redecodificava o WebP a cada drawImage, o que travava o scroll no celular.
-    var files = new Array(total), frames = new Array(total);
-    var BEHIND = mobile ? 6 : 8, AHEAD = mobile ? 10 : 14, KEEP = 6;
-    var bitmaps = typeof createImageBitmap === 'function' && typeof fetch === 'function';
-    // celular: baixa todos os 60 arquivos leves logo de cara;
-    // computador: 12 na hora e o resto em lotes depois do carregamento
-    var PRELOAD = mobile ? total : 12;
-    var BATCH = 8;
+    var size = (canvas.getAttribute(mobile ? 'data-size-m' : 'data-size') || '1920x1080').split('x');
+    var NW = +size[0], NH = +size[1];   // tamanho dos arquivos de frame
+    // canvas opaco (sem mistura com o fundo): desenho mais barato. Sem "desynchronized":
+    // o frame precisa chegar à tela no mesmo quadro que os textos da Hero.
+    var ctx = canvas.getContext('2d', { alpha: false });
 
     /* Motor de reprodução
-       - O scroll só define o ALVO (target, 0..1); não desenha nada.
-       - Um laço requestAnimationFrame aproxima a posição mostrada (pos, em
-         frames e fracionária) do alvo com amortecimento exponencial
-         independente da taxa de quadros.
-       - Em posições fracionárias o canvas mistura o frame atual com o próximo
-         (globalAlpha), então avançar 1 ou 2 frames vira uma transição contínua
-         em vez de um salto.
-       - O laço para sozinho quando alcança o alvo: parado, não desenha nada. */
-    var TAU = mobile ? 0.11 : 0.05;   // s; no celular o scroll nativo chega aos saltos, suaviza mais
-    var target = 0, pos = 0, shown = -1, center = -1;
-    var running = false, dirty = true, last = 0, painted = false;
-    var cw = 0, ch = 0, fit = null;
+       - Os frames foram interpolados (8× no celular, 4× no computador): cada frame
+         cobre só ~5 px de rolagem e as pétalas andam poucos pixels de um para o
+         outro. Por isso cada quadro mostra UM frame inteiro, sem misturar dois:
+         a mistura deixava as pétalas meio transparentes ("sumindo") a cada passo.
+       - files[i]: WebP comprimido (Blob). Baixa tudo logo, do grosso para o fino:
+         o começo da Hero inteiro, depois 1 a cada 16, 8, 4, 2 e o resto. Com
+         parte baixada a animação já anda e vai ficando mais fina sozinha.
+       - frames[i]: ImageBitmap decodificado fora da thread principal, já recortado
+         e no tamanho exato do canvas: desenhar vira uma cópia, sem redimensionar.
+       - Só decodifica o que vai aparecer: o caminho entre a posição atual e onde o
+         scroll vai parar (o Lenis informa o destino do deslize; no toque, projeta a
+         velocidade). Rolando rápido, pega 1 a cada 2, 4, 8… frames do caminho (a
+         tela só mostra 60 por segundo); ao desacelerar, completa os que faltam.
+       - Se o frame exato ainda não está pronto, mostra o pronto mais próximo:
+         nunca congela esperando.
+       - Roda no ticker do GSAP, logo depois do Lenis e do ScrollTrigger: vídeo e
+         textos andam no mesmo quadro do scroll. */
+    var files = new Array(total), frames = new Array(total), inPlan = new Uint8Array(total);
+    var MAXB = mobile ? 44 : 40;     // frames decodificados guardados (~2 MB cada no celular, ~6 MB no computador)
+    var MAXD = mobile ? 3 : 4;       // decodificações ao mesmo tempo
+    var MAXF = 6;                    // downloads ao mesmo tempo
+    var LOOK = mobile ? 0.3 : 0.2;   // s de movimento projetados à frente
+    // amortecimento leve (s): só arredonda saltos (teclado, barra de rolagem, toque).
+    // O deslize em si é o do Lenis no computador e o do próprio aparelho no celular.
+    var TAU = mobile ? 0.06 : 0.03;
+    var bitmaps = typeof createImageBitmap === 'function' && typeof fetch === 'function';
+    var resizeOK = true;             // createImageBitmap aceita recorte + tamanho final
+    var target = 0, pos = 0, vel = 0, lastGoal = 0, last = 0;
+    var cw = 0, ch = 0, crop = null, gen = 0;
+    var decoding = 0, fetching = 0, held = 0;
+    var plan = [], planA = -1, planB = -1, planStep = 0;
+    var shown = -1, painted = false;
+    var trig = null;                 // ScrollTrigger da Hero: converte o destino do Lenis em frame
 
     function src(i) { return base + String(i + 1).padStart(4, '0') + '.webp'; }
 
+    // ordem dos downloads: começo da Hero inteiro, o último frame, depois do grosso para o fino
+    var order = [], queued = new Uint8Array(total), nextOrder = 0;
+    function enqueue(i) { if (i >= 0 && i < total && !queued[i]) { queued[i] = 1; order.push(i); } }
+    for (var i = 0; i < 40; i++) enqueue(i);
+    enqueue(total - 1);
+    [16, 8, 4, 2, 1].forEach(function (s) { for (var j = 0; j < total; j += s) enqueue(j); });
+
     // baixa o arquivo (só o WebP comprimido fica guardado)
-    function fetchFile(i) {
-      if (i < 0 || i >= total || files[i]) return;
-      files[i] = fetch(src(i)).then(function (r) {
+    function fetchFile(i, urgent) {
+      if (files[i] !== undefined) return;
+      files[i] = 'loading';
+      fetching++;
+      fetch(src(i), { priority: urgent ? 'high' : 'low' }).then(function (r) {
         if (!r.ok) throw new Error(r.status);
         return r.blob();
-      }).then(function (b) { files[i] = b; if (frames[i] === 'wait') { frames[i] = null; want(i); } })
-        .catch(function () { files[i] = null; });
-    }
-
-    // decodifica o frame i (se estiver na janela)
-    function want(i) {
-      if (i < 0 || i >= total || frames[i]) return;
-      if (!bitmaps) return legacy(i);
-      var f = files[i];
-      if (!(f instanceof Blob)) { frames[i] = 'wait'; fetchFile(i); return; }
-      frames[i] = 'busy';
-      createImageBitmap(f).then(function (bmp) {
-        if (frames[i] !== 'busy') { bmp.close(); return; }   // saiu da janela enquanto decodificava
-        frames[i] = bmp; dirty = true; kick();
-      }, function () { frames[i] = null; bitmaps = false; want(i); });
-    }
-
-    // navegador sem createImageBitmap: <img> decodificada como antes
-    function legacy(i) {
-      var img = new Image();
-      img.decoding = 'async';
-      img.src = src(i);
-      var done = function () { if (frames[i] !== img) return; img.ready = true; dirty = true; kick(); };
-      img.decode().then(done, function () { if (img.complete && img.naturalWidth) done(); else img.onload = done; });
-      frames[i] = img;
-    }
-
-    // libera a memória dos frames longe da posição atual
-    function trim(c) {
-      for (var j = 0; j < total; j++) {
-        var f = frames[j];
-        if (!f || (j >= c - BEHIND - KEEP && j <= c + AHEAD + KEEP)) continue;
-        if (f.close) f.close();
-        frames[j] = null;
-      }
+      }).then(function (b) { files[i] = b; }, function () { files[i] = null; })
+        .then(function () { fetching--; pump(); });
     }
 
     function ready(i) {
-      var f = i >= 0 && i < total && frames[i];
-      return !!f && typeof f === 'object' && (f.ready || (!!f.close && f.width > 0));
-    }
-    function nearestReady(i) {
-      for (var d = 0; d < total; d++) {
-        if (ready(i - d)) return i - d;
-        if (ready(i + d)) return i + d;
-      }
-      return -1;
+      var f = frames[i];
+      return !!f && typeof f === 'object' && (f.close ? f.width > 0 : !!f.ready);
     }
 
-    // equivalente a object-fit: cover, calculado uma vez por tamanho de canvas
-    function cover(img) {
-      var nw = img.naturalWidth || img.width, nh = img.naturalHeight || img.height;
-      if (!fit || fit.nw !== nw) {
-        var sc = Math.max(cw / nw, ch / nh);
-        fit = { nw: nw, w: nw * sc, h: nh * sc };
-        fit.x = (cw - fit.w) / 2; fit.y = (ch - fit.h) / 2;
-      }
-      return fit;
+    // decodifica o frame i já recortado e no tamanho do canvas
+    function decode(i) {
+      var g = gen;
+      frames[i] = 'busy';
+      decoding++;
+      var job = resizeOK && crop
+        ? createImageBitmap(files[i], crop.x, crop.y, crop.w, crop.h, { resizeWidth: cw, resizeHeight: ch, resizeQuality: 'high' })
+        : createImageBitmap(files[i]);
+      job.then(function (bmp) {
+        decoding--;
+        if (g === gen && frames[i] === 'busy') { frames[i] = bmp; held++; evict(); }
+        else bmp.close();   // o canvas mudou de tamanho enquanto decodificava
+        pump();
+      }, function () {
+        decoding--;
+        if (g === gen && frames[i] === 'busy') frames[i] = undefined;
+        // navegador sem recorte/tamanho no createImageBitmap: decodifica inteiro; se nem assim, <img>
+        if (resizeOK) resizeOK = false; else bitmaps = false;
+        pump();
+      });
     }
 
-    function paint(p) {
-      var a = Math.floor(p), t = p - a;
-      var ia = ready(a) ? a : nearestReady(a);
-      if (ia < 0) return false;
-      var f = cover(frames[ia]);
-      ctx.globalAlpha = 1;
-      ctx.drawImage(frames[ia], f.x, f.y, f.w, f.h);
-      // mistura com o próximo frame proporcional à fração: sem "pulo" entre frames
-      if (!perf.lite && ia === a && t > 0.02 && ready(a + 1)) {
-        ctx.globalAlpha = t;
-        ctx.drawImage(frames[a + 1], f.x, f.y, f.w, f.h);
-        ctx.globalAlpha = 1;
+    // navegador sem createImageBitmap: <img> decodificada pelo próprio navegador
+    function legacy(i) {
+      var img = new Image();
+      img.decoding = 'async';
+      img.onload = function () { img.ready = true; };
+      img.src = src(i);
+      frames[i] = img;
+    }
+
+    // guarda no máximo MAXB frames decodificados: solta primeiro os fora do plano e mais longe
+    function evict() {
+      while (held > MAXB) {
+        var worst = -1, wd = -1;
+        for (var j = 0; j < total; j++) {
+          if (!ready(j) || !frames[j].close) continue;
+          var d = Math.abs(j - pos) + (inPlan[j] ? 0 : total);
+          if (d > wd) { wd = d; worst = j; }
+        }
+        if (worst < 0) break;
+        frames[worst].close();
+        frames[worst] = undefined;
+        held--;
       }
+    }
+
+    // põe para baixar/decodificar o que o plano pede e, com folga, o resto
+    function pump() {
+      var k, i;
+      if (bitmaps) for (k = 0; k < plan.length && fetching < MAXF * 2; k++) {
+        i = plan[k];
+        if (files[i] === undefined && !frames[i]) fetchFile(i, true);
+      }
+      for (k = 0; k < plan.length && decoding < MAXD; k++) {
+        i = plan[k];
+        if (frames[i]) continue;
+        if (!bitmaps) legacy(i);
+        else if (files[i] instanceof Blob) decode(i);
+      }
+      while (bitmaps && fetching < MAXF && nextOrder < order.length) fetchFile(order[nextOrder++], false);
+    }
+
+    // plano: frames que vão aparecer até o scroll parar, em ordem de prioridade
+    function makePlan(goal) {
+      var a = Math.max(0, Math.min(total - 1, Math.floor(pos)));
+      var dest = goal + vel * LOOK;
+      if (lenis && trig && !mobile && trig.end > trig.start) {
+        var glideTo = (lenis.targetScroll - trig.start) / (trig.end - trig.start) * (total - 1);
+        if (Math.abs(glideTo - goal) > Math.abs(dest - goal)) dest = glideTo;
+      }
+      var b = Math.round(Math.max(0, Math.min(total - 1, dest)));
+      var dir = b >= a ? 1 : -1, step = 1;
+      // caminho longo ou rolagem rápida (mais de 1 frame por quadro da tela): 1 a cada 2, 4, 8…
+      // (sempre os mesmos múltiplos, que continuam valendo quando o passo diminui)
+      while (Math.abs(b - a) / step > MAXB - 16 || Math.abs(vel) / 60 >= step * 2) step *= 2;
+      if (a === planA && b === planB && step === planStep) return;
+      planA = a; planB = b; planStep = step;
+      for (var k = 0; k < plan.length; k++) inPlan[plan[k]] = 0;
+      plan.length = 0;
+      var add = function (i) { if (i >= 0 && i < total && !inPlan[i]) { inPlan[i] = 1; plan.push(i); } };
+      add(a); add(a + 1);
+      for (var j = a; j !== b; j += dir) if (j % step === 0) add(j);
+      add(b); add(b + 1);
+      // vizinhos: voltar ou seguir rolando sem engasgar
+      for (k = 1; k <= 6; k++) { add(b + dir * k); if (k <= 4) add(a - dir * k); }
+      pump();
+    }
+
+    function draw(f) {
+      if (f.width === cw && f.height === ch) { ctx.drawImage(f, 0, 0); return; }
+      // frame sem recorte (navegador sem resize no createImageBitmap, ou <img>): object-fit: cover
+      var nw = f.naturalWidth || f.width, nh = f.naturalHeight || f.height;
+      var sc = Math.max(cw / nw, ch / nh), w = nw * sc, h = nh * sc;
+      ctx.drawImage(f, (cw - w) / 2, (ch - h) / 2, w, h);
+    }
+
+    // mostra o frame da posição (ou o pronto mais próximo dela), inteiro
+    function paint() {
+      var a = Math.max(0, Math.min(total - 1, Math.round(pos))), f = -1;
+      for (var d = 0; d < total && f < 0; d++) f = ready(a + d) ? a + d : ready(a - d) ? a - d : -1;
+      if (f < 0 || f === shown) return;
+      draw(frames[f]);
+      shown = f;
       if (!painted) { painted = true; canvas.style.opacity = 1; }
-      return true;
     }
 
-    function tick(now) {
+    function tick() {
+      var now = performance.now();
       var dt = Math.min(0.1, Math.max(0.001, (now - last) / 1000));
       last = now;
+      if (!cw) return;
       var goal = target * (total - 1);
+      // velocidade do scroll em frames/s (suavizada): projeta o caminho à frente
+      vel += ((goal - lastGoal) / dt - vel) * Math.min(1, dt * 10);
+      lastGoal = goal;
       pos += (goal - pos) * (1 - Math.exp(-dt / TAU));
-      if (Math.abs(goal - pos) < 0.003) pos = goal;
-      // mantém decodificada só a janela em volta da posição (na direção do scroll, mais à frente)
-      var i = Math.round(pos);
-      if (i !== center) {
-        var fwd = goal >= pos;
-        for (var k = 0; k <= AHEAD; k++) want(fwd ? i + k : i - k);
-        for (k = 1; k <= BEHIND; k++) want(fwd ? i - k : i + k);
-        trim(i);
-        center = i;
-      }
-      if ((dirty || Math.abs(pos - shown) > 0.002) && paint(pos)) { shown = pos; dirty = false; }
-      if (pos !== goal || dirty) requestAnimationFrame(tick);
-      else running = false;
+      if (Math.abs(goal - pos) < 0.002) pos = goal;
+      makePlan(goal);
+      paint();
     }
 
-    function kick() {
-      if (running || !cw) return;
-      running = true;
-      last = performance.now();
-      requestAnimationFrame(tick);
-    }
-
-    function setProgress(p) { target = p; kick(); }
+    function setProgress(p) { target = p; }
 
     function resize() {
-      // DPR limitado: no celular 1.5 (os frames têm 608px de largura; mais que isso
-      // só gastaria memória e tempo de desenho), no computador 2
-      var dpr = perf.lite ? 1 : Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 2);
-      var w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
-      if (w === canvas.width && h === canvas.height && cw) return;
+      var w0 = canvas.clientWidth, h0 = canvas.clientHeight;
+      if (!w0 || !h0) return;
+      // resolução do canvas: a da tela, mas nunca com mais pixels que os frames têm
+      // (acima disso só gasta memória e decodificação, sem ganhar nitidez)
+      var dpr = Math.min(window.devicePixelRatio || 1, 1 / Math.max(w0 / NW, h0 / NH));
+      if (perf.lite) dpr = Math.min(dpr, 1);
+      var w = Math.round(w0 * dpr), h = Math.round(h0 * dpr);
+      if (w === cw && h === ch) return;
       canvas.width = cw = w;
       canvas.height = ch = h;
-      fit = null;
       ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = mobile ? 'medium' : 'high';  // redefinido após mudar o tamanho
-      dirty = true;
-      kick();
+      ctx.imageSmoothingQuality = 'high';   // redefinido após mudar o tamanho
+      // recorte do frame equivalente a object-fit: cover
+      var sc = Math.max(cw / NW, ch / NH);
+      var cropW = Math.min(NW, Math.round(cw / sc)), cropH = Math.min(NH, Math.round(ch / sc));
+      crop = { x: (NW - cropW) >> 1, y: (NH - cropH) >> 1, w: cropW, h: cropH };
+      // frames decodificados no tamanho antigo: descarta e decodifica de novo
+      gen++;
+      for (var j = 0; j < total; j++) {
+        var f = frames[j];
+        if (f === 'busy' || (f && f.close)) { if (f.close) f.close(); frames[j] = undefined; }
+      }
+      held = 0; shown = -1; planA = -1;
     }
 
     // sem GSAP (falha ao carregar): calcula o progresso pelo scroll nativo
@@ -500,18 +559,11 @@
       setProgress(range > 0 ? Math.min(1, Math.max(0, (window.scrollY - hero.offsetTop) / range)) : 0);
     }
 
-    // carrega o restante aos poucos, sem travar a página
-    var next = PRELOAD;
-    function loadRest() {
-      for (var n = 0; n < BATCH && next < total; n++) fetchFile(next++);
-      if (next < total) setTimeout(loadRest, 120);
-    }
-
     canvas.style.opacity = 0;   // até o 1º frame: mostra o fundo do CSS (evita flash preto do canvas opaco)
-    for (var i = 0; i < PRELOAD; i++) fetchFile(i);
-    for (i = 0; i <= AHEAD; i++) want(i);
-
     // desenha no mesmo tick do Lenis/ScrollTrigger: sem atraso entre scroll e frame
+    if (gsap) gsap.ticker.add(tick);
+    else (function loop() { tick(); requestAnimationFrame(loop); })();
+
     // mapa do painel final: só carrega quando a sequência se aproxima dele
     // Google Maps real em todo computador (inclusive notebook com tela touch ou zoom).
     // Em iPhone/iPad/Android o iframe atrapalhava o layout; fica o mapa ilustrado,
@@ -527,6 +579,85 @@
       mapFrame.src = mapFrame.getAttribute('data-src');
     }
     function onUpdate(self) { setProgress(self.progress); if (self.progress > 0.4) loadMap(); }
+
+    /* Assistência de rolagem nos painéis da Hero
+       Se a pessoa para de rolar no meio de uma troca de painel (letras e foto pela
+       metade, entrando ou saindo), a página desliza sozinha até o painel completo
+       mais próximo: segue na direção em que ela vinha se a troca já passou de 20%,
+       senão volta. Parada com um painel completo na tela, nada acontece. O vídeo do
+       fundo só acompanha o scroll, como sempre.
+       - Roda do mouse: assim que a roda para, o deslize do Lenis é redirecionado ao
+         painel no mesmo embalo (sem parar e recomeçar).
+       - Toque e teclado: espera o embalo do dedo acabar e desliza com aceleração suave.
+       - Qualquer toque ou roda durante o deslize devolve o controle na hora. */
+    function snapPanels(seq) {
+      // trechos de troca (tempo da timeline): do 1º elemento que sai ao último que termina de entrar
+      function zone(from, to) {
+        var a = Infinity, b = 0;
+        seq.getChildren(false, true, true).forEach(function (t) {
+          var s = t.startTime();
+          if (s >= from && s < to) { a = Math.min(a, s); b = Math.max(b, s + t.totalDuration()); }
+        });
+        return [a, b];
+      }
+      var zones = [zone(1, 5), zone(5, 7.5)];   // painel 1 → 2 e 2 → 3 (posições da timeline acima)
+      var pending = false, touching = false, snapping = false, mode = '';
+      var lastInput = 0, lastScroll = 0, lastY = window.scrollY, dir = 1;
+      var easeInOut = function (x) { return -(Math.cos(Math.PI * x) - 1) / 2; };
+
+      function snapFor(y) {
+        if (!trig || trig.end <= trig.start) return null;
+        var D = seq.duration(), span = trig.end - trig.start, t = (y - trig.start) / span * D;
+        for (var z = 0; z < zones.length; z++) {
+          var a = zones[z][0], b = zones[z][1];
+          if (t <= a || t >= b) continue;
+          var k = (t - a) / (b - a);
+          var fwd = dir >= 0 ? k > 0.2 : k > 0.8;
+          var to = Math.max(0, Math.min(D, fwd ? b + 0.12 : a - 0.12));   // um pouco dentro do painel completo
+          return trig.start + to / D * span;
+        }
+        return null;
+      }
+
+      function input(kind) {
+        mode = kind; pending = true; snapping = false;
+        lastInput = performance.now();
+      }
+      window.addEventListener('wheel', function () { input('wheel'); }, { passive: true });
+      window.addEventListener('touchstart', function () { touching = true; input('touch'); }, { passive: true });
+      window.addEventListener('touchend', function () { touching = false; lastInput = performance.now(); }, { passive: true });
+      window.addEventListener('touchcancel', function () { touching = false; }, { passive: true });
+      window.addEventListener('keydown', function (e) {
+        if (/^(Arrow(Up|Down)|Page(Up|Down)|Home|End| )$/.test(e.key)) input('key');
+      });
+      window.addEventListener('scroll', function () {
+        var y = window.scrollY;
+        if (y !== lastY) dir = y > lastY ? 1 : -1;
+        lastY = y;
+        lastScroll = performance.now();
+      }, { passive: true });
+
+      gsap.ticker.add(function () {
+        if (!pending || touching || snapping) return;
+        var now = performance.now();
+        if (now - lastInput < 140) return;                         // ainda girando a roda / apertando tecla
+        if (mode !== 'wheel' && now - lastScroll < 120) return;   // toque: espera o embalo do dedo acabar
+        pending = false;
+        var y = mode === 'wheel' && lenis ? lenis.targetScroll : window.scrollY;
+        var to = snapFor(y);
+        if (to === null || Math.abs(to - y) < 2) return;
+        snapping = true;
+        var done = function () { snapping = false; };
+        if (lenis && mode === 'wheel' && lenis.isScrolling === 'smooth') {
+          lenis.scrollTo(to, { programmatic: false, lerp: 0.07, onComplete: done });
+        } else if (lenis) {
+          lenis.scrollTo(to, { duration: 0.9, easing: easeInOut, onComplete: done });
+        } else {
+          window.scrollTo({ top: to, behavior: 'smooth' });
+          setTimeout(done, 900);
+        }
+      });
+    }
 
     if (gsap && ST && !reduceMotion) {
       /* Sequência narrativa: o hero fica fixo (sticky) e o scroll (scrub) conduz
@@ -550,9 +681,9 @@
       var seq = gsap.timeline({
         defaults: { overwrite: 'auto' },
         scrollTrigger: {
-          // celular: scroll nativo chega aos saltos -> scrub com 0,4 s de suavização
-          // (casa com o amortecimento do canvas); computador: o Lenis já suaviza
-          trigger: hero, start: 'top top', end: 'bottom bottom', scrub: mobile ? 0.4 : true, onUpdate: onUpdate,
+          // celular: scroll nativo -> scrub com 0,2 s de suavização (perto do
+          // amortecimento do canvas: textos e vídeo andam juntos); computador: o Lenis já suaviza
+          trigger: hero, start: 'top top', end: 'bottom bottom', scrub: mobile ? 0.2 : true, onUpdate: onUpdate,
           // o hero já tem o botão de orçamento: esconde o WhatsApp flutuante enquanto ele está fixo
           onToggle: function (self) {
             var fab = document.querySelector('.wa-float');
@@ -581,9 +712,11 @@
       // aplica já o estado inicial (painéis 2 e 3 escondidos) antes da 1ª rolagem;
       // com scrub suavizado o GSAP só renderizava depois de rolar
       seq.progress(1).progress(0);
+      trig = seq.scrollTrigger;
+      snapPanels(seq);
     } else if (ST) {
       loadMap();   // sem a sequência, o painel final aparece desde o início
-      ST.create({ trigger: hero, start: 'top top', end: 'bottom bottom', onUpdate: onUpdate });
+      trig = ST.create({ trigger: hero, start: 'top top', end: 'bottom bottom', onUpdate: onUpdate });
     } else {
       loadMap();
       window.addEventListener('scroll', onScroll, { passive: true });
@@ -592,7 +725,6 @@
     window.addEventListener('resize', resize);
     window.addEventListener('litechange', resize);
     window.addEventListener('load', function () {
-      setTimeout(loadRest, 300);
       // mapa real do computador: carrega logo depois da página, sem esperar o scroll.
       // (loading="lazy" saiu: o Chrome adiava o mapa escondido dentro da Hero presa)
       setTimeout(loadMap, 1500);
@@ -702,6 +834,104 @@
   } else {
     document.querySelectorAll('.reveal').forEach(done);
   }
+
+  /* ---------- Passos acendendo com o scroll ----------
+     Um feixe dourado corre pela linha pontilhada, preenchendo-a, com um ponto de
+     luz na ponta. Quando a luz chega num passo, o anel do círculo carrega (um ponto
+     de luz gira junto), o ícone acende com um halo, o texto aparece e um lampejo
+     se abre em volta do círculo.
+     - A partir de 700px (computador, tablet, celular deitado): passos em linha,
+       a luz corre na horizontal.
+     - Celular em pé: linha do tempo vertical, a luz desce acompanhando a leitura.
+     A linha vai do centro do 1º ao centro do último ícone, medida na tela (e
+     remedida quando a largura muda ou as fontes carregam), e cada passo acende
+     quando a luz chega no centro dele.
+     Tudo amarrado ao scroll (rolar para cima apaga); o lampejo é por tempo e só
+     na descida. Com "reduzir movimento" fica o desenho estático de sempre. */
+  (function () {
+    var list = document.querySelector('.steps');
+    if (!list || !gsap || !ST || reduceMotion) return;
+    var steps = [].slice.call(list.children).map(function (li) {
+      var icon = li.querySelector('.step-icon');
+      ['step-glow', 'step-ring', 'step-dot', 'step-burst'].forEach(function (c) {
+        var s = document.createElement('span');
+        s.className = c;
+        s.setAttribute('aria-hidden', 'true');
+        icon.appendChild(s);
+      });
+      return {
+        icon: icon, svg: icon.querySelector('svg'), dot: icon.querySelector('.step-dot'),
+        glow: icon.querySelector('.step-glow'), burst: icon.querySelector('.step-burst'),
+        text: li.querySelectorAll('h3, p')
+      };
+    });
+    var track = document.createElement('li');
+    track.className = 'steps-track';
+    track.setAttribute('aria-hidden', 'true');
+    track.innerHTML = '<span class="steps-fill"></span><span class="steps-spark"></span>';
+    list.appendChild(track);
+    list.classList.add('steps-lit');
+    var fill = track.firstChild, spark = track.lastChild;
+
+    function flash(s) {
+      gsap.fromTo(s.burst, { scale: 1, opacity: 0.9 }, { scale: 1.55, opacity: 0, duration: 0.8, ease: 'power2.out' });
+    }
+    // acende o passo s a partir do tempo "at" da timeline; o anel leva "ring" para carregar
+    function light(tl, s, at, ring) {
+      tl.fromTo(s.icon, { '--ring': 0 }, { '--ring': 1, duration: ring, ease: 'power1.inOut' }, at)
+        .fromTo(s.dot, { opacity: 0 }, { opacity: 1, duration: 0.08 }, at)
+        .to(s.dot, { opacity: 0, duration: 0.1 }, at + ring - 0.1)
+        .fromTo(s.svg, { opacity: 0.3 }, { opacity: 1, duration: 0.3 }, at + ring * 0.6)
+        .fromTo(s.glow, { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.35, ease: 'power2.out' }, at + ring * 0.6)
+        .fromTo(s.text, { opacity: 0.35 }, { opacity: 1, duration: 0.3 }, at + ring * 0.7)
+        .call(function () { if (tl.scrollTrigger && tl.scrollTrigger.direction > 0) flash(s); }, null, at + ring);
+    }
+
+    var ctx = null, builtW = 0, rebuildTimer = 0;
+    function build() {
+      builtW = window.innerWidth;
+      if (ctx) ctx.revert();
+      var col = window.matchMedia('(max-width: 699px)').matches;
+      // centro de cada ícone em relação à lista: a = ao longo da linha, b = na outra direção
+      var lr = list.getBoundingClientRect();
+      var c = steps.map(function (s) {
+        var r = s.icon.getBoundingClientRect(), x = r.left + r.width / 2 - lr.left, y = r.top + r.height / 2 - lr.top;
+        return col ? { a: y, b: x } : { a: x, b: y };
+      });
+      var first = c[0].a, len = c[c.length - 1].a - first;
+      if (len <= 0) return;
+      track.className = 'steps-track' + (col ? ' is-col' : '');
+      track.style.cssText = col
+        ? 'top:' + first + 'px;height:' + len + 'px;left:' + (c[0].b - 1) + 'px;width:2px'
+        : 'left:' + first + 'px;width:' + len + 'px;top:' + (c[0].b - 1) + 'px;height:2px';
+      ctx = gsap.context(function () {
+        var tl = gsap.timeline({
+          defaults: { ease: 'none' },
+          // vertical: a ponta da luz fica perto do meio da tela enquanto a pessoa lê
+          scrollTrigger: col
+            ? { trigger: list, start: 'top 72%', end: 'bottom 55%', scrub: 0.6 }
+            : { trigger: list, start: 'top 78%', end: 'bottom 40%', scrub: 0.6 }
+        });
+        // o feixe sai do 1º passo (já aceso) e acende os outros ao chegar no centro de cada um
+        var lead = 0.4, run = 3;
+        light(tl, steps[0], 0, 0.4);
+        tl.fromTo(fill, col ? { scaleX: 1, scaleY: 0, transformOrigin: '50% 0%' } : { scaleX: 0, scaleY: 1, transformOrigin: '0% 50%' },
+            col ? { scaleY: 1, duration: run } : { scaleX: 1, duration: run }, lead)
+          .fromTo(spark, { x: 0, y: 0 }, col ? { y: len, duration: run } : { x: len, duration: run }, lead)
+          .fromTo(spark, { opacity: 0 }, { opacity: 1, duration: 0.12 }, lead)
+          .to(spark, { opacity: 0, duration: 0.15 }, lead + run - 0.05);
+        for (var i = 1; i < steps.length; i++) light(tl, steps[i], lead + run * (c[i].a - first) / len - 0.08, 0.35);
+      });
+    }
+    build();
+    // remede quando a largura muda (girar a tela, redimensionar) ou as fontes chegam (o texto quebra diferente)
+    window.addEventListener('resize', function () {
+      if (window.innerWidth === builtW) return;   // celular: barra de endereço mexe só na altura
+      clearTimeout(rebuildTimer);
+      rebuildTimer = setTimeout(build, 200);
+    });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(build);
+  })();
 
   /* ---------- Flores desabrochando com o scroll ----------
      Começam fechadas no canto (invisíveis, pequenas e giradas) e se abrem
