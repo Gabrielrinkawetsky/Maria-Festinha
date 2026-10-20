@@ -66,6 +66,12 @@
   // já no 1º desenho a Hero abre no painel 1 (foto), e não no painel final (mapa), que é o
   // de quem não tem a sequência; os painéis 2 e 3 esperam o js/main.js (que tira .hero-pre)
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('hero-seq', 'hero-pre');
+  // F5 abre no topo desde já (sem o navegador restaurar a posição e o js/main.js puxar de
+  // volta); e quem começa a rolar antes do js/main.js carregar não é jogado para o topo
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  ['wheel', 'touchmove', 'keydown'].forEach(function (t) {
+    addEventListener(t, function () { window.__rolou = 1; }, { once: true, passive: true });
+  });
 </script>
 </head>
 <body>

@@ -97,8 +97,9 @@ Os frames originais eram 120 (12 fps) no computador e 60 no celular; com tão po
 - `js/main.js` desenha os frames em um `<canvas>`, no ticker do GSAP logo depois do Lenis (vídeo e textos andam no mesmo quadro do scroll):
   - **Download:** todos os WebP baixam logo, comprimidos, do grosso para o fino (o começo da Hero inteiro, depois 1 a cada 16, 8, 4, 2 e o resto). Com parte baixada a animação já anda e vai ficando mais fina sozinha.
   - **Decodificação:** `createImageBitmap` fora da thread principal, já recortado e no tamanho exato do canvas (desenhar vira uma cópia, sem redimensionar). Só decodifica o caminho entre a posição atual e onde o scroll vai parar (destino do deslize do Lenis; no toque, a velocidade projetada). Rolando rápido pega 1 a cada 2, 4, 8… frames do caminho (a tela só mostra 60 por segundo); ao desacelerar, completa os que faltam. No máximo 40 frames decodificados no computador e 44 no celular.
-  - **Desenho:** um frame inteiro por quadro, sem mistura; se o exato ainda não está pronto, mostra o pronto mais próximo (nunca congela esperando).
-  - **Resolução:** o canvas usa a densidade da tela, mas nunca mais pixels que os frames têm.
+  - **Desenho:** um frame inteiro por quadro, sem mistura; se o exato ainda não está pronto, mostra o pronto mais perto dele entre o que está na tela e ele (nunca congela esperando, nunca passa do alvo nem volta).
+  - **Resolução:** o canvas usa a densidade da tela, mas nunca mais pixels que os frames têm. Quando a resolução muda (modo leve ~2 s após abrir, janela redimensionada, girar a tela), a imagem atual é redesenhada no tamanho novo até o frame certo decodificar: o canvas não pisca preto nem mostra o 1º frame do fundo.
+  - **Topo ao abrir:** F5 abre no topo (`scrollRestoration` manual já no `<head>`), mas quem começa a rolar antes do `js/main.js` carregar não é puxado de volta.
 - Para trocar o vídeo, gere novos frames com o mesmo padrão de nome e ajuste `data-frames` (e `data-size`, se mudar o tamanho) no `<canvas>` do `index.html`. Tire os frames a 12 fps e interpole 4× com o RIFE (ou tire a 48 fps direto do vídeo, se ele tiver):
 
 ```bash

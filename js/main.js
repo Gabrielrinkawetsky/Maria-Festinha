@@ -8,7 +8,9 @@
      entrada (cabeçalho, hero, títulos) aparecem já terminadas ou pela metade. */
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   if (location.hash) history.replaceState(null, '', location.pathname + location.search);
-  window.scrollTo(0, 0);
+  // quem já começou a rolar antes deste arquivo carregar (internet lenta) não volta
+  // para o topo: era um "reset" no começo da Hero (o <head> marca window.__rolou)
+  if (!window.__rolou) window.scrollTo(0, 0);
   // Safari/iOS às vezes ignora o 'manual': zera também ao sair da página
   window.addEventListener('pagehide', function () { window.scrollTo(0, 0); });
 
@@ -503,10 +505,18 @@
       ctx.drawImage(f, (cw - w) / 2, (ch - h) / 2, w, h);
     }
 
-    // mostra o frame da posição (ou o pronto mais próximo dela), inteiro
+    // mostra o frame da posição, inteiro. Se ele ainda não está pronto, mostra o pronto
+    // mais perto dele entre o que já está na tela e ele: nunca passa do alvo nem se
+    // afasta dele. (Antes valia o mais próximo de qualquer lado: ao parar de rolar
+    // aparecia 1 frame à frente e depois voltava, uma tremidinha para trás.)
     function paint() {
-      var a = Math.max(0, Math.min(total - 1, Math.round(pos))), f = -1;
-      for (var d = 0; d < total && f < 0; d++) f = ready(a + d) ? a + d : ready(a - d) ? a - d : -1;
+      var a = Math.max(0, Math.min(total - 1, Math.round(pos))), f = -1, d;
+      if (shown < 0) {
+        for (d = 0; d < total && f < 0; d++) f = ready(a + d) ? a + d : ready(a - d) ? a - d : -1;
+      } else {
+        var back = a > shown ? 1 : -1;   // do alvo de volta até o frame da tela
+        for (d = a; d !== shown && f < 0; d -= back) if (ready(d)) f = d;
+      }
       if (f < 0 || f === shown) return;
       draw(frames[f]);
       shown = f;
@@ -539,6 +549,16 @@
       if (perf.lite) dpr = Math.min(dpr, 1);
       var w = Math.round(w0 * dpr), h = Math.round(h0 * dpr);
       if (w === cw && h === ch) return;
+      // mudar o tamanho apaga o canvas: guarda a imagem da tela para redesenhá-la no
+      // tamanho novo até o frame certo decodificar. Sem isso o canvas ficava preto (ou
+      // mostrava o 1º frame, que é o fundo do CSS) por um instante e parecia que o vídeo
+      // resetava. Acontece sozinho ~2 s depois de abrir, quando o modo leve baixa a resolução.
+      var keep = null;
+      if (painted) {
+        keep = document.createElement('canvas');
+        keep.width = cw; keep.height = ch;
+        keep.getContext('2d').drawImage(canvas, 0, 0);
+      }
       canvas.width = cw = w;
       canvas.height = ch = h;
       ctx.imageSmoothingEnabled = true;
@@ -554,6 +574,7 @@
         if (f === 'busy' || (f && f.close)) { if (f.close) f.close(); frames[j] = undefined; }
       }
       held = 0; shown = -1; planA = -1;
+      if (keep) draw(keep);
     }
 
     // sem GSAP (falha ao carregar): calcula o progresso pelo scroll nativo
