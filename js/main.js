@@ -581,7 +581,14 @@
       if (!mapFrame || mapFrame.src) return;
       mapFrame.src = mapFrame.getAttribute('data-src');
     }
-    function onUpdate(self) { setProgress(self.progress); if (self.progress > 0.4) loadMap(); }
+    var fab = document.querySelector('.wa-float');
+    function onUpdate(self) {
+      setProgress(self.progress);
+      if (self.progress > 0.4) loadMap();
+      // o hero já tem o botão de orçamento: WhatsApp flutuante só depois da sequência.
+      // Aqui (e não no onToggle): pulando direto para depois da Hero, o onToggle não dispara
+      if (fab) fab.classList.toggle('is-hidden', self.progress < 1);
+    }
 
     /* Assistência de rolagem nos painéis da Hero
        Só age DEPOIS da troca de foto e letras: se a pessoa já passou do ponto em que
@@ -713,13 +720,7 @@
           // fim: a Hero tem 1 tela a mais para o resto da página (.page-rest) subir por cima
           // dela; a sequência termina quando o topo dele aparece embaixo da tela
           trigger: hero, start: 'top top', endTrigger: '.page-rest', end: 'top bottom',
-          scrub: mobile ? 0.2 : true, onUpdate: onUpdate,
-          // o hero já tem o botão de orçamento: esconde o WhatsApp flutuante enquanto ele está
-          // na tela (também no topo, antes de rolar: senão o botão cobre a barra de diferenciais)
-          onToggle: function (self) {
-            var fab = document.querySelector('.wa-float');
-            if (fab) fab.classList.toggle('is-hidden', self.progress < 1);
-          }
+          scrub: mobile ? 0.2 : true, onUpdate: onUpdate
         }
       })
         .to(parts(1), out, 1.4)
@@ -746,8 +747,7 @@
       // com scrub suavizado o GSAP só renderizava depois de rolar
       seq.progress(1).progress(0);
       trig = seq.scrollTrigger;
-      var fab0 = document.querySelector('.wa-float');
-      if (fab0) fab0.classList.toggle('is-hidden', trig.progress < 1);
+      if (fab) fab.classList.toggle('is-hidden', trig.progress < 1);
       snapPanels(seq, [2.7, 6.5]);   // início da entrada dos painéis 2 e 3 na timeline acima
     } else if (ST) {
       loadMap();   // sem a sequência, o painel final aparece desde o início
@@ -1016,10 +1016,20 @@
       ['.promo-band', 0.12, 150, 'top 35%'],
       ['.final-cta', 0.12, 150, 'top 35%']
     ].forEach(function (c) {
-      var el = document.querySelector(c[0]);
+      var el = document.querySelector(c[0]), shape = el;
       if (!el) return;
-      el.classList.add('curve-top');
-      gsap.fromTo(el,
+      if (el !== document.querySelector('.page-rest')) {
+        // faixas lilás: o arco vai num fundo à parte (com brilhos e fitas dentro);
+        // as flores ficam fora dele e não são cortadas pelo arco enquanto desabrocham
+        shape = document.createElement('div');
+        shape.className = 'curve-bg';
+        shape.setAttribute('aria-hidden', 'true');
+        el.querySelectorAll(':scope > .sparkle-field, :scope > .ribbon').forEach(function (d) { shape.appendChild(d); });
+        el.insertBefore(shape, el.firstChild);
+        el.classList.add('curve-band');
+      }
+      shape.classList.add('curve-top');
+      gsap.fromTo(shape,
         { '--curve': function () { return Math.min(window.innerWidth * c[1], c[2]) + 'px'; } },
         { '--curve': '0px', ease: 'none',
           scrollTrigger: { trigger: el, start: 'top bottom', end: c[3], scrub: true, invalidateOnRefresh: true } });

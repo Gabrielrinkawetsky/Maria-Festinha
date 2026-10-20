@@ -418,10 +418,13 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .hero-seq .page-rest { margin-top: -100vh; margin-top: -100lvh; }
 .curve-top { border-radius: 50% 50% 0 0 / var(--curve, 0px) var(--curve, 0px) 0 0; }
 .page-rest.curve-top { box-shadow: 0 -22px 44px -18px rgba(74, 58, 107, .4), inset 0 2px 0 rgba(212, 169, 79, .7); }
-.promo-band.curve-top {
-  box-shadow: 0 -16px 34px -18px rgba(74, 58, 107, .45), inset 0 2px 0 #dcb563, inset 0 -1px 0 rgba(255,255,255,.4);
-}
-.final-cta.curve-top { box-shadow: 0 -16px 34px -18px rgba(74, 58, 107, .45), inset 0 1px 0 rgba(255, 255, 255, .5); }
+/* Faixas lilás: o arco recorta só o fundo (.curve-bg, criado pelo js/main.js com os
+   brilhos e as fitas dentro). As flores ficam fora dele e desabrocham inteiras nos cantos. */
+.curve-band { background: none; box-shadow: none; }
+.curve-band::before { display: none; }   /* o fio dourado de cima vira o do arco */
+.curve-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; background: var(--band-bg); }
+.promo-band > .curve-bg { box-shadow: 0 -16px 34px -18px rgba(74, 58, 107, .45), inset 0 2px 0 #dcb563, inset 0 -1px 0 rgba(255, 255, 255, .4); }
+.final-cta > .curve-bg { box-shadow: 0 -16px 34px -18px rgba(74, 58, 107, .45), inset 0 1px 0 rgba(255, 255, 255, .5); }
 @supports (height: 100lvh) { .hero-sticky { --bar: calc(100lvh - 100svh); } }
 /* Celular: quando a barra de endereço some ao rolar, a tela cresce (dvh passa de
    svh para lvh). A barra de diferenciais desce deslizando o mesmo tanto e fica
@@ -566,9 +569,10 @@ html:not(.curtain-on) .photo-curtain { display: none; }
   padding: 50px 0;
   margin: 20px 0;
   text-align: center;
-  background:
+  --band-bg:
     radial-gradient(ellipse 50% 90% at 50% 50%, rgba(255,255,255,.25), transparent 70%),
     linear-gradient(90deg, #b59ae0 0%, #9d80d2 30%, #9275cb 50%, #9d80d2 70%, #b59ae0 100%);
+  background: var(--band-bg);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 -1px 0 rgba(255,255,255,.4);
 }
 .promo-band::before, .promo-band::after {
@@ -720,9 +724,10 @@ html:not(.curtain-on) .photo-curtain { display: none; }
 .final-cta {
   position: relative; overflow: hidden; text-align: center;
   padding: 80px 0 70px;
-  background:
+  --band-bg:
     radial-gradient(ellipse 45% 80% at 50% 45%, rgba(255,255,255,.35), transparent 70%),
     linear-gradient(180deg, #c7b0ec 0%, #a88bd9 55%, #9b7dd0 100%);
+  background: var(--band-bg);
 }
 .final-inner { z-index: 3; }
 .final-cta h2 {
