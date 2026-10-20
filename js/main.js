@@ -559,7 +559,9 @@
     // sem GSAP (falha ao carregar): calcula o progresso pelo scroll nativo
     function onScroll() {
       var range = hero.offsetHeight - window.innerHeight;
-      setProgress(range > 0 ? Math.min(1, Math.max(0, (window.scrollY - hero.offsetTop) / range)) : 0);
+      var y = window.scrollY - hero.offsetTop;
+      setProgress(range > 0 ? Math.min(1, Math.max(0, y / range)) : 0);
+      fabFor({ progress: range > 0 ? target : (y > 0 ? 1 : 0) });   // Hero do tamanho da tela: WhatsApp ao começar a rolar
     }
 
     canvas.style.opacity = 0;   // até o 1º frame: mostra o fundo do CSS (evita flash preto do canvas opaco)
@@ -582,12 +584,13 @@
       mapFrame.src = mapFrame.getAttribute('data-src');
     }
     var fab = document.querySelector('.wa-float');
+    function fabFor(self) { if (fab) fab.classList.toggle('is-hidden', self.progress < 1); }
     function onUpdate(self) {
       setProgress(self.progress);
       if (self.progress > 0.4) loadMap();
       // o hero já tem o botão de orçamento: WhatsApp flutuante só depois da sequência.
       // Aqui (e não no onToggle): pulando direto para depois da Hero, o onToggle não dispara
-      if (fab) fab.classList.toggle('is-hidden', self.progress < 1);
+      fabFor(self);
     }
 
     /* Assistência de rolagem nos painéis da Hero
@@ -742,13 +745,15 @@
       seq.progress(1).progress(0);
       document.documentElement.classList.remove('hero-pre');   // estado inicial aplicado: painéis 2 e 3 por conta do GSAP
       trig = seq.scrollTrigger;
-      if (fab) fab.classList.toggle('is-hidden', trig.progress < 1);
+      fabFor(trig);
       snapPanels(seq, [2.7, 6.5]);   // início da entrada dos painéis 2 e 3 na timeline acima
     } else if (ST) {
       // sem a sequência (o <head> já tinha ligado .hero-seq): volta ao painel final
       document.documentElement.classList.remove('hero-seq', 'hero-pre');
       loadMap();   // sem a sequência, o painel final aparece desde o início
-      trig = ST.create({ trigger: hero, start: 'top top', end: 'bottom bottom', onUpdate: onUpdate });
+      // onRefresh: já no topo da página (antes de rolar) o WhatsApp fica escondido, senão
+      // cobria a barra de diferenciais no celular com "reduzir movimento" ligado
+      trig = ST.create({ trigger: hero, start: 'top top', end: 'bottom bottom', onUpdate: onUpdate, onRefresh: fabFor });
     } else {
       document.documentElement.classList.remove('hero-seq', 'hero-pre');
       loadMap();
@@ -782,6 +787,10 @@
   });
   nav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', closeMenu); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
+  // tocar fora do menu (inclusive para rolar a página) fecha; antes ele ficava aberto por cima do site
+  document.addEventListener('pointerdown', function (e) {
+    if (nav.classList.contains('open') && !nav.contains(e.target) && !toggle.contains(e.target)) closeMenu();
+  });
 
   /* ---------- Entradas pela posição real na tela ----------
      Cards e títulos aparecem quando o topo deles chega a 98% da altura da tela
@@ -1083,7 +1092,7 @@
   if (foldOn) {
     document.querySelectorAll(
       '.section-title h2, .promo-band h2, .promo-gold, .final-cta h2, .final-script, ' +
-      '.service-card h3, .celebration-card h3, .venue-card h3, .steps h3, .site-footer h4'
+      '.service-card h3, .celebration-card h3, .venue-card h3, .steps h3, .site-footer h2'
     ).forEach(function (el) {
       var chars = splitChars(el);
       gsap.set(chars, foldFrom);
@@ -1115,6 +1124,8 @@
     e.preventDefault();
     var nome = form.nome.value.trim();
     var festa = form.festa.value.trim();
+    // só espaços passava pelo "required" e a mensagem saía "Meu nome é ."
+    if (!nome) { form.nome.value = ''; form.reportValidity(); return; }
     var msg = 'Olá, Maria Festinha! Meu nome é ' + nome + '.';
     if (festa) msg += ' Gostaria de um orçamento para: ' + festa + '.';
     else msg += ' Gostaria de um orçamento.';
