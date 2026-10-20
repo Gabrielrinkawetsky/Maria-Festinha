@@ -740,13 +740,17 @@
       // aplica já o estado inicial (painéis 2 e 3 escondidos) antes da 1ª rolagem;
       // com scrub suavizado o GSAP só renderizava depois de rolar
       seq.progress(1).progress(0);
+      document.documentElement.classList.remove('hero-pre');   // estado inicial aplicado: painéis 2 e 3 por conta do GSAP
       trig = seq.scrollTrigger;
       if (fab) fab.classList.toggle('is-hidden', trig.progress < 1);
       snapPanels(seq, [2.7, 6.5]);   // início da entrada dos painéis 2 e 3 na timeline acima
     } else if (ST) {
+      // sem a sequência (o <head> já tinha ligado .hero-seq): volta ao painel final
+      document.documentElement.classList.remove('hero-seq', 'hero-pre');
       loadMap();   // sem a sequência, o painel final aparece desde o início
       trig = ST.create({ trigger: hero, start: 'top top', end: 'bottom bottom', onUpdate: onUpdate });
     } else {
+      document.documentElement.classList.remove('hero-seq', 'hero-pre');
       loadMap();
       window.addEventListener('scroll', onScroll, { passive: true });
       onScroll();

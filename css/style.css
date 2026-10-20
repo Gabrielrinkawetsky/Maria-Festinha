@@ -330,6 +330,9 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .hero-panel { grid-area: 1 / 1; align-self: start; }  /* títulos na mesma altura nos 3 painéis */
 .hero-panel:not(.hero-panel--final) { display: none; }  /* sem sequência: só o painel final */
 .hero-seq .hero-panel { display: block; }
+/* até o js/main.js montar a sequência, só o painel 1 aparece (o <head> liga .hero-pre) */
+.hero-pre .hero-panel:not([data-panel="1"]) { visibility: hidden; }
+.hero-pre .wa-float { opacity: 0; visibility: hidden; transition: none; }   /* nem pisca antes da sequência esconder */
 /* Fotos dos painéis 1 e 2: trocam junto com o texto. Celular: abaixo do texto; computador: à direita */
 .hero-photo { display: none; position: relative; margin: 0; border-radius: 24px; }
 .hero-photo-frame {
