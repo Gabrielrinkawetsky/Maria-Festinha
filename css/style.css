@@ -860,51 +860,58 @@ html:not(.curtain-on) .photo-curtain { display: none; }
 }
 
 /* Perguntas frequentes (<details> nativo: abre e fecha sem JS)
-   Visual escuro com brilho saindo da esquerda de cada pergunta (referência FAQ.PNG),
-   em lilás no lugar do laranja; a pergunta aberta brilha mais. */
-#faq { background: linear-gradient(180deg, #3b2d58 0%, #33264d 100%); }   /* ameixa do tema (--plum), escurecido */
-#faq .section-title h2 { color: #f3edfc; }
+   Dentro da faixa lilás do CTA final (corações, brilhos e fita por trás): cards de
+   vidro claro com texto ameixa e um brilho lilás saindo da esquerda; a aberta brilha mais. */
+.final-cta.has-faq { text-align: left; padding: 90px 0 80px; }
+.faq-inner { z-index: 3; scroll-margin-top: 90px; }
+.faq-inner .section-title h2 { color: #fff; text-shadow: 0 3px 14px rgba(74, 58, 107, .35); }
+.faq-inner .section-title h2::before { background: linear-gradient(90deg, transparent, #fff3cf); }
+.faq-inner .section-title h2::after { background: linear-gradient(90deg, #fff3cf, transparent); }
+.has-faq .final-inner { text-align: center; margin-top: 80px; }
 .faq { max-width: 860px; margin: 0 auto; display: grid; gap: 10px; }
 .faq details {
   position: relative; isolation: isolate; overflow: hidden;
-  background: #241a38; border: 1px solid rgba(214, 196, 245, .16); border-radius: 14px;
-  transition: border-color .3s ease;
+  background: rgba(255, 255, 255, .84);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, .9); border-radius: 14px;
+  box-shadow: 0 12px 30px -16px rgba(74, 58, 107, .55);
+  transition: border-color .3s ease, background .3s ease;
 }
 /* brilho lilás: nasce na borda esquerda, atrás do texto */
 .faq details::before {
   content: ""; position: absolute; z-index: -1; pointer-events: none;
   left: -10%; top: 35%; width: 58%; height: 140%;
-  background: radial-gradient(closest-side, rgba(205, 170, 255, .95), rgba(160, 110, 240, .7) 35%, rgba(120, 80, 200, .25) 70%, transparent 100%);
-  filter: blur(14px); opacity: .7; transform-origin: 0 50%;
+  background: radial-gradient(closest-side, rgba(182, 156, 224, .7), rgba(210, 192, 239, .45) 45%, transparent 100%);
+  filter: blur(14px); opacity: .6; transform-origin: 0 50%;
   transition: opacity .35s ease, transform .35s ease;
 }
-.faq details:hover { border-color: rgba(214, 196, 245, .22); }
-.faq details:hover::before { opacity: .9; }
-.faq details[open] { border-color: rgba(214, 196, 245, .28); }
+.faq details:hover { border-color: var(--gold-200); }
+.faq details:hover::before { opacity: .85; }
+.faq details[open] { background: rgba(255, 255, 255, .92); border-color: var(--gold-400); }
 .faq details[open]::before { opacity: 1; top: 10%; transform: scale(1.25, 1.1); }
 .faq summary {
   list-style: none; cursor: pointer; position: relative;
   padding: 22px 64px 22px 24px;
-  font-weight: 500; font-size: 13.5px; letter-spacing: .04em; line-height: 1.4; text-transform: uppercase;
-  color: #fff;
+  font-weight: 600; font-size: 13.5px; letter-spacing: .04em; line-height: 1.4; text-transform: uppercase;
+  color: var(--plum);
 }
 .faq summary::-webkit-details-marker { display: none; }
 /* "+" de traço fino que vira "−" ao abrir */
 .faq summary::before, .faq summary::after {
   content: ""; position: absolute; right: 24px; top: 50%;
-  width: 18px; height: 1px; margin-top: -.5px; background: var(--lilac-300);
+  width: 18px; height: 1.5px; margin-top: -.75px; background: var(--gold-600);
   transition: transform .3s ease, opacity .3s ease;
 }
 .faq summary::after { transform: rotate(90deg); }
 .faq details[open] summary::after { transform: rotate(0deg); opacity: 0; }
 .faq summary:focus-visible { outline: 2px solid var(--lilac-400); outline-offset: -2px; border-radius: 14px; }
-.faq details > :not(summary) { padding: 0 24px; font-size: 13.5px; line-height: 1.7; color: rgba(243, 237, 252, .72); }
+.faq details > :not(summary) { padding: 0 24px; font-size: 13.5px; line-height: 1.7; color: var(--text); }
 .faq details > :last-child { padding-bottom: 22px; }
 .faq details p + ul { margin-top: 8px; }
 .faq details > ul { list-style: disc; padding-left: 42px; }
 .faq li + li { margin-top: 4px; }
-.faq a { color: var(--lilac-200); font-weight: 600; border-bottom: 1px solid var(--lilac-500); }
-.faq a:hover { color: #fff; }
+.faq a { color: var(--lilac-700); font-weight: 600; border-bottom: 1px solid var(--gold-400); }
+.faq a:hover { color: var(--gold-700); }
 @media (max-width: 600px) {
   .faq summary { padding: 18px 54px 18px 18px; font-size: 12.5px; }
   .faq summary::before, .faq summary::after { right: 18px; }
@@ -922,7 +929,7 @@ html:not(.curtain-on) .photo-curtain { display: none; }
   background: var(--band-bg);
 }
 .final-inner { z-index: 3; }
-.final-cta h2 {
+.final-inner h2 {
   font-family: var(--serif); font-size: clamp(34px, 5vw, 56px); color: #fff; font-weight: 500; line-height: 1.05;
   text-shadow: 0 3px 14px rgba(74, 58, 107, .35);
 }
@@ -1210,6 +1217,8 @@ html:not(.curtain-on) .photo-curtain { display: none; }
   .reviews-link a { display: inline-block; padding: 10px 0; }
   .wa-form input { font-size: 16px; min-height: 46px; } /* 16px evita o zoom automático do iPhone */
   .final-cta { padding: 64px 0 56px; }
+  .final-cta.has-faq { padding: 64px 0 56px; }
+  .has-faq .final-inner { margin-top: 56px; }
 }
 
 /* Celulares baixos (ex.: 320×568): hero mais compacto para caber tudo na tela */

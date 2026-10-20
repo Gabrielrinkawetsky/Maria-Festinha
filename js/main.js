@@ -1380,7 +1380,7 @@
 
   if (foldOn) {
     document.querySelectorAll(
-      '.section-title h2, .promo-band h2, .promo-gold, .final-cta h2, .final-script, ' +
+      '.section-title h2, .promo-band h2, .promo-gold, .final-inner h2, .final-script, ' +
       '.service-card h3, .celebration-card h3, .venue-card h3, .steps h3, .site-footer h2'
     ).forEach(function (el) {
       var chars = splitChars(el);
