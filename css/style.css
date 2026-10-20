@@ -817,7 +817,11 @@ html:not(.curtain-on) .photo-curtain { display: none; }
 .about-copy strong { color: var(--lilac-700); font-weight: 600; }
 
 .about-points { display: grid; gap: 16px; margin: 28px 0; padding: 22px 0; border-top: 1px solid rgba(212, 169, 79, .35); border-bottom: 1px solid rgba(212, 169, 79, .35); }
-.about-points li { display: flex; gap: 16px; align-items: center; }
+.about-points li { display: flex; gap: 16px; align-items: center; position: relative; z-index: 1; }
+/* Acendendo com o scroll (js/main.js): mesmo anel/brilho/feixe dos passos, na vertical */
+.about-points { position: relative; }
+.about-icon { position: relative; --ring: 0; }
+.about-points > .steps-track { position: absolute; z-index: 0; pointer-events: none; list-style: none; }
 .about-icon {
   flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%;
   display: grid; place-items: center;
@@ -855,33 +859,55 @@ html:not(.curtain-on) .photo-curtain { display: none; }
   .about-actions .btn { flex: 1 1 100%; }
 }
 
-/* Perguntas frequentes (<details> nativo: abre e fecha sem JS) */
-.faq { max-width: 760px; margin: 0 auto; display: grid; gap: 12px; }
+/* Perguntas frequentes (<details> nativo: abre e fecha sem JS)
+   Visual escuro com brilho saindo da esquerda de cada pergunta (referência FAQ.PNG),
+   em lilás no lugar do laranja; a pergunta aberta brilha mais. */
+#faq { background: #120c1c; }
+#faq .section-title h2 { color: #f3edfc; }
+.faq { max-width: 860px; margin: 0 auto; display: grid; gap: 10px; }
 .faq details {
-  background: #fff; border: 1px solid var(--gold-200); border-radius: 18px;
-  box-shadow: var(--shadow-soft); overflow: hidden;
+  position: relative; isolation: isolate; overflow: hidden;
+  background: #0b0712; border: 1px solid rgba(214, 196, 245, .12); border-radius: 14px;
+  transition: border-color .3s ease;
 }
+/* brilho lilás: nasce na borda esquerda, atrás do texto */
+.faq details::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  left: -10%; top: 35%; width: 58%; height: 140%;
+  background: radial-gradient(closest-side, rgba(205, 170, 255, .95), rgba(160, 110, 240, .7) 35%, rgba(120, 80, 200, .25) 70%, transparent 100%);
+  filter: blur(14px); opacity: .7; transform-origin: 0 50%;
+  transition: opacity .35s ease, transform .35s ease;
+}
+.faq details:hover { border-color: rgba(214, 196, 245, .22); }
+.faq details:hover::before { opacity: .9; }
+.faq details[open] { border-color: rgba(214, 196, 245, .28); }
+.faq details[open]::before { opacity: 1; top: 10%; transform: scale(1.25, 1.1); }
 .faq summary {
   list-style: none; cursor: pointer; position: relative;
-  padding: 18px 56px 18px 22px; font-weight: 600; font-size: 15px; color: var(--plum);
+  padding: 22px 64px 22px 24px;
+  font-weight: 500; font-size: 13.5px; letter-spacing: .04em; line-height: 1.4; text-transform: uppercase;
+  color: #fff;
 }
 .faq summary::-webkit-details-marker { display: none; }
-.faq summary::after {
-  content: "+"; position: absolute; right: 22px; top: 50%; transform: translateY(-50%);
-  width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
-  font-size: 18px; font-weight: 400; line-height: 1; color: var(--gold-700); border: 1px solid var(--gold-400);
-  transition: transform .25s ease;
+/* "+" de traço fino que vira "−" ao abrir */
+.faq summary::before, .faq summary::after {
+  content: ""; position: absolute; right: 24px; top: 50%;
+  width: 18px; height: 1px; margin-top: -.5px; background: var(--lilac-300);
+  transition: transform .3s ease, opacity .3s ease;
 }
-.faq details[open] summary::after { transform: translateY(-50%) rotate(45deg); }
-.faq summary:focus-visible { outline: 2px solid var(--gold-400); outline-offset: -2px; border-radius: 18px; }
-.faq details > :not(summary) { padding: 0 22px; font-size: 14.5px; line-height: 1.65; color: var(--muted); }
-.faq details > :last-child { padding-bottom: 20px; }
+.faq summary::after { transform: rotate(90deg); }
+.faq details[open] summary::after { transform: rotate(0deg); opacity: 0; }
+.faq summary:focus-visible { outline: 2px solid var(--lilac-400); outline-offset: -2px; border-radius: 14px; }
+.faq details > :not(summary) { padding: 0 24px; font-size: 13.5px; line-height: 1.7; color: rgba(243, 237, 252, .72); }
+.faq details > :last-child { padding-bottom: 22px; }
 .faq details p + ul { margin-top: 8px; }
 .faq details > ul { list-style: disc; padding-left: 42px; }
 .faq li + li { margin-top: 4px; }
-.faq a { color: var(--lilac-700); font-weight: 600; border-bottom: 1px solid var(--gold-400); }
+.faq a { color: var(--lilac-200); font-weight: 600; border-bottom: 1px solid var(--lilac-500); }
+.faq a:hover { color: #fff; }
 @media (max-width: 600px) {
-  .faq summary { padding: 16px 52px 16px 18px; font-size: 14.5px; }
+  .faq summary { padding: 18px 54px 18px 18px; font-size: 12.5px; }
+  .faq summary::before, .faq summary::after { right: 18px; }
   .faq details > :not(summary) { padding-left: 18px; padding-right: 18px; }
   .faq details > ul { padding-left: 36px; }
 }
@@ -969,6 +995,8 @@ html:not(.curtain-on) .photo-curtain { display: none; }
 .reveal { opacity: 0; transform: translateY(24px); transition: opacity .8s ease, transform .8s ease; }
 .gsap-on .reveal { transition: none; } /* GSAP anima as entradas */
 .no-js .reveal { opacity: 1; transform: none; }
+/* CountUp (js/main.js): algarismos de mesma largura, o número não "treme" enquanto conta */
+.count-up { font-variant-numeric: tabular-nums; }
 /* AnimatedContent (js/main.js): escondido até o JS montar a entrada */
 [data-ac] { visibility: hidden; }
 .no-js [data-ac] { visibility: visible; }

@@ -984,6 +984,121 @@
     else el.style.visibility = 'visible';
   });
 
+  /* ---------- CountUp (React Bits, versão sem React, modo "count") ----------
+     <span class="count-up" data-count="2014" data-count-from="1990">2014</span>
+     O HTML já traz o número final (sem JS fica ele). Opções em data-count-*, como as
+     props do componente: from, direction (up/down), duration (s), delay (s),
+     easing (easeOut/linear/expo/spring), decimals, separator, prefix, suffix,
+     format (standard/compact), replay ("false" desliga o replay ao passar o mouse).
+     data-count="year" conta até o ano atual (rodapé).
+     Só começa quando o número está de fato visível: dentro de um card que ainda vai
+     entrar, de um painel escondido do hero, de um título com as letras ainda separadas
+     (o FoldText troca o HTML do título ao terminar, por isso o número é achado de novo
+     pelo data-cu) ou de uma pergunta fechada do FAQ, ele espera. */
+  var CU_EASE = {
+    linear: function (t) { return t; },
+    easeOut: function (t) { return 1 - Math.pow(1 - t, 3); },   // ≈ cubic-bezier(.33, 1, .68, 1)
+    expo: function (t) { return t >= 1 ? 1 : (1 - Math.pow(2, -10 * t)) / (1 - Math.pow(2, -10)); },
+    spring: (function (overshoot) {
+      var log = Math.log(overshoot), zeta = -log / Math.sqrt(Math.PI * Math.PI + log * log);
+      var damped = Math.PI / 0.52, natural = damped / Math.sqrt(1 - zeta * zeta);
+      var raw = function (t) { return 1 - Math.exp(-zeta * natural * t) * (Math.cos(damped * t) + (zeta * natural / damped) * Math.sin(damped * t)); };
+      var residual = 1 - raw(1);
+      return function (t) { return t >= 1 ? 1 : raw(t) + residual * t * t * t; };
+    })(0.06)
+  };
+  var CU_UNITS = [[1e12, 'T'], [1e9, 'B'], [1e6, 'M'], [1e3, 'K']];
+  function cuPlaces(n) { var s = String(n); return s.indexOf('.') > -1 && parseInt(s.split('.')[1], 10) !== 0 ? s.split('.')[1].length : 0; }
+  function cuFormat(v, o) {
+    var size = 1, label = '', digits = o.places;
+    if (o.compact) {
+      for (var i = 0; i < CU_UNITS.length; i++) if (Math.abs(v) >= CU_UNITS[i][0] * 0.9995) { size = CU_UNITS[i][0]; label = CU_UNITS[i][1]; break; }
+      digits = o.decimals != null ? o.decimals : (label ? (Math.abs(v) / size < 100 ? 1 : 0) : o.places);
+    }
+    var fixed = (Math.abs(v) / size).toFixed(digits), parts = fixed.split('.');
+    var int = o.separator ? parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, o.separator) : parts[0];
+    var neg = v < 0 && Number(fixed) !== 0;
+    return o.prefix + (neg ? '-' : '') + int + (parts[1] ? '.' + parts[1] : '') + label + o.suffix;
+  }
+  function cuShown(el) {
+    if (el.closest('.is-split')) return false;
+    if (!el.getClientRects().length) return false;            // <details> fechado, display none
+    var r = el.getBoundingClientRect();
+    if (r.right <= 0 || r.left >= window.innerWidth) return false;   // card do carrossel ainda fora da tela
+    for (var n = el; n && n !== document.body; n = n.parentElement) {
+      var cs = getComputedStyle(n);
+      if (cs.visibility === 'hidden' || parseFloat(cs.opacity) < 0.6) return false;
+    }
+    return true;
+  }
+  var cuList = [];
+  document.querySelectorAll('.count-up[data-count]').forEach(function (el, i) {
+    var d = el.dataset, raw = d.count;
+    var to = raw === 'year' ? new Date().getFullYear() : parseFloat(raw);
+    var from = d.countFrom != null ? parseFloat(d.countFrom) : 0;
+    var down = d.countDirection === 'down';
+    var o = {
+      id: String(i), start: down ? to : from, end: down ? from : to,
+      duration: d.countDuration != null ? Math.max(0, parseFloat(d.countDuration)) : 2,
+      delay: parseFloat(d.countDelay) || 0,
+      ease: CU_EASE[d.countEasing] || CU_EASE.easeOut,
+      decimals: d.countDecimals != null ? parseInt(d.countDecimals, 10) : null,
+      separator: d.countSeparator || '', prefix: d.countPrefix || '', suffix: d.countSuffix || '',
+      compact: d.countFormat === 'compact', replay: d.countReplay !== 'false',
+      running: false, started: false
+    };
+    o.places = o.decimals != null ? o.decimals : Math.max(cuPlaces(from), cuPlaces(to));
+    el.setAttribute('data-cu', o.id);
+    el.setAttribute('aria-label', cuFormat(o.end, o));
+    el.textContent = cuFormat(reduceMotion ? o.end : o.start, o);
+    if (!reduceMotion) cuList.push(o);
+  });
+  function cuNode(o) { return document.querySelector('[data-cu="' + o.id + '"]'); }
+  function cuRun(o, wait) {
+    if (o.running) return;
+    o.running = o.started = true;
+    var t0 = 0;
+    var frame = function (now) {
+      if (!t0) t0 = now + (wait ? o.delay * 1000 : 0);
+      var p = o.duration > 0 ? Math.min(1, Math.max(0, (now - t0) / (o.duration * 1000))) : 1;
+      var node = cuNode(o);
+      if (node) node.textContent = cuFormat(p >= 1 ? o.end : o.start + (o.end - o.start) * o.ease(p), o);
+      if (p < 1) requestAnimationFrame(frame);
+      else o.running = false;
+    };
+    requestAnimationFrame(frame);
+  }
+  if (cuList.length) {
+    // whenSeen (e não IntersectionObserver): um número que passou direto num salto por
+    // link também conta, em vez de ficar parado no valor inicial
+    var cuWaiting = [], cuPolling = false;
+    var cuPoll = function () {
+      cuWaiting = cuWaiting.filter(function (o) {
+        var node = cuNode(o);
+        if (!node || !cuShown(node)) return true;
+        cuRun(o, true);
+        return false;
+      });
+      cuPolling = cuWaiting.length > 0;
+      if (cuPolling) setTimeout(cuPoll, 150);
+    };
+    cuList.forEach(function (o) {
+      whenSeen(cuNode(o), function () {
+        cuWaiting.push(o);
+        if (!cuPolling) { cuPolling = true; cuPoll(); }
+      }, 1);   // como o useInView do componente: basta aparecer (o ano fica no pé da página)
+    });
+    // replayOnHover: conta de novo ao passar o mouse (delegado: sobrevive à troca de HTML do FoldText)
+    document.addEventListener('pointerover', function (e) {
+      var node = e.target.closest && e.target.closest('[data-cu]');
+      if (!node) return;
+      var o = cuList.filter(function (x) { return x.id === node.getAttribute('data-cu'); })[0];
+      if (o && o.replay && o.started && !o.running) cuRun(o, false);
+    });
+  } else {
+    cuList.forEach(function (o) { cuNode(o).textContent = cuFormat(o.end, o); });
+  }
+
   /* ---------- Passos acendendo com o scroll ----------
      Um feixe dourado corre pela linha pontilhada, preenchendo-a, com um ponto de
      luz na ponta. Quando a luz chega num passo, o anel do círculo carrega (um ponto
@@ -1078,6 +1193,84 @@
     // remede quando a largura muda (girar a tela, redimensionar) ou as fontes chegam (o texto quebra diferente)
     window.addEventListener('resize', function () {
       if (zoomed() || layoutW() === builtW) return;   // zoom, ou celular com a barra de endereço mexendo só na altura
+      clearTimeout(rebuildTimer);
+      rebuildTimer = setTimeout(build, 200);
+    });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(build);
+  })();
+
+  /* ---------- Destaques do Quem Somos acendendo com o scroll ----------
+     Mesmo efeito dos passos acima, sempre na vertical: a luz desce pela linha
+     dourada entre os 3 ícones e cada um acende (anel carregando, brilho, lampejo)
+     quando ela chega no centro dele. Reusa o CSS .step-* e .steps-track. */
+  (function () {
+    var list = document.querySelector('.about-points');
+    if (!list || !gsap || !ST || reduceMotion) return;
+    var items = [].slice.call(list.children).map(function (li) {
+      var icon = li.querySelector('.about-icon');
+      ['step-glow', 'step-ring', 'step-dot', 'step-burst'].forEach(function (c) {
+        var s = document.createElement('span');
+        s.className = c;
+        s.setAttribute('aria-hidden', 'true');
+        icon.appendChild(s);
+      });
+      return {
+        icon: icon, svg: icon.querySelector('svg'), dot: icon.querySelector('.step-dot'),
+        glow: icon.querySelector('.step-glow'), burst: icon.querySelector('.step-burst'),
+        text: li.querySelectorAll('h3, p')
+      };
+    });
+    var track = document.createElement('li');
+    track.className = 'steps-track is-col';
+    track.setAttribute('aria-hidden', 'true');
+    track.innerHTML = '<span class="steps-fill"></span><span class="steps-spark"></span>';
+    list.appendChild(track);
+    list.classList.add('points-lit');
+    var fill = track.firstChild, spark = track.lastChild;
+
+    function light(tl, s, at, ring) {
+      tl.fromTo(s.icon, { '--ring': 0 }, { '--ring': 1, duration: ring, ease: 'power1.inOut' }, at)
+        .fromTo(s.dot, { opacity: 0 }, { opacity: 1, duration: 0.08 }, at)
+        .to(s.dot, { opacity: 0, duration: 0.1 }, at + ring - 0.1)
+        .fromTo(s.svg, { opacity: 0.3 }, { opacity: 1, duration: 0.3 }, at + ring * 0.6)
+        .fromTo(s.glow, { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.35, ease: 'power2.out' }, at + ring * 0.6)
+        .fromTo(s.text, { opacity: 0.35 }, { opacity: 1, duration: 0.3 }, at + ring * 0.7)
+        .call(function () {
+          if (tl.scrollTrigger && tl.scrollTrigger.direction > 0) {
+            gsap.fromTo(s.burst, { scale: 1, opacity: 0.9 }, { scale: 1.55, opacity: 0, duration: 0.8, ease: 'power2.out' });
+          }
+        }, null, at + ring);
+    }
+
+    var ctx = null, builtW = 0, rebuildTimer = 0;
+    function build() {
+      builtW = document.documentElement.clientWidth;
+      if (ctx) ctx.revert();
+      var lr = list.getBoundingClientRect();
+      var c = items.map(function (s) {
+        var r = s.icon.getBoundingClientRect();
+        return { y: r.top + r.height / 2 - lr.top, x: r.left + r.width / 2 - lr.left };
+      });
+      var first = c[0].y, len = c[c.length - 1].y - first;
+      if (len <= 0) return;
+      track.style.cssText = 'top:' + first + 'px;height:' + len + 'px;left:' + (c[0].x - 1) + 'px;width:2px';
+      ctx = gsap.context(function () {
+        var tl = gsap.timeline({
+          defaults: { ease: 'none' },
+          scrollTrigger: { trigger: list, start: 'top 80%', end: 'bottom 62%', scrub: 0.6 }
+        });
+        var lead = 0.4, run = 3;
+        light(tl, items[0], 0, 0.4);
+        tl.fromTo(fill, { scaleX: 1, scaleY: 0, transformOrigin: '50% 0%' }, { scaleY: 1, duration: run }, lead)
+          .fromTo(spark, { x: 0, y: 0 }, { y: len, duration: run }, lead)
+          .fromTo(spark, { opacity: 0 }, { opacity: 1, duration: 0.12 }, lead)
+          .to(spark, { opacity: 0, duration: 0.15 }, lead + run - 0.05);
+        for (var i = 1; i < items.length; i++) light(tl, items[i], lead + run * (c[i].y - first) / len - 0.08, 0.35);
+      });
+    }
+    build();
+    window.addEventListener('resize', function () {
+      if (zoomed() || document.documentElement.clientWidth === builtW) return;
       clearTimeout(rebuildTimer);
       rebuildTimer = setTimeout(build, 200);
     });
@@ -1308,5 +1501,6 @@
   })();
 
   /* ---------- Ano no rodapé ---------- */
-  document.getElementById('year').textContent = new Date().getFullYear();
+  var yearEl = document.getElementById('year');
+  if (!yearEl.hasAttribute('data-cu')) yearEl.textContent = new Date().getFullYear();   // com CountUp, ele mesmo escreve o ano
 })();
