@@ -1396,8 +1396,8 @@
   /* ---------- ScrollFloat (Quem Somos) ----------
      Versão sem React do ScrollFloat do React Bits, efeito "float": cada letra sobe
      esticada (scaleY 2.3) de dentro da própria palavra e assenta conforme o scroll
-     (scrub). Vale para todos os textos da seção (etiqueta, título, parágrafos, pontos,
-     parceiros e botões), cada um com o seu próprio gatilho. O texto original fica num
+     (scrub). Vale para a etiqueta, o título e os dois parágrafos, cada um com o seu
+     próprio gatilho (os pontos, parceiros e botões aparecem normais). O texto original fica num
      .sr-only para leitores de tela; sem GSAP ou com "reduzir movimento" tudo aparece normal. */
   (function () {
     if (!gsap || !ST || reduceMotion) return;
@@ -1445,11 +1445,41 @@
         { duration: 1, stagger: Math.min(SF.stagger, MAX_SPREAD / chars.length), ease: SF.ease, opacity: 1, yPercent: 0, scaleY: 1, scaleX: 1 }, 0);
     }
 
-    document.querySelectorAll(
-      '#quem-somos .about-title, #quem-somos .about-copy > p, #quem-somos .about-points h3, ' +
-      '#quem-somos .about-points p, #quem-somos .about-partners-label, #quem-somos .about-partners a > span, ' +
-      '#quem-somos .about-actions .btn'
-    ).forEach(floatText);
+    document.querySelectorAll('#quem-somos .about-title, #quem-somos .about-copy > p').forEach(floatText);
+  })();
+
+  /* ---------- Quem Somos: fotos e selo ----------
+     Ao chegar na tela: a foto grande sobe e a imagem dentro dela desfaz um zoom;
+     a foto pequena chega na diagonal (do canto de baixo à direita) endireitando;
+     o selo dourado sobe de baixo até o lugar dele. Depois, ao rolar, a foto
+     pequena e o selo andam um pouco mais rápido que a grande (profundidade).
+     Disparo pelo whenSeen, como o AnimatedContent. Sem GSAP ou com "reduzir
+     movimento" tudo fica parado no lugar. */
+  (function () {
+    var media = document.querySelector('#quem-somos .about-media');
+    if (!media || !gsap || !ST || reduceMotion) return;
+    var main = media.querySelector('.about-photo-main');
+    var detail = media.querySelector('.about-photo-detail');
+    var seal = media.querySelector('.about-seal');
+    var mainImg = main.querySelector('img');
+
+    gsap.set(main, { autoAlpha: 0, y: 60, scale: 0.94 });
+    gsap.set(mainImg, { scale: 1.25 });
+    gsap.set(detail, { autoAlpha: 0, xPercent: 55, yPercent: 55, rotation: 8 });
+    gsap.set(seal, { autoAlpha: 0, y: 220 });
+
+    whenSeen(media, function () {
+      gsap.timeline()
+        .to(main, { autoAlpha: 1, y: 0, scale: 1, duration: 1, ease: 'power3.out' })
+        .to(mainImg, { scale: 1, duration: 1.6, ease: 'power2.out' }, 0)
+        .to(detail, { autoAlpha: 1, xPercent: 0, yPercent: 0, rotation: 0, duration: 1.1, ease: 'power3.out' }, 0.35)
+        .to(seal, { autoAlpha: 1, y: 0, duration: 1.1, ease: 'back.out(1.5)' }, 0.55);
+    }, 0.85);
+
+    // profundidade ao rolar: propriedades diferentes das da entrada (y do detalhe, yPercent do selo)
+    gsap.timeline({ scrollTrigger: { trigger: media, start: 'top bottom', end: 'bottom top', scrub: 1 } })
+      .fromTo(detail, { y: 40 }, { y: -40, ease: 'none' }, 0)
+      .fromTo(seal, { yPercent: 40 }, { yPercent: -40, ease: 'none' }, 0);
   })();
 
   /* ---------- Brilhos só animam quando a seção está na tela ---------- */
