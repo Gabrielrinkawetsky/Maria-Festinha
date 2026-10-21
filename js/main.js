@@ -868,7 +868,7 @@
   function openCurtain(box, delay) {
     var curtain = box.querySelector('.photo-curtain');
     var img = box.querySelector('img');
-    var go = function () { gsap.to(curtain, { yPercent: 100, duration: 0.7, delay: delay, ease: 'power3.inOut' }); };
+    var go = function () { gsap.to(curtain, { yPercent: 100, duration: 0.45, delay: delay, ease: 'power3.inOut' }); };
     if (!img || img.complete) go();
     else { img.addEventListener('load', go, { once: true }); img.addEventListener('error', go, { once: true }); }
   }
@@ -899,9 +899,9 @@
         entries.forEach(function (e) {
           if (!e.isIntersecting) return;
           curtainIO.unobserve(e.target);
-          openCurtain(e.target, 0.1 + Math.min(n++ * 0.08, 0.3));
+          openCurtain(e.target, 0.05 + Math.min(n++ * 0.05, 0.2));
         });
-      }, { threshold: 0.35 });
+      }, { threshold: 0.2 });
       cardCurtains.forEach(function (c) { curtainIO.observe(c.parentElement); });
     } else {
       cardCurtains.forEach(function (c) { c.remove(); });
