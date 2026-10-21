@@ -389,7 +389,8 @@
 
       // WhatsApp flutuante: a Hero já tem o "Pedir Orçamento"; aparece ao sair dela
       var fabBtn = document.querySelector('.wa-float');
-      var fabCheck = function () { if (fabBtn) fabBtn.classList.toggle('is-hidden', window.scrollY < hero.offsetHeight * 0.5); };
+      // (a Hero tem 2 telas: a 2ª é o resto da página subindo por cima dela)
+      var fabCheck = function () { if (fabBtn) fabBtn.classList.toggle('is-hidden', window.scrollY < window.innerHeight * 0.5); };
       window.addEventListener('scroll', fabCheck, { passive: true });
       fabCheck();
 
@@ -1366,7 +1367,8 @@
      vai se achatando até virar reta quando ela chega no alto da tela. O resto da
      página faz isso por cima da Hero parada; as faixas lilás, por cima do conteúdo
      claro. Amarrado ao scroll: rolar para cima curva de novo. */
-  if (gsap && ST && !reduceMotion && document.documentElement.classList.contains('hero-seq')) {
+  // computador (sequência) e celular (vídeo): nos dois a Hero fica presa enquanto o resto sobe
+  if (gsap && ST && !reduceMotion && /\bhero-(seq|vid)\b/.test(document.documentElement.className)) {
     [
       // [elemento, altura do arco (fração da largura, máximo em px), onde fica reto]
       ['.page-rest', 0.18, 240, 'top 6%'],

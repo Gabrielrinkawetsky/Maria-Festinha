@@ -311,7 +311,9 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
 /* Celular (.hero-vid, ligado no <head>): vídeo em loop no lugar do canvas */
 .hero-video { display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; pointer-events: none; }
-.hero-vid .hero { height: auto; }   /* uma tela só: nada preso ao scroll */
+/* Hero presa por 1 tela enquanto o resto da página sobe por cima com o arco (como no fim
+   da sequência do computador); o vídeo não depende do scroll */
+.hero-vid .hero { height: 200vh; height: 200lvh; }
 .hero-vid .hero-video { display: block; }
 .hero-vid .hero-canvas { display: none; }
 .hero-veil {
@@ -427,7 +429,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
     linear-gradient(180deg, #fbf9ff 0%, #f5f0fc 50%, #fbf9ff 100%);
   background: var(--band-bg);
 }
-.hero-seq .page-rest { margin-top: -100vh; margin-top: -100lvh; }
+.hero-seq .page-rest, .hero-vid .page-rest { margin-top: -100vh; margin-top: -100lvh; }
 .curve-top { border-radius: 50% 50% 0 0 / var(--curve, 0px) var(--curve, 0px) 0 0; }
 .page-rest > .curve-edge { height: 280px; box-shadow: 0 -22px 44px -18px rgba(74, 58, 107, .4), inset 0 2px 0 rgba(212, 169, 79, .7); }
 /* Faixas lilás: o arco recorta só o fundo (.curve-bg, criado pelo js/main.js com os
