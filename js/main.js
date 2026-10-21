@@ -1550,7 +1550,7 @@
   });
 
   /* ---------- Barra do hero → card do serviço ----------
-     Decoração, Recreação, Buffet de Pizza e Espaço levam ao card do serviço. O
+     Decoração, Recreação infantil, Buffet de Pizza e Espaço levam ao card do serviço. O
      deslize é feito aqui e não pelas âncoras do Lenis: antes de entrar, o card
      ainda está 100px abaixo (AnimatedContent) e o Lenis parava 100px depois.
      A posição vem do offsetTop, que não conta o transform. No celular o
