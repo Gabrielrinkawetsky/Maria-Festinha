@@ -1396,8 +1396,8 @@
   /* ---------- ScrollFloat (Quem Somos) ----------
      Versão sem React do ScrollFloat do React Bits, efeito "float": cada letra sobe
      esticada (scaleY 2.3) de dentro da própria palavra e assenta conforme o scroll
-     (scrub). Vale para todos os textos da seção (etiqueta, título, parágrafos, pontos,
-     parceiros e botões), cada um com o seu próprio gatilho. O texto original fica num
+     (scrub). Vale para a etiqueta, o título e os dois parágrafos, cada um com o seu
+     próprio gatilho (os pontos, parceiros e botões aparecem normais). O texto original fica num
      .sr-only para leitores de tela; sem GSAP ou com "reduzir movimento" tudo aparece normal. */
   (function () {
     if (!gsap || !ST || reduceMotion) return;
@@ -1445,11 +1445,7 @@
         { duration: 1, stagger: Math.min(SF.stagger, MAX_SPREAD / chars.length), ease: SF.ease, opacity: 1, yPercent: 0, scaleY: 1, scaleX: 1 }, 0);
     }
 
-    document.querySelectorAll(
-      '#quem-somos .about-title, #quem-somos .about-copy > p, #quem-somos .about-points h3, ' +
-      '#quem-somos .about-points p, #quem-somos .about-partners-label, #quem-somos .about-partners a > span, ' +
-      '#quem-somos .about-actions .btn'
-    ).forEach(floatText);
+    document.querySelectorAll('#quem-somos .about-title, #quem-somos .about-copy > p').forEach(floatText);
   })();
 
   /* ---------- Brilhos só animam quando a seção está na tela ---------- */
