@@ -428,9 +428,15 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
    brilhos e as fitas dentro). As flores ficam fora dele e desabrocham inteiras nos cantos. */
 .curve-band { background: none; box-shadow: none; }
 .curve-band::before { display: none; }   /* o fio dourado de cima vira o do arco */
-.curve-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; background: var(--band-bg); }
-.promo-band > .curve-bg { box-shadow: 0 -16px 34px -18px rgba(74, 58, 107, .45), inset 0 2px 0 #dcb563, inset 0 -1px 0 rgba(255, 255, 255, .4); }
-.final-cta > .curve-bg { box-shadow: 0 -16px 34px -18px rgba(74, 58, 107, .45), inset 0 1px 0 rgba(255, 255, 255, .5); }
+/* Desempenho: mudar o arco a cada quadro repintava a faixa inteira (o FAQ é bem alto).
+   O fundo fica numa camada própria (::before, pintada uma vez) que o arco só recorta, e
+   a sombra e o fio de cima vão num .curve-edge baixo, o único que repinta durante o arco. */
+.curve-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+.curve-bg::before { content: ""; position: absolute; inset: 0; background: var(--band-bg); will-change: transform; }
+.curve-edge { position: absolute; top: 0; left: 0; right: 0; height: 160px; max-height: 100%; z-index: 0; pointer-events: none; }
+.promo-band > .curve-edge { box-shadow: 0 -16px 34px -18px rgba(74, 58, 107, .45), inset 0 2px 0 #dcb563; }
+.promo-band > .curve-bg::before { box-shadow: inset 0 -1px 0 rgba(255, 255, 255, .4); }
+.final-cta > .curve-edge { box-shadow: 0 -16px 34px -18px rgba(74, 58, 107, .45), inset 0 1px 0 rgba(255, 255, 255, .5); }
 @supports (height: 100lvh) { .hero-sticky { --bar: calc(100lvh - 100svh); } }
 /* Celular: quando a barra de endereço some ao rolar, a tela cresce (dvh passa de
    svh para lvh). A barra de diferenciais desce deslizando o mesmo tanto e fica
@@ -897,8 +903,7 @@ html:not(.curtain-on) .photo-curtain { display: none; }
 .faq { max-width: 860px; margin: 0 auto; display: grid; gap: 10px; }
 .faq details {
   position: relative; isolation: isolate; overflow: hidden;
-  background: rgba(255, 255, 255, .84);
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, .88);   /* sem backdrop-filter: com os brilhos animando atrás, refazia o desfoque a cada quadro */
   border: 1px solid rgba(255, 255, 255, .9); border-radius: 14px;
   box-shadow: 0 12px 30px -16px rgba(74, 58, 107, .55);
   transition: border-color .3s ease, background .3s ease;
@@ -907,8 +912,8 @@ html:not(.curtain-on) .photo-curtain { display: none; }
 .faq details::before {
   content: ""; position: absolute; z-index: -1; pointer-events: none;
   left: -10%; top: 30%; width: 62%; height: 150%;
-  background: radial-gradient(closest-side, rgba(154, 125, 208, .85), rgba(182, 156, 224, .6) 40%, rgba(210, 192, 239, .3) 70%, transparent 100%);
-  filter: blur(14px); opacity: .8; transform-origin: 0 50%;
+  background: radial-gradient(closest-side, rgba(154, 125, 208, .8), rgba(182, 156, 224, .55) 35%, rgba(210, 192, 239, .25) 65%, transparent 100%);
+  opacity: .8; transform-origin: 0 50%;   /* o degradê já é suave: sem filter blur, que pesava em 8 cards */
   transition: opacity .35s ease, transform .35s ease;
 }
 .faq details:hover { border-color: var(--gold-200); }

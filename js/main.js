@@ -1322,10 +1322,15 @@
         shape.setAttribute('aria-hidden', 'true');
         el.querySelectorAll(':scope > .sparkle-field, :scope > .ribbon').forEach(function (d) { shape.appendChild(d); });
         el.insertBefore(shape, el.firstChild);
+        var edge = document.createElement('div');   // sombra e fio do arco (ver .curve-edge no CSS)
+        edge.className = 'curve-edge curve-top';
+        edge.setAttribute('aria-hidden', 'true');
+        el.insertBefore(edge, shape.nextSibling);
         el.classList.add('curve-band');
       }
       shape.classList.add('curve-top');
-      gsap.fromTo(shape,
+      // --curve vai na seção e o fundo e a sombra herdam
+      gsap.fromTo(el,
         { '--curve': function () { return Math.min(window.innerWidth * c[1], c[2]) + 'px'; } },
         { '--curve': '0px', ease: 'none',
           scrollTrigger: { trigger: el, start: 'top bottom', end: c[3], scrub: true, invalidateOnRefresh: true } });
