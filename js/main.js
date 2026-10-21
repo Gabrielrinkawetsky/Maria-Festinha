@@ -1404,7 +1404,7 @@
     if (!gsap || !ST || reduceMotion) return;
     // letra a letra, em ordem de leitura: cada letra dura pouco perto do intervalo entre
     // elas, então só umas poucas estão subindo ao mesmo tempo
-    var SF = { stagger: 0.018, duration: 0.35, stretch: 2.3, distance: 120, ease: 'back.out(1.6)' };
+    var SF = { total: 3, duration: 0.35, stretch: 2.3, distance: 120, ease: 'back.out(1.6)' };   // total: segundos do texto todo
     var all = [];
 
     function floatText(el) {
@@ -1450,7 +1450,7 @@
     if (!title) return;
     document.querySelectorAll('#quem-somos .about-title, #quem-somos .about-copy > p').forEach(floatText);
     whenSeen(title, function () {
-      gsap.to(all, { duration: SF.duration, stagger: SF.stagger, ease: SF.ease, opacity: 1, yPercent: 0, scaleY: 1, scaleX: 1,
+      gsap.to(all, { duration: SF.duration, stagger: (SF.total - SF.duration) / Math.max(all.length - 1, 1), ease: SF.ease, opacity: 1, yPercent: 0, scaleY: 1, scaleX: 1,
         onComplete: function () { gsap.set(all, { clearProps: 'willChange' }); } });
     }, 0.85);
   })();
