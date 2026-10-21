@@ -1396,14 +1396,15 @@
   /* ---------- ScrollFloat (Quem Somos) ----------
      Versão sem React do ScrollFloat do React Bits, efeito "float": cada letra sobe
      esticada (scaleY 2.3) de dentro da própria palavra e assenta conforme o scroll
-     (scrub). Vale para a etiqueta, o título e os dois parágrafos, cada um com o seu
+     (scrub), uma depois da outra: descendo a página, o texto vai se escrevendo. Vale para a etiqueta, o título e os dois parágrafos, cada um com o seu
      próprio gatilho (os pontos, parceiros e botões aparecem normais). O texto original fica num
      .sr-only para leitores de tela; sem GSAP ou com "reduzir movimento" tudo aparece normal. */
   (function () {
     if (!gsap || !ST || reduceMotion) return;
-    var SF = { stagger: 0.03, stretch: 2.3, distance: 120, ease: 'back.inOut(2)', start: 'center bottom+=50%', end: 'clamp(bottom bottom-=40%)' };
-    // textos longos: o mesmo tempo total de cascata do título, senão as últimas letras demoram demais
-    var MAX_SPREAD = 1.5;
+    // letra a letra, em ordem de leitura: cada letra dura pouco perto do intervalo entre
+    // elas, então só umas poucas estão subindo ao mesmo tempo. O scrub amarra tudo ao
+    // scroll enquanto o texto passa da parte de baixo (90%) até perto do meio da tela (55%).
+    var SF = { stagger: 0.05, duration: 0.35, stretch: 2.3, distance: 120, ease: 'back.out(1.6)', start: 'top 90%', end: 'clamp(bottom 55%)' };
 
     function floatText(el) {
       var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
@@ -1438,11 +1439,12 @@
       el.insertBefore(sr, el.firstChild);
 
       var chars = el.querySelectorAll('.sf-char');
+      // estado inicial em todas as letras já: o fromTo com stagger só aplicava nas
+      // primeiras, e as letras de mais adiante apareciam antes da vez delas
+      gsap.set(chars, { willChange: 'opacity, transform', opacity: 0, yPercent: SF.distance, scaleY: SF.stretch, scaleX: Math.pow(SF.stretch, -0.43), transformOrigin: '50% 0%' });
       gsap.timeline({
         scrollTrigger: { trigger: el, start: SF.start, end: SF.end, scrub: true, invalidateOnRefresh: true }
-      }).fromTo(chars,
-        { willChange: 'opacity, transform', opacity: 0, yPercent: SF.distance, scaleY: SF.stretch, scaleX: Math.pow(SF.stretch, -0.43), transformOrigin: '50% 0%' },
-        { duration: 1, stagger: Math.min(SF.stagger, MAX_SPREAD / chars.length), ease: SF.ease, opacity: 1, yPercent: 0, scaleY: 1, scaleX: 1 }, 0);
+      }).to(chars, { duration: SF.duration, stagger: SF.stagger, ease: SF.ease, opacity: 1, yPercent: 0, scaleY: 1, scaleX: 1 }, 0);
     }
 
     document.querySelectorAll('#quem-somos .about-title, #quem-somos .about-copy > p').forEach(floatText);
