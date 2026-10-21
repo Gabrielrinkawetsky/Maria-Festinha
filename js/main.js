@@ -1647,28 +1647,31 @@
     }, { passive: true });
   })();
 
-  /* ---------- WhatsApp flutuante some sobre as perguntas ----------
-     No celular e no tablet o botão fica em cima do "+" das perguntas do FAQ. Enquanto
-     as perguntas estão na tela e o botão cai sobre elas, ele se esconde (o CTA logo
-     abaixo tem o "Pedir orçamento"). No computador largo não há sobreposição. */
+  /* ---------- WhatsApp flutuante some sobre as perguntas e o formulário ----------
+     No celular e no tablet o botão fica em cima do "+" das perguntas do FAQ e do
+     "Enviar pelo WhatsApp" do formulário do rodapé. Enquanto um deles está na tela e o
+     botão cai sobre ele, o botão se esconde (os dois já levam ao WhatsApp). No
+     computador largo não há sobreposição. */
   (function () {
     var fabBtn = document.querySelector('.wa-float');
-    var faqList = document.querySelector('.faq');
-    if (!fabBtn || !faqList || !('IntersectionObserver' in window)) return;
-    var faqOnScreen = false;
+    var targets = [document.querySelector('.faq'), document.getElementById('waForm')].filter(Boolean);
+    if (!fabBtn || !targets.length || !('IntersectionObserver' in window)) return;
+    var onScreen = [];
     function check() {
-      var over = false;
-      if (faqOnScreen) {
-        // borda esquerda do botão pelo CSS (offsetWidth ignora a escala de quando está escondido)
-        var fabLeft = window.innerWidth - (parseFloat(getComputedStyle(fabBtn).right) || 0) - fabBtn.offsetWidth;
-        over = faqList.getBoundingClientRect().right > fabLeft - 8;
-      }
+      // borda esquerda do botão pelo CSS (offsetWidth ignora a escala de quando está escondido)
+      var fabLeft = window.innerWidth - (parseFloat(getComputedStyle(fabBtn).right) || 0) - fabBtn.offsetWidth;
+      var over = onScreen.some(function (el) { return el.getBoundingClientRect().right > fabLeft - 8; });
       fabBtn.classList.toggle('over-faq', over);
     }
-    new IntersectionObserver(function (entries) {
-      faqOnScreen = entries[0].isIntersecting;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        var i = onScreen.indexOf(e.target);
+        if (e.isIntersecting && i < 0) onScreen.push(e.target);
+        if (!e.isIntersecting && i >= 0) onScreen.splice(i, 1);
+      });
       check();
-    }).observe(faqList);
+    });
+    targets.forEach(function (el) { io.observe(el); });
     window.addEventListener('resize', check);
   })();
 
