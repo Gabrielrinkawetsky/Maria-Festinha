@@ -1,6 +1,6 @@
 # Maria Festinha Ilhabela — Site
 
-Site institucional da **Maria Festinha • WR Recreação** (Ilhabela, SP) — decoração, recreação, casamentos, aniversários, buffet de pizza e espaço para eventos.
+Site institucional da **Maria Festinha • WR Recreação** (Ilhabela, SP) — decoração, recreação infantil, casamentos, aniversários, buffet de pizza e espaço para eventos.
 
 Site estático (HTML + CSS + JS puro), sem dependências. Basta abrir `index.html` no navegador ou publicar a pasta em qualquer hospedagem (Vercel, Netlify, GitHub Pages, Hostinger…).
 
@@ -25,7 +25,7 @@ Todos os espaços de foto dos cards são **quadrados** (como no Instagram). Salv
 | Seção | Arquivo | Origem no Instagram |
 |---|---|---|
 | Serviços — Decoração | `img/fotos/servico-decoracao.jpg` | post DadP1Ijumnu |
-| Serviços — Recreação | `img/fotos/servico-recreacao.jpg` | post CU_ZrMwtB59 (castelo inflável) |
+| Serviços — Recreação infantil | `img/fotos/servico-recreacao.jpg` | post CU_ZrMwtB59 (castelo inflável) |
 | Serviços — Casamentos | `img/fotos/servico-casamentos.jpg` | post CtsDSsJufzj, foto 10 |
 | Serviços — Aniversários | `img/fotos/servico-aniversarios.jpg` | post Dc6sjHCgzOs |
 | Serviços — Buffet de Pizza | `img/fotos/servico-buffet-pizza.jpg` | post DXV2zymAeeq de @flordelotuspizzariaa (Calabresa Especial) |
