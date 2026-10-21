@@ -1396,45 +1396,60 @@
   /* ---------- ScrollFloat (Quem Somos) ----------
      Versão sem React do ScrollFloat do React Bits, efeito "float": cada letra sobe
      esticada (scaleY 2.3) de dentro da própria palavra e assenta conforme o scroll
-     (scrub). A etiqueta "Quem Somos" fica de fora; sem GSAP ou com "reduzir
-     movimento" o título aparece normal. */
+     (scrub). Vale para todos os textos da seção (etiqueta, título, parágrafos, pontos,
+     parceiros e botões), cada um com o seu próprio gatilho. O texto original fica num
+     .sr-only para leitores de tela; sem GSAP ou com "reduzir movimento" tudo aparece normal. */
   (function () {
-    var title = document.querySelector('.about-title');
-    if (!title || !gsap || !ST || reduceMotion) return;
+    if (!gsap || !ST || reduceMotion) return;
     var SF = { stagger: 0.03, stretch: 2.3, distance: 120, ease: 'back.inOut(2)', start: 'center bottom+=50%', end: 'clamp(bottom bottom-=40%)' };
+    // textos longos: o mesmo tempo total de cascata do título, senão as últimas letras demoram demais
+    var MAX_SPREAD = 1.5;
 
-    title.setAttribute('aria-label', title.textContent.replace(/\s+/g, ' ').trim());
-    var walker = document.createTreeWalker(title, NodeFilter.SHOW_TEXT, {
-      acceptNode: function (n) { return n.parentElement.closest('.about-kicker') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT; }
-    });
-    var nodes = [];
-    while (walker.nextNode()) nodes.push(walker.currentNode);
-    nodes.forEach(function (node) {
-      var frag = document.createDocumentFragment();
-      node.textContent.split(/(\s+)/).forEach(function (part) {
-        if (!part) return;
-        if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(' ')); return; }
-        var word = document.createElement('span');
-        word.className = 'sf-word';
-        word.setAttribute('aria-hidden', 'true');
-        Array.from(part).forEach(function (ch) {
-          var c = document.createElement('span');
-          c.className = 'sf-char';
-          c.textContent = ch;
-          word.appendChild(c);
+    function floatText(el) {
+      var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      var nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      // pedaços de texto separados por espaço: "@flordelotus.ilhabela" + <small> não grudam
+      var plain = nodes.map(function (n) { return n.textContent; }).join(' ').replace(/\s+/g, ' ').trim();
+      if (!plain) return;
+      nodes.forEach(function (node) {
+        if (!node.textContent.trim()) return;
+        var wrap = document.createElement('span');
+        wrap.className = 'sf-text';
+        wrap.setAttribute('aria-hidden', 'true');
+        node.textContent.split(/(\s+)/).forEach(function (part) {
+          if (!part) return;
+          if (/^\s+$/.test(part)) { wrap.appendChild(document.createTextNode(' ')); return; }
+          var word = document.createElement('span');
+          word.className = 'sf-word';
+          Array.from(part).forEach(function (ch) {
+            var c = document.createElement('span');
+            c.className = 'sf-char';
+            c.textContent = ch;
+            word.appendChild(c);
+          });
+          wrap.appendChild(word);
         });
-        frag.appendChild(word);
+        node.parentNode.replaceChild(wrap, node);
       });
-      node.parentNode.replaceChild(frag, node);
-    });
-    title.querySelector('.about-kicker').setAttribute('aria-hidden', 'true');
+      var sr = document.createElement('span');
+      sr.className = 'sr-only';
+      sr.textContent = plain;
+      el.insertBefore(sr, el.firstChild);
 
-    var chars = title.querySelectorAll('.sf-char');
-    gsap.timeline({
-      scrollTrigger: { trigger: title, start: SF.start, end: SF.end, scrub: true, invalidateOnRefresh: true }
-    }).fromTo(chars,
-      { willChange: 'opacity, transform', opacity: 0, yPercent: SF.distance, scaleY: SF.stretch, scaleX: Math.pow(SF.stretch, -0.43), transformOrigin: '50% 0%' },
-      { duration: 1, stagger: SF.stagger, ease: SF.ease, opacity: 1, yPercent: 0, scaleY: 1, scaleX: 1 }, 0);
+      var chars = el.querySelectorAll('.sf-char');
+      gsap.timeline({
+        scrollTrigger: { trigger: el, start: SF.start, end: SF.end, scrub: true, invalidateOnRefresh: true }
+      }).fromTo(chars,
+        { willChange: 'opacity, transform', opacity: 0, yPercent: SF.distance, scaleY: SF.stretch, scaleX: Math.pow(SF.stretch, -0.43), transformOrigin: '50% 0%' },
+        { duration: 1, stagger: Math.min(SF.stagger, MAX_SPREAD / chars.length), ease: SF.ease, opacity: 1, yPercent: 0, scaleY: 1, scaleX: 1 }, 0);
+    }
+
+    document.querySelectorAll(
+      '#quem-somos .about-title, #quem-somos .about-copy > p, #quem-somos .about-points h3, ' +
+      '#quem-somos .about-points p, #quem-somos .about-partners-label, #quem-somos .about-partners a > span, ' +
+      '#quem-somos .about-actions .btn'
+    ).forEach(floatText);
   })();
 
   /* ---------- Brilhos só animam quando a seção está na tela ---------- */

@@ -834,9 +834,10 @@ html:not(.curtain-on) .photo-curtain { display: none; }
   font-style: normal; font-weight: 600;
   background: var(--gold-text); -webkit-background-clip: text; background-clip: text; color: transparent;
 }
-/* ScrollFloat (js/main.js): cada palavra é a "fenda" de onde as letras sobem */
-.about-title .sf-word { display: inline-block; white-space: nowrap; overflow: hidden; padding: .1em 0; margin: -.1em 0; vertical-align: top; }
-.about-title .sf-char { display: inline-block; }
+/* ScrollFloat (js/main.js), em todos os textos de Quem Somos: cada palavra é a
+   "fenda" de onde as letras sobem */
+#quem-somos .sf-word { display: inline-block; white-space: nowrap; overflow: hidden; padding: .1em 0; margin: -.1em 0; vertical-align: top; }
+#quem-somos .sf-char { display: inline-block; }
 .about-ornament { margin: 14px 0 22px; }
 .about-copy > p + p { margin-top: 12px; }
 .about-copy strong { color: var(--lilac-700); font-weight: 600; }
