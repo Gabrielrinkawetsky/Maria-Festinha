@@ -1451,6 +1451,101 @@
 
   window.addEventListener('load', function () { if (ST) ST.refresh(); });
 
+  /* ---------- Carrosséis do celular: setas e bolinhas ----------
+     No celular os cards viram carrossel horizontal (.grid-3/.grid-4 até 640px) e nem
+     todo mundo percebe que dá para arrastar. Embaixo de cada carrossel entram setas
+     (anterior/próximo) e bolinhas mostrando em qual card você está. No computador e
+     no tablet o CSS esconde. As contas usam offsetLeft (e não getBoundingClientRect)
+     porque o AnimatedContent ainda pode estar empurrando os cards com transform. */
+  function centerCard(grid, slot, smooth) {
+    var left = slot.offsetLeft + slot.offsetWidth / 2 - grid.clientWidth / 2;
+    grid.scrollTo({ left: left, behavior: smooth && !reduceMotion ? 'smooth' : 'auto' });
+  }
+  var CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  document.querySelectorAll('[data-ac-carousel]').forEach(function (grid) {
+    var slots = Array.prototype.slice.call(grid.children);
+    if (slots.length < 2) return;
+    var nav = document.createElement('div');
+    nav.className = 'carousel-nav';
+    nav.innerHTML =
+      '<button type="button" class="carousel-arrow" aria-label="Card anterior">' + CHEVRON + '</button>' +
+      '<span class="carousel-dots" aria-hidden="true">' + slots.map(function () { return '<i class="carousel-dot"></i>'; }).join('') + '</span>' +
+      '<button type="button" class="carousel-arrow carousel-next" aria-label="Próximo card">' + CHEVRON + '</button>';
+    grid.parentNode.insertBefore(nav, grid.nextSibling);
+    var prev = nav.firstChild, next = nav.lastChild;
+    var dots = nav.querySelectorAll('.carousel-dot');
+    var current = -1, queued = false;
+    function update() {
+      queued = false;
+      var mid = grid.scrollLeft + grid.clientWidth / 2, best = 0, bestD = Infinity;
+      slots.forEach(function (s, i) {
+        var d = Math.abs(s.offsetLeft + s.offsetWidth / 2 - mid);
+        if (d < bestD) { bestD = d; best = i; }
+      });
+      if (best === current) return;
+      if (current >= 0) dots[current].classList.remove('is-on');
+      dots[best].classList.add('is-on');
+      current = best;
+      prev.disabled = best === 0;
+      next.disabled = best === slots.length - 1;
+    }
+    function queue() { if (!queued) { queued = true; requestAnimationFrame(update); } }
+    grid.addEventListener('scroll', queue, { passive: true });
+    window.addEventListener('resize', queue);
+    prev.addEventListener('click', function () { centerCard(grid, slots[Math.max(current - 1, 0)], true); });
+    next.addEventListener('click', function () { centerCard(grid, slots[Math.min(current + 1, slots.length - 1)], true); });
+    update();
+  });
+
+  /* ---------- Barra do hero → card do serviço ----------
+     Decoração, Recreação, Buffet de Pizza e Espaço levam ao card do serviço. O
+     deslize é feito aqui e não pelas âncoras do Lenis: antes de entrar, o card
+     ainda está 100px abaixo (AnimatedContent) e o Lenis parava 100px depois.
+     A posição vem do offsetTop, que não conta o transform. No celular o
+     carrossel já gira até o card e, quando ele aparece, ganha um aro dourado. */
+  document.querySelectorAll('.feature-link').forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      var slot = document.querySelector(link.getAttribute('href'));
+      if (!slot) return;
+      e.preventDefault();
+      e.stopPropagation();   // o clique não chega no Lenis (window)
+      var y = 0;
+      for (var el = slot; el; el = el.offsetParent) y += el.offsetTop;
+      y -= parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+      if (lenis) lenis.scrollTo(y);
+      else window.scrollTo({ top: y, behavior: reduceMotion ? 'auto' : 'smooth' });
+      if (slot.parentElement.scrollWidth > slot.parentElement.clientWidth) centerCard(slot.parentElement, slot, false);
+      slot.classList.remove('is-pointed');
+      if (!('IntersectionObserver' in window)) return;
+      var io = new IntersectionObserver(function (entries) {
+        if (!entries[0].isIntersecting) return;
+        io.disconnect();
+        slot.classList.add('is-pointed');
+        setTimeout(function () { slot.classList.remove('is-pointed'); }, 2000);
+      }, { threshold: 0.6 });
+      io.observe(slot);
+    });
+  });
+
+  /* ---------- Cabeçalho do celular ganha fundo depois do hero ----------
+     Sobre o hero o menu e o "Orçamento" ficam soltos, sem barra. Quando o resto da
+     página passa por baixo deles, entra um fundo claro atrás (.is-solid no CSS);
+     sem ele o texto das seções ficava embaixo dos botões. */
+  (function () {
+    var header = document.querySelector('.site-header');
+    var rest = document.querySelector('.page-rest');
+    if (!header || !rest) return;
+    var queued = false;
+    function check() {
+      queued = false;
+      header.classList.toggle('is-solid', rest.getBoundingClientRect().top < header.offsetHeight);
+    }
+    function queue() { if (!queued) { queued = true; requestAnimationFrame(check); } }
+    window.addEventListener('scroll', queue, { passive: true });
+    window.addEventListener('resize', queue);
+    check();
+  })();
+
   /* ---------- Formulário → WhatsApp ---------- */
   var form = document.getElementById('waForm');
   form.addEventListener('submit', function (e) {
