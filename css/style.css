@@ -257,12 +257,18 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0;
   contain: layout paint;
 }
-.sparkle-field.off .sparkle { animation: none; }
+/* Brilhos em grupos (js/main.js): o grupo pisca e flutua, os brilhos dentro dele ficam parados */
+.sparkle-group {
+  position: absolute; inset: 0;
+  animation: twinkle var(--d, 3s) ease-in-out var(--delay, 0s) infinite;
+}
+.sparkle-group.floaty { animation: twinkle var(--d, 3s) ease-in-out var(--delay, 0s) infinite, drift var(--fd, 14s) ease-in-out var(--delay, 0s) infinite alternate; }
+.sparkle-field.off .sparkle-group { animation: none !important; }   /* !important: o .lite .sparkle-group.floaty empatava e ganhava */
 .sparkle {
   position: absolute; display: block; border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #fff7dc 0%, #e7c26a 45%, #b98a33 100%);
   box-shadow: 0 0 6px rgba(240, 205, 120, .8);
-  animation: twinkle var(--d, 3s) ease-in-out var(--delay, 0s) infinite;
+  transform: scale(var(--s, 1)) rotate(var(--r, 0deg));
   opacity: .9;
 }
 .sparkle.bokeh {
@@ -273,11 +279,10 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   border-radius: 0; background: none; box-shadow: none;
 }
 .sparkle.heart svg { width: 100%; height: 100%; fill: url(#gGold); filter: drop-shadow(0 0 3px rgba(240,205,120,.7)); }
-.sparkle.floaty { animation: twinkle var(--d, 3s) ease-in-out var(--delay, 0s) infinite, drift var(--fd, 14s) ease-in-out var(--delay, 0s) infinite alternate; }
 
 @keyframes twinkle {
-  0%, 100% { opacity: .35; transform: scale(.8) rotate(var(--r, 0deg)); }
-  50%      { opacity: 1;   transform: scale(1.1) rotate(var(--r, 0deg)); }
+  0%, 100% { opacity: .35; }
+  50%      { opacity: 1; }
 }
 @keyframes drift {
   from { translate: 0 0; }
@@ -430,6 +435,9 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   background: var(--band-bg);
 }
 .hero-seq .page-rest, .hero-vid .page-rest { margin-top: -100vh; margin-top: -100lvh; }
+/* --curve não é herdado: herdando, cada passo do arco recalculava o estilo de tudo
+   dentro do fundo curvo (os brilhos das faixas lilás) a cada quadro do scroll */
+@property --curve { syntax: "<length>"; inherits: false; initial-value: 0px; }
 .curve-top { border-radius: 50% 50% 0 0 / var(--curve, 0px) var(--curve, 0px) 0 0; }
 .page-rest > .curve-edge { height: 280px; box-shadow: 0 -22px 44px -18px rgba(74, 58, 107, .4), inset 0 2px 0 rgba(212, 169, 79, .7); }
 /* Faixas lilás: o arco recorta só o fundo (.curve-bg, criado pelo js/main.js com os
@@ -1387,12 +1395,13 @@ html:not(.curtain-on) .photo-curtain { display: none; }
 /* Nenhum conteúdo do hero passa da largura da tela (iPhone Pro Max etc.) */
 .hero-copy, .hero-panel { max-width: 100%; }
 .hero-sticky { overflow-x: clip; }
+.hero-sticky.is-away { content-visibility: hidden; }   /* longe da tela: não desenha (js/main.js) */
 html, body { overflow-x: clip; }
 
 /* Modo leve (js/main.js liga .lite: economia de energia, bateria baixa, FPS baixo).
    Mesmo visual, menos trabalho contínuo para o celular/computador. */
 .lite .sparkle:nth-child(2n) { display: none; }                  /* metade dos brilhos */
-.lite .sparkle.floaty { animation: twinkle var(--d, 3s) ease-in-out var(--delay, 0s) infinite; }  /* sem deriva */
+.lite .sparkle-group.floaty { animation: twinkle var(--d, 3s) ease-in-out var(--delay, 0s) infinite; }  /* sem deriva */
 .lite .sparkle, .lite .sparkle.heart svg { box-shadow: none; filter: none; }
 .lite .neon-glow { display: none; }                               /* neon: linha + aura fixa */
 .lite .header-bar { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(250, 246, 255, .86); }

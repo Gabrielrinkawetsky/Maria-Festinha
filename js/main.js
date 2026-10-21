@@ -155,10 +155,27 @@
 
   function rand(min, max) { return Math.random() * (max - min) + min; }
 
+  // Os brilhos piscam em grupos: cada grupo é uma camada com uma animação só, e os
+  // brilhos dentro dele ficam parados. Com uma animação por brilho (160 no FAQ) o
+  // navegador recalculava todas as camadas a cada quadro da rolagem e o FAQ travava.
+  // Os brilhos de cada grupo são sorteados pela faixa toda, então o piscar segue espalhado.
+  var SPARKLE_GROUPS = 4, SPARKLE_DRIFT = 1;   // 1 dos 4 grupos também flutua (só no computador)
+
   document.querySelectorAll('.sparkle-field').forEach(function (field) {
     var total = parseInt(field.getAttribute('data-sparkles'), 10) || 80;
-    if (window.innerWidth < 640) total = Math.round(total * 0.2);   // celular: menos brilhos animados
-    var frag = document.createDocumentFragment();
+    if (window.innerWidth < 640) total = Math.round(total * 0.2);   // celular: menos brilhos
+    var groups = [];
+    for (var g = 0; g < SPARKLE_GROUPS; g++) {
+      var group = document.createElement('span');
+      group.className = 'sparkle-group';
+      if (!reduceMotion && window.innerWidth >= 640 && g < SPARKLE_DRIFT) group.className += ' floaty';   // celular: sem deriva
+      group.style.setProperty('--d', rand(2.4, 4.6).toFixed(2) + 's');
+      group.style.setProperty('--delay', (-g * 0.8 - rand(0, 0.6)).toFixed(2) + 's');   // fases espalhadas
+      group.style.setProperty('--fd', rand(10, 20).toFixed(1) + 's');
+      group.style.setProperty('--dx', rand(-20, 20).toFixed(0) + 'px');
+      group.style.setProperty('--dy', rand(-40, 10).toFixed(0) + 'px');
+      groups.push(group);
+    }
 
     for (var i = 0; i < total; i++) {
       var s = document.createElement('span');
@@ -176,20 +193,17 @@
         s.className = 'sparkle';
         size = rand(2, 9);
       }
-      if (!reduceMotion && window.innerWidth >= 640 && Math.random() < 0.35) s.className += ' floaty';   // celular: sem deriva
 
       s.style.width = size + 'px';
       s.style.height = size + 'px';
       s.style.left = rand(0, 100) + '%';
       s.style.top = rand(0, 100) + '%';
-      s.style.setProperty('--d', rand(2, 5).toFixed(2) + 's');
-      s.style.setProperty('--delay', (-rand(0, 5)).toFixed(2) + 's');
       s.style.setProperty('--r', rand(-35, 35).toFixed(0) + 'deg');
-      s.style.setProperty('--fd', rand(10, 20).toFixed(1) + 's');
-      s.style.setProperty('--dx', rand(-20, 20).toFixed(0) + 'px');
-      s.style.setProperty('--dy', rand(-40, 10).toFixed(0) + 'px');
-      frag.appendChild(s);
+      s.style.setProperty('--s', rand(0.8, 1.1).toFixed(2));
+      groups[Math.floor(Math.random() * SPARKLE_GROUPS)].appendChild(s);
     }
+    var frag = document.createDocumentFragment();
+    groups.forEach(function (group) { frag.appendChild(group); });
     field.appendChild(frag);
   });
 
@@ -306,6 +320,8 @@
     if ('IntersectionObserver' in window) {
       var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) { e.target._neonOn = e.isIntersecting; });
+        // de volta à tela: mede de novo (com o hero escondido, .is-away, a medida pode ter vindo zerada)
+        if (entries.some(function (e) { return e.isIntersecting; })) measure();
       });
       list.forEach(function (n) { n.photo._neonOn = true; io.observe(n.photo); });
     }
@@ -1553,6 +1569,19 @@
       field.classList.toggle('off', !st.isActive);
     });
   }
+
+  /* ---------- Hero fora da tela sai da conta do navegador ----------
+     Depois de passar do hero, as camadas dele (fotos com neon, mapa, canvas) seguiam
+     na conta: com os brilhos do FAQ animando, o navegador recalculava todas elas a
+     cada quadro e o FAQ travava. Longe da tela o hero ganha .is-away
+     (content-visibility: hidden) e volta meia tela antes de reaparecer. */
+  (function () {
+    var sticky = document.querySelector('.hero-sticky');
+    if (!sticky || !('IntersectionObserver' in window)) return;
+    new IntersectionObserver(function (entries) {
+      sticky.classList.toggle('is-away', !entries[0].isIntersecting);
+    }, { rootMargin: '50% 0px' }).observe(sticky);
+  })();
 
   window.addEventListener('load', function () { if (ST) ST.refresh(); });
 
