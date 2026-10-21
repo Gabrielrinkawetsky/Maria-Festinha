@@ -353,11 +353,55 @@
     var canvas = hero && hero.querySelector('.hero-canvas');
     if (!canvas) return;
 
-    // celular em pé ou deitado (tela baixa): vídeo vertical, frames leves
+    // celular em pé ou deitado (tela baixa): o fundo é o vídeo vertical em loop, que não
+    // depende do scroll; o motor de frames abaixo não roda (nem baixa os frames do
+    // computador). A troca dos painéis (sequência mais abaixo) é a mesma do computador.
+    // (o <head> já ligou .hero-vid com a mesma consulta)
     var mobile = window.matchMedia('(max-width: 640px), (orientation: landscape) and (max-height: 500px)').matches;
-    var total = parseInt(canvas.getAttribute(mobile ? 'data-frames-m' : 'data-frames'), 10);
-    var base = canvas.getAttribute(mobile ? 'data-src-m' : 'data-src');
-    var size = (canvas.getAttribute(mobile ? 'data-size-m' : 'data-size') || '1920x1080').split('x');
+    if (mobile) heroVideo();
+
+    function heroVideo() {
+      document.documentElement.classList.add('hero-vid');
+      canvas.remove();
+
+      // vídeo: mudo + playsinline (exigência do iPhone para tocar sozinho), loop nativo.
+      // Com "reduzir movimento" fica parado no 1º quadro.
+      var video = hero.querySelector('.hero-video');
+      if (video) {
+        video.muted = video.defaultMuted = true;
+        video.playsInline = true;
+        video.setAttribute('muted', '');
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
+        video.poster = video.getAttribute('data-poster');
+        video.preload = reduceMotion ? 'metadata' : 'auto';
+        video.src = video.getAttribute('data-src');
+        if (!reduceMotion) {
+          var onScreen = true;
+          var play = function () {
+            if (!onScreen || document.hidden) return;
+            var p = video.play();
+            if (p && p.catch) p.catch(function () {});
+          };
+          video.autoplay = true;
+          play();
+          // fora da tela o vídeo pausa: sem decodificar enquanto a pessoa lê o resto da página
+          if ('IntersectionObserver' in window) {
+            new IntersectionObserver(function (e) {
+              onScreen = e[0].isIntersecting;
+              if (onScreen) play(); else video.pause();
+            }).observe(hero);
+          }
+          document.addEventListener('visibilitychange', play);
+          // modo economia do iPhone bloqueia o autoplay: o 1º toque na página inicia o vídeo
+          window.addEventListener('touchstart', play, { once: true, passive: true });
+        }
+      }
+    }
+
+    var total = parseInt(canvas.getAttribute('data-frames'), 10);
+    var base = canvas.getAttribute('data-src');
+    var size = (canvas.getAttribute('data-size') || '1920x1080').split('x');
     var NW = +size[0], NH = +size[1];   // tamanho dos arquivos de frame
     // canvas opaco (sem mistura com o fundo): desenho mais barato. Sem "desynchronized":
     // o frame precisa chegar à tela no mesmo quadro que os textos da Hero.
@@ -603,8 +647,11 @@
 
     canvas.style.opacity = 0;   // até o 1º frame: mostra o fundo do CSS (evita flash preto do canvas opaco)
     // desenha no mesmo tick do Lenis/ScrollTrigger: sem atraso entre scroll e frame
-    if (gsap) gsap.ticker.add(tick);
-    else (function loop() { tick(); requestAnimationFrame(loop); })();
+    // (celular: o vídeo faz o fundo, nada de frames)
+    if (!mobile) {
+      if (gsap) gsap.ticker.add(tick);
+      else (function loop() { tick(); requestAnimationFrame(loop); })();
+    }
 
     // mapa do painel final: só carrega quando a sequência se aproxima dele
     // Google Maps real em todo computador (inclusive notebook com tela touch ou zoom).
@@ -884,7 +931,7 @@
   function openCurtain(box, delay) {
     var curtain = box.querySelector('.photo-curtain');
     var img = box.querySelector('img');
-    var go = function () { gsap.to(curtain, { yPercent: 100, duration: 0.7, delay: delay, ease: 'power3.inOut' }); };
+    var go = function () { gsap.to(curtain, { yPercent: 100, duration: 0.45, delay: delay, ease: 'power3.inOut' }); };
     if (!img || img.complete) go();
     else { img.addEventListener('load', go, { once: true }); img.addEventListener('error', go, { once: true }); }
   }
@@ -915,9 +962,9 @@
         entries.forEach(function (e) {
           if (!e.isIntersecting) return;
           curtainIO.unobserve(e.target);
-          openCurtain(e.target, 0.1 + Math.min(n++ * 0.08, 0.3));
+          openCurtain(e.target, 0.05 + Math.min(n++ * 0.05, 0.2));
         });
-      }, { threshold: 0.35 });
+      }, { threshold: 0.2 });
       cardCurtains.forEach(function (c) { curtainIO.observe(c.parentElement); });
     } else {
       cardCurtains.forEach(function (c) { c.remove(); });
@@ -1321,33 +1368,33 @@
      vai se achatando até virar reta quando ela chega no alto da tela. O resto da
      página faz isso por cima da Hero parada; as faixas lilás, por cima do conteúdo
      claro. Amarrado ao scroll: rolar para cima curva de novo. */
-  if (gsap && ST && !reduceMotion && document.documentElement.classList.contains('hero-seq')) {
+  // computador (sequência) e celular (vídeo): nos dois a Hero fica presa enquanto o resto sobe
+  if (gsap && ST && !reduceMotion && /\bhero-(seq|vid)\b/.test(document.documentElement.className)) {
     [
       // [elemento, altura do arco (fração da largura, máximo em px), onde fica reto]
       ['.page-rest', 0.18, 240, 'top 6%'],
       ['.promo-band', 0.12, 150, 'top 35%'],
       ['.final-cta', 0.12, 150, 'top 35%']
     ].forEach(function (c) {
-      var el = document.querySelector(c[0]), shape = el, curved = [el];
+      var el = document.querySelector(c[0]);
       if (!el) return;
-      if (el !== document.querySelector('.page-rest')) {
-        // faixas lilás: o arco vai num fundo à parte (com brilhos e fitas dentro);
-        // as flores ficam fora dele e não são cortadas pelo arco enquanto desabrocham
-        shape = document.createElement('div');
-        shape.className = 'curve-bg';
-        shape.setAttribute('aria-hidden', 'true');
-        el.querySelectorAll(':scope > .sparkle-field, :scope > .ribbon').forEach(function (d) { shape.appendChild(d); });
-        el.insertBefore(shape, el.firstChild);
-        var edge = document.createElement('div');   // sombra e fio do arco (ver .curve-edge no CSS)
-        edge.className = 'curve-edge curve-top';
-        edge.setAttribute('aria-hidden', 'true');
-        el.insertBefore(edge, shape.nextSibling);
-        el.classList.add('curve-band');
-        curved = [shape, edge];
-      }
-      shape.classList.add('curve-top');
-      // --curve não é herdado (@property no CSS): vai direto em quem tem o arco
-      gsap.fromTo(curved,
+      // o arco vai num fundo à parte (nas faixas lilás, com brilhos e fitas dentro):
+      // mudar o arco da seção inteira repintava tudo a cada quadro (o .page-rest tem
+      // ~8000 px e travava a troca da Hero para os Serviços). As flores ficam fora
+      // dele e não são cortadas pelo arco enquanto desabrocham
+      var shape = document.createElement('div');
+      shape.className = 'curve-bg curve-top';
+      shape.setAttribute('aria-hidden', 'true');
+      el.querySelectorAll(':scope > .sparkle-field, :scope > .ribbon').forEach(function (d) { shape.appendChild(d); });
+      el.insertBefore(shape, el.firstChild);
+      var edge = document.createElement('div');   // sombra e fio do arco (ver .curve-edge no CSS)
+      edge.className = 'curve-edge curve-top';
+      edge.setAttribute('aria-hidden', 'true');
+      el.insertBefore(edge, shape.nextSibling);
+      el.classList.add('curve-band');
+      // --curve só no fundo e na borda: na seção, a variável (herdada) fazia o navegador
+      // recalcular o estilo de tudo que há dentro dela a cada quadro do scroll
+      gsap.fromTo([shape, edge],
         { '--curve': function () { return Math.min(window.innerWidth * c[1], c[2]) + 'px'; } },
         { '--curve': '0px', ease: 'none',
           scrollTrigger: { trigger: el, start: 'top bottom', end: c[3], scrub: true, invalidateOnRefresh: true } });

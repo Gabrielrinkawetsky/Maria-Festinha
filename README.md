@@ -13,7 +13,7 @@ js/main.js      → brilhos dourados, menu mobile, animações e formulário →
 img/logo.webp   → logo (cabeçalho e rodapé); img/favicon.png e apple-touch-icon.png → ícones da aba
 img/fotos/      → (coloque aqui as fotos reais)
 public/frames/  → 477 frames WebP (1600×900) da animação do hero
-public/frames-m/ → 473 frames WebP (608×1080, vídeo vertical) usados no celular
+public/hero-m.mp4 → vídeo vertical em loop do hero no celular (public/hero-m-poster.webp: 1º quadro)
 ```
 
 ## Como inserir as fotos reais
@@ -128,9 +128,17 @@ Amarrado ao scroll (`scrub`), em `js/main.js`: no computador um feixe dourado co
 
 ## Celular leve
 
-No celular (até 640px) o hero usa `public/frames-m/`: um vídeo vertical próprio em 608×1080 (o canvas do celular não passa de ~600 px de largura; frames maiores só gastam memória e travam o iPhone). Eram 60 frames, com muito movimento entre um e outro (as pétalas andavam 30–60 px); interpolados 8× com o RIFE viraram 473, qualidade 70 — ~11,6 MB no total, contra ~21 MB dos frames do computador. A página em si (sem os frames) fica em ~1,7 MB no celular. Também no celular: menos brilhos animados e sem halo, borda neon sem as camadas desfocadas (fica a linha e a aura), e menos desfoque de fundo no cabeçalho e na barra de diferenciais.
+No celular (até 640px de largura, ou deitado com até 500px de altura) a troca dos painéis do hero é a mesma do computador (rolagem, ScrollTrigger), mas o fundo **não anda com o scroll**: é o vídeo `public/hero-m.mp4` em loop infinito. O motor de frames não roda no celular e os frames do computador não são baixados.
 
-Para regenerar os frames do celular: tire os frames em 608×1080 e interpole 8× com o RIFE (`-n <8× o número de frames>`), descartando os últimos PNGs repetidos (ficam 8×(n-1)+1); converta para WebP qualidade 70.
+- Vídeo: 608×1080, 30 fps, 14,3 s, H.264 Baseline (toca em qualquer celular, inclusive iPhone antigo), ~3 MB, com o índice (`moov`) no começo para tocar enquanto baixa. Mudo e `playsinline`: o iPhone só deixa tocar sozinho assim.
+- Loop sem emenda: o vídeo saiu dos 473 frames verticais que o hero do celular usava antes (60 frames do vídeo vertical interpolados 8× com o RIFE). O último 1,5 s se dissolve no começo, então o fim já é o 1º quadro e a volta não "pula".
+- `public/hero-m-poster.webp` é o 1º quadro: aparece enquanto o vídeo carrega e quando o iPhone está em economia de energia (aí o 1º toque na página inicia o vídeo).
+- O `<head>` liga `.hero-vid` com a mesma consulta do `js/main.js`; o `src` do vídeo só entra no celular (o computador não baixa o vídeo). Fora da tela o vídeo pausa. Com "reduzir movimento" fica parado no 1º quadro.
+- Com "reduzir movimento" (sem a sequência), a Hero fica presa por uma tela enquanto o resto da página sobe por cima.
+
+Também no celular: menos brilhos animados e sem halo, borda neon sem as camadas desfocadas (fica a linha e a aura), e menos desfoque de fundo no cabeçalho e na barra de diferenciais.
+
+Para refazer o vídeo: grave os frames em sequência num `<canvas>` 608×1080 com `MediaRecorder` (`video/mp4;codecs=avc1.42E01F`, ~3,5 Mbit/s, 30 fps), desenhando por cima, no último 1,5 s, os primeiros frames com opacidade crescente.
 
 ## Publicação (Vercel) e cache
 
