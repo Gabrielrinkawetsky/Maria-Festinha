@@ -213,24 +213,29 @@
     </div>
   </div>
 
-  <!-- Barra de diferenciais (desce junto quando a barra do navegador do celular some) -->
+  <!-- Barra de diferenciais (desce junto quando a barra do navegador do celular some).
+       Cada item leva ao card do serviço (no celular, o carrossel gira até ele: js/main.js) -->
   <div class="container feature-wrap">
     <ul class="feature-bar">
       <li>
         <svg class="gold-icon" aria-hidden="true"><use href="#i-balloon"/></svg>
         <div><strong>Decoração</strong><span>Festas e eventos</span></div>
+        <a class="feature-link" href="#servico-decoracao" aria-label="Ver Decoração nos serviços"></a>
       </li>
       <li>
         <svg class="gold-icon" aria-hidden="true"><use href="#i-party"/></svg>
         <div><strong>Recreação</strong><span>WR Recreação</span></div>
+        <a class="feature-link" href="#servico-recreacao" aria-label="Ver Recreação nos serviços"></a>
       </li>
       <li>
         <svg class="gold-icon" aria-hidden="true"><use href="#i-pizza"/></svg>
         <div><strong>Buffet de Pizza</strong><span>Para sua celebração</span></div>
+        <a class="feature-link" href="#servico-buffet-pizza" aria-label="Ver Buffet de Pizza nos serviços"></a>
       </li>
       <li>
         <svg class="gold-icon" aria-hidden="true"><use href="#i-castle"/></svg>
         <div><strong>Espaço</strong><span>Para eventos em Ilhabela</span></div>
+        <a class="feature-link" href="#servico-espaco" aria-label="Ver Espaço nos serviços"></a>
       </li>
     </ul>
   </div>
@@ -251,7 +256,7 @@
     </div>
 
     <div class="grid grid-3" data-ac data-ac-carousel data-ac-stagger="0.08">
-      <div class="card-slot">
+      <div class="card-slot" id="servico-decoracao">
         <article class="card service-card">
           <figure class="photo">
             <img src="img/fotos/servico-decoracao.jpg" alt="Decoração Maria Festinha" loading="lazy" onerror="this.hidden=true">
@@ -266,7 +271,7 @@
         </article>
       </div>
 
-      <div class="card-slot">
+      <div class="card-slot" id="servico-recreacao">
         <article class="card service-card">
           <figure class="photo">
             <img src="img/fotos/servico-recreacao.jpg" alt="Recreação WR Recreação" loading="lazy" onerror="this.hidden=true">
@@ -311,7 +316,7 @@
         </article>
       </div>
 
-      <div class="card-slot">
+      <div class="card-slot" id="servico-buffet-pizza">
         <article class="card service-card">
           <figure class="photo">
             <img src="img/fotos/servico-buffet-pizza.jpg" alt="Buffet de pizza Maria Festinha" loading="lazy" onerror="this.hidden=true">
@@ -326,7 +331,7 @@
         </article>
       </div>
 
-      <div class="card-slot">
+      <div class="card-slot" id="servico-espaco">
         <article class="card service-card">
           <figure class="photo">
             <img src="img/fotos/servico-espaco.jpg" alt="Espaço Flor de Lótus para eventos" loading="lazy" onerror="this.hidden=true">
