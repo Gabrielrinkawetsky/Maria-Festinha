@@ -128,13 +128,13 @@ Amarrado ao scroll (`scrub`), em `js/main.js`: no computador um feixe dourado co
 
 ## Celular leve
 
-No celular (até 640px de largura, ou deitado com até 500px de altura) o hero **não tem sequência por rolagem nem ScrollTrigger**: é uma tela só com o painel final ("Sua Festa Começa Aqui") e, no fundo, o vídeo `public/hero-m.mp4` em loop infinito.
+No celular (até 640px de largura, ou deitado com até 500px de altura) a troca dos painéis do hero é a mesma do computador (rolagem, ScrollTrigger), mas o fundo **não anda com o scroll**: é o vídeo `public/hero-m.mp4` em loop infinito. O motor de frames não roda no celular e os frames do computador não são baixados.
 
 - Vídeo: 608×1080, 30 fps, 14,3 s, H.264 Baseline (toca em qualquer celular, inclusive iPhone antigo), ~3 MB, com o índice (`moov`) no começo para tocar enquanto baixa. Mudo e `playsinline`: o iPhone só deixa tocar sozinho assim.
 - Loop sem emenda: o vídeo saiu dos 473 frames verticais que o hero do celular usava antes (60 frames do vídeo vertical interpolados 8× com o RIFE). O último 1,5 s se dissolve no começo, então o fim já é o 1º quadro e a volta não "pula".
 - `public/hero-m-poster.webp` é o 1º quadro: aparece enquanto o vídeo carrega e quando o iPhone está em economia de energia (aí o 1º toque na página inicia o vídeo).
 - O `<head>` liga `.hero-vid` com a mesma consulta do `js/main.js`; o `src` do vídeo só entra no celular (o computador não baixa o vídeo). Fora da tela o vídeo pausa. Com "reduzir movimento" fica parado no 1º quadro.
-- Sem a sequência, o arco que "cola" o resto da página por cima da Hero também não roda no celular.
+- Com "reduzir movimento" (sem a sequência), a Hero fica presa por uma tela enquanto o resto da página sobe por cima.
 
 Também no celular: menos brilhos animados e sem halo, borda neon sem as camadas desfocadas (fica a linha e a aura), e menos desfoque de fundo no cabeçalho e na barra de diferenciais.
 

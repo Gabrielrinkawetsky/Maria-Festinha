@@ -311,9 +311,9 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
 /* Celular (.hero-vid, ligado no <head>): vídeo em loop no lugar do canvas */
 .hero-video { display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; pointer-events: none; }
-/* Hero presa por 1 tela enquanto o resto da página sobe por cima com o arco (como no fim
-   da sequência do computador); o vídeo não depende do scroll */
-.hero-vid .hero { height: 200vh; height: 200lvh; }
+/* A troca dos painéis segue a sequência normal (.hero-seq). Sem ela ("reduzir movimento"):
+   Hero presa por 1 tela enquanto o resto da página sobe por cima; o vídeo não depende do scroll */
+.hero-vid:not(.hero-seq) .hero { height: 200vh; height: 200lvh; }
 .hero-vid .hero-video { display: block; }
 .hero-vid .hero-canvas { display: none; }
 .hero-veil {

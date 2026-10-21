@@ -337,16 +337,15 @@
     var canvas = hero && hero.querySelector('.hero-canvas');
     if (!canvas) return;
 
-    // celular em pé ou deitado (tela baixa): sem sequência por rolagem e sem ScrollTrigger.
-    // A Hero é uma tela só (painel final) com o vídeo vertical em loop no fundo.
+    // celular em pé ou deitado (tela baixa): o fundo é o vídeo vertical em loop, que não
+    // depende do scroll; o motor de frames abaixo não roda (nem baixa os frames do
+    // computador). A troca dos painéis (sequência mais abaixo) é a mesma do computador.
     // (o <head> já ligou .hero-vid com a mesma consulta)
     var mobile = window.matchMedia('(max-width: 640px), (orientation: landscape) and (max-height: 500px)').matches;
-    if (mobile) { heroVideo(); return; }
+    if (mobile) heroVideo();
 
     function heroVideo() {
-      var root = document.documentElement;
-      root.classList.remove('hero-seq', 'hero-pre');
-      root.classList.add('hero-vid');
+      document.documentElement.classList.add('hero-vid');
       canvas.remove();
 
       // vídeo: mudo + playsinline (exigência do iPhone para tocar sozinho), loop nativo.
@@ -381,23 +380,6 @@
           // modo economia do iPhone bloqueia o autoplay: o 1º toque na página inicia o vídeo
           window.addEventListener('touchstart', play, { once: true, passive: true });
         }
-      }
-
-      // mapa: no celular fica o ilustrado (tocar abre o Google Maps)
-      var frame = hero.querySelector('.hero-map iframe');
-      if (frame) frame.remove();
-
-      // WhatsApp flutuante: a Hero já tem o "Pedir Orçamento"; aparece ao sair dela
-      var fabBtn = document.querySelector('.wa-float');
-      // (a Hero tem 2 telas: a 2ª é o resto da página subindo por cima dela)
-      var fabCheck = function () { if (fabBtn) fabBtn.classList.toggle('is-hidden', window.scrollY < window.innerHeight * 0.5); };
-      window.addEventListener('scroll', fabCheck, { passive: true });
-      fabCheck();
-
-      // título do painel final entra com o mesmo efeito de letras dos outros títulos (sem scroll)
-      var title = hero.querySelector('.hero-panel--final .hero-title');
-      if (foldOn && title) {
-        gsap.fromTo(splitChars(title), foldFrom, foldTo({ delay: 0.3, clearProps: 'transform,filter', onComplete: function () { unsplit(title); } }));
       }
     }
 
@@ -649,8 +631,11 @@
 
     canvas.style.opacity = 0;   // até o 1º frame: mostra o fundo do CSS (evita flash preto do canvas opaco)
     // desenha no mesmo tick do Lenis/ScrollTrigger: sem atraso entre scroll e frame
-    if (gsap) gsap.ticker.add(tick);
-    else (function loop() { tick(); requestAnimationFrame(loop); })();
+    // (celular: o vídeo faz o fundo, nada de frames)
+    if (!mobile) {
+      if (gsap) gsap.ticker.add(tick);
+      else (function loop() { tick(); requestAnimationFrame(loop); })();
+    }
 
     // mapa do painel final: só carrega quando a sequência se aproxima dele
     // Google Maps real em todo computador (inclusive notebook com tela touch ou zoom).
