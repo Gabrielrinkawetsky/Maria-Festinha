@@ -337,11 +337,72 @@
     var canvas = hero && hero.querySelector('.hero-canvas');
     if (!canvas) return;
 
-    // celular em pé ou deitado (tela baixa): vídeo vertical, frames leves
+    // celular em pé ou deitado (tela baixa): sem sequência por rolagem e sem ScrollTrigger.
+    // A Hero é uma tela só (painel final) com o vídeo vertical em loop no fundo.
+    // (o <head> já ligou .hero-vid com a mesma consulta)
     var mobile = window.matchMedia('(max-width: 640px), (orientation: landscape) and (max-height: 500px)').matches;
-    var total = parseInt(canvas.getAttribute(mobile ? 'data-frames-m' : 'data-frames'), 10);
-    var base = canvas.getAttribute(mobile ? 'data-src-m' : 'data-src');
-    var size = (canvas.getAttribute(mobile ? 'data-size-m' : 'data-size') || '1920x1080').split('x');
+    if (mobile) { heroVideo(); return; }
+
+    function heroVideo() {
+      var root = document.documentElement;
+      root.classList.remove('hero-seq', 'hero-pre');
+      root.classList.add('hero-vid');
+      canvas.remove();
+
+      // vídeo: mudo + playsinline (exigência do iPhone para tocar sozinho), loop nativo.
+      // Com "reduzir movimento" fica parado no 1º quadro.
+      var video = hero.querySelector('.hero-video');
+      if (video) {
+        video.muted = video.defaultMuted = true;
+        video.playsInline = true;
+        video.setAttribute('muted', '');
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
+        video.poster = video.getAttribute('data-poster');
+        video.preload = reduceMotion ? 'metadata' : 'auto';
+        video.src = video.getAttribute('data-src');
+        if (!reduceMotion) {
+          var onScreen = true;
+          var play = function () {
+            if (!onScreen || document.hidden) return;
+            var p = video.play();
+            if (p && p.catch) p.catch(function () {});
+          };
+          video.autoplay = true;
+          play();
+          // fora da tela o vídeo pausa: sem decodificar enquanto a pessoa lê o resto da página
+          if ('IntersectionObserver' in window) {
+            new IntersectionObserver(function (e) {
+              onScreen = e[0].isIntersecting;
+              if (onScreen) play(); else video.pause();
+            }).observe(hero);
+          }
+          document.addEventListener('visibilitychange', play);
+          // modo economia do iPhone bloqueia o autoplay: o 1º toque na página inicia o vídeo
+          window.addEventListener('touchstart', play, { once: true, passive: true });
+        }
+      }
+
+      // mapa: no celular fica o ilustrado (tocar abre o Google Maps)
+      var frame = hero.querySelector('.hero-map iframe');
+      if (frame) frame.remove();
+
+      // WhatsApp flutuante: a Hero já tem o "Pedir Orçamento"; aparece ao sair dela
+      var fabBtn = document.querySelector('.wa-float');
+      var fabCheck = function () { if (fabBtn) fabBtn.classList.toggle('is-hidden', window.scrollY < hero.offsetHeight * 0.5); };
+      window.addEventListener('scroll', fabCheck, { passive: true });
+      fabCheck();
+
+      // título do painel final entra com o mesmo efeito de letras dos outros títulos (sem scroll)
+      var title = hero.querySelector('.hero-panel--final .hero-title');
+      if (foldOn && title) {
+        gsap.fromTo(splitChars(title), foldFrom, foldTo({ delay: 0.3, clearProps: 'transform,filter', onComplete: function () { unsplit(title); } }));
+      }
+    }
+
+    var total = parseInt(canvas.getAttribute('data-frames'), 10);
+    var base = canvas.getAttribute('data-src');
+    var size = (canvas.getAttribute('data-size') || '1920x1080').split('x');
     var NW = +size[0], NH = +size[1];   // tamanho dos arquivos de frame
     // canvas opaco (sem mistura com o fundo): desenho mais barato. Sem "desynchronized":
     // o frame precisa chegar à tela no mesmo quadro que os textos da Hero.
@@ -1312,25 +1373,25 @@
       ['.promo-band', 0.12, 150, 'top 35%'],
       ['.final-cta', 0.12, 150, 'top 35%']
     ].forEach(function (c) {
-      var el = document.querySelector(c[0]), shape = el;
+      var el = document.querySelector(c[0]);
       if (!el) return;
-      if (el !== document.querySelector('.page-rest')) {
-        // faixas lilás: o arco vai num fundo à parte (com brilhos e fitas dentro);
-        // as flores ficam fora dele e não são cortadas pelo arco enquanto desabrocham
-        shape = document.createElement('div');
-        shape.className = 'curve-bg';
-        shape.setAttribute('aria-hidden', 'true');
-        el.querySelectorAll(':scope > .sparkle-field, :scope > .ribbon').forEach(function (d) { shape.appendChild(d); });
-        el.insertBefore(shape, el.firstChild);
-        var edge = document.createElement('div');   // sombra e fio do arco (ver .curve-edge no CSS)
-        edge.className = 'curve-edge curve-top';
-        edge.setAttribute('aria-hidden', 'true');
-        el.insertBefore(edge, shape.nextSibling);
-        el.classList.add('curve-band');
-      }
-      shape.classList.add('curve-top');
-      // --curve vai na seção e o fundo e a sombra herdam
-      gsap.fromTo(el,
+      // o arco vai num fundo à parte (nas faixas lilás, com brilhos e fitas dentro):
+      // mudar o arco da seção inteira repintava tudo a cada quadro (o .page-rest tem
+      // ~8000 px e travava a troca da Hero para os Serviços). As flores ficam fora
+      // dele e não são cortadas pelo arco enquanto desabrocham
+      var shape = document.createElement('div');
+      shape.className = 'curve-bg curve-top';
+      shape.setAttribute('aria-hidden', 'true');
+      el.querySelectorAll(':scope > .sparkle-field, :scope > .ribbon').forEach(function (d) { shape.appendChild(d); });
+      el.insertBefore(shape, el.firstChild);
+      var edge = document.createElement('div');   // sombra e fio do arco (ver .curve-edge no CSS)
+      edge.className = 'curve-edge curve-top';
+      edge.setAttribute('aria-hidden', 'true');
+      el.insertBefore(edge, shape.nextSibling);
+      el.classList.add('curve-band');
+      // --curve só no fundo e na borda: na seção, a variável (herdada) fazia o navegador
+      // recalcular o estilo de tudo que há dentro dela a cada quadro do scroll
+      gsap.fromTo([shape, edge],
         { '--curve': function () { return Math.min(window.innerWidth * c[1], c[2]) + 'px'; } },
         { '--curve': '0px', ease: 'none',
           scrollTrigger: { trigger: el, start: 'top bottom', end: c[3], scrub: true, invalidateOnRefresh: true } });
