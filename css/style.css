@@ -511,7 +511,12 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   content: ""; position: absolute; inset: 5px; border-radius: calc(var(--radius) - 4px);
   border: 1px solid rgba(241, 213, 140, .5); pointer-events: none; z-index: 3;
 }
-.card:hover { transform: translateY(-6px); box-shadow: 0 26px 50px -20px rgba(106, 78, 160, .55); }
+/* O hover fica na caixa .card-slot, que não se mexe: com o hover no próprio card,
+   o mouse perto da borda de baixo saía do card ao ele subir, o card descia, voltava
+   a ficar embaixo do mouse e subia de novo, tremendo sem parar. */
+.card-slot { display: flex; }
+.card-slot > .card { flex: 1; min-width: 0; }
+.card-slot:hover > .card { transform: translateY(-6px); box-shadow: 0 26px 50px -20px rgba(106, 78, 160, .55); }
 
 /* Espaço para foto: quadrado, como no Instagram. As fotos de img/fotos já vêm
    quadradas (foto inteira no centro, sobras preenchidas com ela mesma desfocada),
@@ -1175,7 +1180,7 @@ html:not(.curtain-on) .photo-curtain { display: none; }
   .grid-4 { --card-w: 72vw; }
   .grid-3::-webkit-scrollbar, .grid-4::-webkit-scrollbar { display: none; }
   .grid-3 > *, .grid-4 > * { flex: 0 0 var(--card-w); scroll-snap-align: center; }
-  .card:hover { transform: none; }
+  .card-slot:hover > .card { transform: none; }
 
   /* Texto dos cards mais enxuto: a foto é o destaque */
   .service-card .card-body { padding: 14px 16px 16px; }
