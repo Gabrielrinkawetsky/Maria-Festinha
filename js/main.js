@@ -1484,10 +1484,12 @@
       ctx = gsap.context(function () {
         var tl = gsap.timeline({
           defaults: { ease: 'none' },
-          // vertical: a ponta da luz fica perto do meio da tela enquanto a pessoa lê
+          // termina com o último passo ainda bem visível para ser lido: na horizontal, com a
+          // fileira no meio da tela; na vertical, com o último passo um pouco abaixo do meio.
+          // scrub curto: a luz acompanha a rolagem quase sem atraso
           scrollTrigger: col
-            ? { trigger: list, start: 'top 72%', end: 'bottom 55%', scrub: 0.6 }
-            : { trigger: list, start: 'top 78%', end: 'bottom 40%', scrub: 0.6 }
+            ? { trigger: list, start: 'top 75%', end: 'bottom 68%', scrub: 0.3 }
+            : { trigger: list, start: 'top 85%', end: 'center 58%', scrub: 0.3 }
         });
         // o feixe sai do 1º passo (já aceso) e acende os outros ao chegar no centro de cada um
         var lead = 0.4, run = 3;
