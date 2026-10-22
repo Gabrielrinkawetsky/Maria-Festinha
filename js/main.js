@@ -1242,10 +1242,58 @@
       gsap.to(targets, to);
     }, 1 - o.threshold);
   }
+  // Avaliações no computador: o quebra-cabeça (abaixo) faz a entrada no lugar do AnimatedContent
+  var puzzleOn = !!(gsap && ST && !reduceMotion && window.matchMedia('(min-width: 961px)').matches);
   document.querySelectorAll('[data-ac]').forEach(function (el) {
+    if (puzzleOn && el.hasAttribute('data-puzzle')) { el.style.visibility = 'visible'; return; }
     if (gsap && !reduceMotion) animatedContent(el);
     else el.style.visibility = 'visible';
   });
+
+  /* ---------- Avaliações em quebra-cabeça (só computador, acima de 960px) ----------
+     Cada card começa fora do lugar, do lado em que ele encaixa: a coluna da esquerda
+     vem da esquerda, a da direita da direita, a do meio de cima ou de baixo; a linha
+     de cima desce e a de baixo sobe. Chegam girados, menores e desfocados e se
+     encaixam todos juntos (com pequenas diferenças de tempo), amarrados à rolagem:
+     rolar para cima desmonta. Quando a última peça assenta, um brilho dourado passa
+     pelos cards. Modo leve: sem o desfoque (o que mais pesa). */
+  if (puzzleOn) (function () {
+    var grid = document.querySelector('[data-puzzle]');
+    var pieces = grid ? Array.prototype.slice.call(grid.children) : [];
+    if (pieces.length < 2) return;
+    var cols = Math.max(1, getComputedStyle(grid).gridTemplateColumns.split(' ').length);
+    var rows = Math.ceil(pieces.length / cols);
+    var lag = [0, 0.12, 0.05, 0.16, 0.02, 0.1];   // pequenas diferenças: não entram em fila
+    var done = false;
+    var tl = gsap.timeline({
+      scrollTrigger: {
+        // começa quando o grid aparece embaixo e termina quando ele está inteiro na tela:
+        // as 6 peças se montam juntas, à vista
+        trigger: grid, start: 'top 92%', end: 'bottom 88%', scrub: 1, invalidateOnRefresh: true,
+        onUpdate: function (self) {
+          var now = self.progress > 0.995;
+          if (now !== done) { done = now; grid.classList.toggle('puzzle-done', now); }
+        }
+      }
+    });
+    pieces.forEach(function (p, i) {
+      var c = i % cols, r = Math.floor(i / cols);
+      var dx = c - (cols - 1) / 2;   // -1 esquerda, 0 meio, 1 direita
+      var dy = r - (rows - 1) / 2;   // -0,5 em cima, 0,5 embaixo
+      // espalhadas mais para os lados que para cima: a linha de cima não invade o título
+      var from = {
+        xPercent: dx * 85,
+        yPercent: dy * 45 + (dx === 0 ? dy * 70 : 0) + 18,
+        rotation: (dx !== 0 ? dx : (dy < 0 ? -1 : 1)) * (dy < 0 ? -1 : 1) * (7 + (i % 3) * 2.5),
+        scale: 0.84,
+        autoAlpha: 0,
+        filter: perf.lite ? 'none' : 'blur(10px)'
+      };
+      var to = { xPercent: 0, yPercent: 0, rotation: 0, scale: 1, autoAlpha: 1, filter: perf.lite ? 'none' : 'blur(0px)',
+        duration: 1, ease: 'power2.inOut' };
+      tl.fromTo(p, from, to, lag[i % lag.length]);
+    });
+  })();
 
   /* ---------- CountUp (React Bits, versão sem React, modo "count") ----------
      <span class="count-up" data-count="2014" data-count-from="1990">2014</span>
