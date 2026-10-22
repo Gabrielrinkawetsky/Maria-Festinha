@@ -188,15 +188,16 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 }
 .btn-light:hover { color: var(--gold-700); }
 
+/* botões dos cards (Serviços e Destaques): lilás do site, cheio, com letra branca */
 .btn-pill {
-  color: var(--lilac-700);
-  background: linear-gradient(180deg, #fff 0%, #f6f1fd 100%);
-  border-color: var(--gold-200);
+  color: #fff;
+  background: linear-gradient(135deg, var(--lilac-500) 0%, var(--lilac-600) 55%, var(--lilac-700) 100%);
+  border-color: rgba(255, 255, 255, .55);
   padding: 9px 26px;
   font-size: 11px;
-  box-shadow: 0 4px 12px -6px rgba(106, 78, 160, .35);
+  box-shadow: 0 6px 16px -6px rgba(106, 78, 160, .6), inset 0 1px 0 rgba(255, 255, 255, .35);
 }
-.btn-pill:hover { border-color: var(--gold-400); color: var(--gold-700); }
+.btn-pill:hover { border-color: var(--gold-200); box-shadow: 0 10px 22px -8px rgba(106, 78, 160, .7), inset 0 1px 0 rgba(255, 255, 255, .35); }
 
 .btn-sm { padding: 10px 22px; font-size: 11px; }
 .btn-xs { padding: 7px 18px; font-size: 10px; }
