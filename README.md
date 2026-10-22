@@ -150,3 +150,16 @@ Para refazer o vídeo: grave os frames em sequência num `<canvas>` 608×1080 co
 - `css/` e `js/`: 1 ano em cache, sem revalidar (`immutable`). Por isso todo `<link>`/`<script>` deles precisa do `?v=__V__`.
 - `img/`, `fonts/` e `public/`: 7 dias em cache e, depois disso, até 30 dias servindo o guardado enquanto confere a versão nova por trás (`stale-while-revalidate`). Trocar uma foto mantendo o mesmo nome pode levar até 7 dias para aparecer para quem já visitou; para valer na hora, salve com outro nome.
 - O `<head>` pede com prioridade alta o fundo do hero (maior elemento da 1ª tela, o LCP): `public/frames/frame-0001.webp` acima de 640px e `public/hero-m-poster.webp` até 640px, a mesma regra do `.hero-sticky` no CSS.
+
+## Segurança
+
+Cabeçalhos mandados pela Vercel em todas as respostas (`vercel.json`):
+
+- `Content-Security-Policy`: o site só carrega script, CSS, imagem, vídeo, fonte e `fetch` dele mesmo; iframe só do Google Maps; nada de `<object>`; ninguém pode exibir o site dentro de um quadro (`frame-ancestors 'none'`); tudo em HTTPS.
+- `X-Frame-Options: DENY` (o mesmo bloqueio de quadro, para navegadores antigos), `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (sem câmera, microfone, localização, pagamento, USB) e `Cross-Origin-Opener-Policy: same-origin`. O `Strict-Transport-Security` a própria Vercel já manda.
+
+**Scripts escritos dentro do HTML só rodam se a impressão digital (sha256) deles estiver na CSP.** Hoje são dois: o `<script>` do `<head>` (liga `.hero-seq`/`.hero-vid`) e o `onerror="this.hidden=true"` das fotos. A CSP tem o sha256 do script com quebras de linha LF (o que a Vercel serve) e com CRLF (cópia local no Windows). Mudou o texto de um deles, ou criou outro script/`onclick` no HTML? Calcule o novo sha256 e troque no `vercel.json`, senão o navegador bloqueia em silêncio (só aparece no console). Para calcular (Node): `crypto.createHash('sha256').update(textoExatoDoScript, 'utf8').digest('base64')`.
+
+Para testar a CSP antes de publicar, sirva a pasta com os cabeçalhos do `vercel.json` (o `http-server` não aplica) e veja no console se aparece "Refused to ... Content Security Policy". Em teste local por `http`, tire o `upgrade-insecure-requests`, senão o navegador tenta buscar tudo em `https`.
+
+Scan estático: `semgrep --config auto .` (0 achados; o `nosemgrep` no `<link rel="canonical">` é falso positivo: canonical não baixa nada, `integrity` só vale para script/CSS externos).

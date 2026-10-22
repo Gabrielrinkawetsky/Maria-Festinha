@@ -65,6 +65,10 @@
     ]
   }
   </script>
+<!-- ATENÇÃO: a política de segurança (Content-Security-Policy no vercel.json) só deixa rodar
+     este script pela impressão digital (sha256) do texto dele. Mudou qualquer caractere aqui
+     dentro? Refaça o sha256 no vercel.json (como no README, "Segurança"), senão o navegador
+     bloqueia o script em silêncio. O mesmo vale para o onerror="this.hidden=true" das fotos. -->
 <script>
   document.documentElement.classList.add('js-fold');
   // já no 1º desenho a Hero abre no painel 1 (foto), e não no painel final (mapa), que é o
