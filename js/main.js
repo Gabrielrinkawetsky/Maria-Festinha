@@ -412,9 +412,12 @@
          cobre só ~5 px de rolagem e as pétalas andam poucos pixels de um para o
          outro. Por isso cada quadro mostra UM frame inteiro, sem misturar dois:
          a mistura deixava as pétalas meio transparentes ("sumindo") a cada passo.
-       - files[i]: WebP comprimido (Blob). Baixa tudo logo, do grosso para o fino:
-         o começo da Hero inteiro, depois 1 a cada 16, 8, 4, 2 e o resto. Com
-         parte baixada a animação já anda e vai ficando mais fina sozinha.
+       - files[i]: WebP comprimido (Blob). Ao abrir, só o começo da Hero inteiro, o
+         último frame e 1 a cada 16 (~68 frames, ~3 MB dos 21 MB). O resto (1 a cada
+         8, 4, 2 e todos) só depois que a pessoa começa a rolar a Hero: quem abre e
+         sai, ou lê sem rolar, não baixa tudo. Com parte baixada a animação já anda e
+         vai ficando mais fina sozinha; o que o scroll vai mostrar em seguida é sempre
+         pedido na hora, com prioridade (plano abaixo).
        - frames[i]: ImageBitmap decodificado fora da thread principal, já recortado
          e no tamanho exato do canvas: desenhar vira uma cópia, sem redimensionar.
        - Só decodifica o que vai aparecer: o caminho entre a posição atual e onde o
@@ -444,12 +447,20 @@
 
     function src(i) { return base + String(i + 1).padStart(4, '0') + '.webp'; }
 
-    // ordem dos downloads: começo da Hero inteiro, o último frame, depois do grosso para o fino
+    // ordem dos downloads: começo da Hero inteiro, o último frame, depois do grosso para o fino.
+    // Ao abrir a fila vai só até "limit" (1 a cada 16); fillAll() libera o resto ao rolar.
     var order = [], queued = new Uint8Array(total), nextOrder = 0;
     function enqueue(i) { if (i >= 0 && i < total && !queued[i]) { queued[i] = 1; order.push(i); } }
     for (var i = 0; i < 40; i++) enqueue(i);
     enqueue(total - 1);
-    [16, 8, 4, 2, 1].forEach(function (s) { for (var j = 0; j < total; j += s) enqueue(j); });
+    for (var j0 = 0; j0 < total; j0 += 16) enqueue(j0);
+    var limit = order.length;
+    [8, 4, 2, 1].forEach(function (s) { for (var j = 0; j < total; j += s) enqueue(j); });
+    function fillAll() {
+      if (limit === order.length) return;
+      limit = order.length;
+      pump();
+    }
 
     // baixa o arquivo (só o WebP comprimido fica guardado)
     function fetchFile(i, urgent) {
@@ -528,7 +539,7 @@
         if (!bitmaps) legacy(i);
         else if (files[i] instanceof Blob) decode(i);
       }
-      while (bitmaps && fetching < MAXF && nextOrder < order.length) fetchFile(order[nextOrder++], false);
+      while (bitmaps && fetching < MAXF && nextOrder < limit) fetchFile(order[nextOrder++], false);
     }
 
     // plano: frames que vão aparecer até o scroll parar, em ordem de prioridade
@@ -598,7 +609,12 @@
       paint();
     }
 
-    function setProgress(p) { target = p; }
+    function setProgress(p) {
+      target = p;
+      // rolando dentro da Hero: agora vale baixar o resto dos frames. Quem pula direto
+      // para depois dela (link do menu) não dispara; se voltar, o plano pede o que precisar
+      if (p > 0 && p < 1) fillAll();
+    }
 
     function resize() {
       var w0 = canvas.clientWidth, h0 = canvas.clientHeight;
