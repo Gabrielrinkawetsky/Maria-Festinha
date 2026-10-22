@@ -1473,8 +1473,10 @@ html, body { overflow-x: clip; }
 
 /* Modo leve (js/main.js liga .lite: economia de energia, bateria baixa, FPS baixo).
    Mesmo visual, menos trabalho contínuo para o celular/computador. */
-.lite .sparkle-group:nth-child(2n) { display: none; }            /* metade dos brilhos (2 dos 4 grupos) */
-.lite .sparkle-group.floaty { animation: twinkle var(--d, 3s) ease-in-out var(--delay, 0s) infinite; }  /* sem deriva */
+/* brilhos todos à mostra, mas parados (sem piscar nem flutuar): parados não custam nada
+   por quadro; piscando, sem placa de vídeo, travavam a rolagem */
+.lite .sparkle-group { animation: none; opacity: .85; }
+.lite .btn-gold::after, .lite .map-chip em::after, .lite .wa-float::after { animation: none; opacity: 0; }   /* sem reflexo passando */
 .lite .neon-glow { display: none; }                               /* neon: linha + aura fixa */
 .lite .header-bar { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(250, 246, 255, .86); }
 .lite .map-chip { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(255, 255, 255, .92); }

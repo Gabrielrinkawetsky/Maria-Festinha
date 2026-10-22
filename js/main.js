@@ -38,6 +38,20 @@
     var nav = navigator;
     if (nav.connection && nav.connection.saveData) goLite('economia-de-dados');
     if ((nav.deviceMemory && nav.deviceMemory <= 2) || (nav.hardwareConcurrency && nav.hardwareConcurrency <= 2)) goLite('aparelho-fraco');
+    // Sem placa de vídeo (driver genérico do Windows, área de trabalho remota, máquina
+    // virtual): o navegador desenha tudo no processador e os efeitos contínuos (brilhos
+    // piscando, desfoques) travam a rolagem, mesmo com a página a 60 FPS parada.
+    try {
+      var gl = document.createElement('canvas').getContext('webgl');
+      if (!gl) goLite('sem-placa-de-video');
+      else {
+        var info = gl.getExtension('WEBGL_debug_renderer_info');
+        var gpu = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
+        if (/basic render|swiftshader|llvmpipe|software|softpipe/i.test(gpu)) goLite('sem-placa-de-video');
+        var lose = gl.getExtension('WEBGL_lose_context');
+        if (lose) lose.loseContext();
+      }
+    } catch (e) {}
     if (nav.getBattery) nav.getBattery().then(function (bat) {
       var check = function () { if (!bat.charging && bat.level <= 0.2) goLite('bateria-baixa'); };
       check();
@@ -57,6 +71,32 @@
       });
     }
     window.addEventListener('load', function () { setTimeout(sampleFps, 1500); setTimeout(sampleFps, 15000); });
+    // Mede também ROLANDO: parado, quase todo aparelho faz 60 FPS e o celular fraco passava
+    // batido; a travada aparece na rolagem. Junta até 3 amostras de 90 quadros com a página
+    // em movimento; se a mediana de uma delas passar de 25 ms (menos de 40 FPS), modo leve.
+    (function () {
+      var d = [], prev = 0, lastMove = 0, lastY = window.scrollY, samples = 0, running = false;
+      function frame(t) {
+        if (perf.lite || document.hidden) { running = false; prev = 0; return; }
+        var y = window.scrollY;
+        if (y !== lastY) { lastY = y; lastMove = t; }
+        if (prev && t - lastMove < 120) d.push(t - prev);   // só quadros com a página andando
+        prev = t;
+        if (d.length >= 90) {
+          d.sort(function (a, b) { return a - b; });
+          if (d[45] > 25) goLite('rolagem-lenta');
+          d = []; samples++;
+        }
+        if (t - lastMove > 400 || samples >= 3) { running = false; prev = 0; return; }   // parou de rolar
+        requestAnimationFrame(frame);
+      }
+      function onScroll() {
+        if (running || perf.lite || samples >= 3) return;
+        running = true; lastMove = performance.now();
+        requestAnimationFrame(frame);
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+    })();
     // aba em segundo plano: pausa as animações CSS contínuas
     document.addEventListener('visibilitychange', function () {
       document.documentElement.classList.toggle('is-hidden', document.hidden);
