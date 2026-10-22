@@ -776,6 +776,87 @@
       });
     }
 
+    /* Guia de rolagem da Hero (para quem não conhece o efeito)
+       - Pontos 1, 2 e 3 na lateral: mostram em qual painel a pessoa está; clicar leva
+         direto ao painel (no computador, o nome dele aparece ao lado).
+       - Aviso embaixo, com o mouse (ou o dedo, no celular) animado: Role para ver
+         mais / 1 de 3. Clicar leva ao próximo painel; no último, aos Serviços.
+         Parado no começo por uns segundos, o aviso pulsa para chamar atenção.
+       Os dois ficam dentro da Hero presa: o resto da página os cobre ao subir. */
+    function heroGuide(seq, swaps) {
+      var sticky = hero.querySelector('.hero-sticky');
+      var wrap = hero.querySelector('.feature-wrap');
+      if (!sticky || !wrap) return;
+      var touch = matchMedia('(hover: none) and (pointer: coarse)').matches;
+      var names = ['Sua festa', 'Momentos', 'Orçamento'];
+      var easeInOut = function (x) { return -(Math.cos(Math.PI * x) - 1) / 2; };
+      // tempo da timeline em que cada painel está inteiro na tela (fim da entrada dele)
+      function endOf(from, to) {
+        var b = 0;
+        seq.getChildren(false, true, true).forEach(function (t) {
+          var s = t.startTime();
+          if (s >= from && s < to) b = Math.max(b, s + t.totalDuration());
+        });
+        return b + 0.12;
+      }
+      var rest = [0, endOf(swaps[0], 5), endOf(swaps[1], 7.5)];
+
+      var nav = document.createElement('nav');
+      nav.className = 'hero-guide';
+      nav.setAttribute('aria-label', 'Partes do início do site');
+      nav.innerHTML = '<span class="hg-track" aria-hidden="true"><span class="hg-fill"></span></span>' +
+        names.map(function (n, i) {
+          return '<button type="button" class="hg-dot" data-i="' + i + '" aria-label="' + (i + 1) + ' de 3: ' + n + '">' +
+            '<span class="hg-label" aria-hidden="true">' + n + '</span></button>';
+        }).join('');
+      sticky.appendChild(nav);
+
+      var next = document.createElement('button');
+      next.type = 'button';
+      next.className = 'hero-next';
+      next.innerHTML = '<span class="hn-icon ' + (touch ? 'hn-swipe' : 'hn-mouse') + '" aria-hidden="true"><i></i></span>' +
+        '<span class="hn-text"></span><span class="hn-step"></span>' +
+        '<svg class="hn-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+      wrap.insertBefore(next, wrap.firstChild);
+      var text = next.querySelector('.hn-text'), step = next.querySelector('.hn-step');
+      var fill = nav.querySelector('.hg-fill'), dots = nav.querySelectorAll('.hg-dot');
+
+      function yAt(t) { return trig.start + t / seq.duration() * (trig.end - trig.start); }
+      function go(y) {
+        if (lenis) lenis.scrollTo(y, { duration: 1.2, easing: easeInOut });
+        else window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+      function goPanel(i) {
+        if (i > 2) go(document.getElementById('servicos') || yAt(seq.duration()) + window.innerHeight);
+        else go(yAt(rest[i]));
+      }
+      var cur = -1;
+      Array.prototype.forEach.call(dots, function (d, i) { d.addEventListener('click', function () { goPanel(i); }); });
+      next.addEventListener('click', function () { goPanel(cur + 1); });
+
+      // parado no começo: o aviso pulsa até a pessoa rolar
+      var nudge = setTimeout(function () { if (window.scrollY < 10) next.classList.add('is-nudge'); }, 3500);
+      var lastFill = -1;
+      gsap.ticker.add(function () {
+        if (!trig || sticky.classList.contains('is-away')) return;
+        var p = trig.progress, t = p * seq.duration();
+        if (p > 0.002 && nudge) { clearTimeout(nudge); nudge = 0; next.classList.remove('is-nudge'); }
+        var f = Math.round(p * 1000) / 1000;
+        if (f !== lastFill) { lastFill = f; fill.style.transform = 'scaleY(' + f + ')'; }
+        var i = t < swaps[0] ? 0 : t < swaps[1] ? 1 : 2;
+        if (i === cur) return;
+        cur = i;
+        Array.prototype.forEach.call(dots, function (d, k) {
+          d.classList.toggle('is-on', k === i);
+          d.classList.toggle('is-done', k < i);
+          if (k === i) d.setAttribute('aria-current', 'step'); else d.removeAttribute('aria-current');
+        });
+        text.textContent = i < 2 ? (touch ? 'Deslize para ver mais' : 'Role para ver mais') : 'Ver os serviços';
+        step.textContent = (i + 1) + ' de 3';
+        next.setAttribute('aria-label', i < 2 ? 'Ir para a parte ' + (i + 2) + ' de 3: ' + names[i + 1] : 'Ir para os serviços');
+      });
+    }
+
     if (gsap && ST && !reduceMotion) {
       /* Sequência narrativa: o hero fica fixo (sticky) e o scroll (scrub) conduz
          vídeo e textos juntos. Painel 1 sai, painel 2 entra e sai, painel final
@@ -831,6 +912,7 @@
       trig = seq.scrollTrigger;
       fabFor(trig);
       snapPanels(seq, [2.7, 6.5]);   // início da entrada dos painéis 2 e 3 na timeline acima
+      heroGuide(seq, [2.7, 6.5]);
     } else if (ST) {
       // sem a sequência (o <head> já tinha ligado .hero-seq): volta ao painel final
       document.documentElement.classList.remove('hero-seq', 'hero-pre');
@@ -1452,9 +1534,19 @@
       '.section-title h2, .promo-band h2, .promo-gold, .final-inner h2, .final-script, ' +
       '.service-card h3, .celebration-card h3, .venue-card h3, .steps h3, .site-footer h2'
     ).forEach(function (el) {
-      var chars = splitChars(el);
-      gsap.set(chars, foldFrom);
+      // O título fica invisível inteiro e só vira letras quando chega na tela: dividir os
+      // ~30 títulos já no carregamento deixava ~630 letras giradas em 3D na página, que
+      // pesavam o carregamento e a rolagem no celular. (Só visibility: a opacidade dos
+      // títulos dos passos é animada pela linha que acende.)
+      el.style.visibility = 'hidden';
       whenSeen(el, function (e, delay) {
+        el.style.visibility = '';
+        // card do carrossel do celular ainda fora da tela (para o lado): aparece pronto,
+        // sem animar letra por letra onde ninguém vê
+        var r = el.getBoundingClientRect();
+        if (r.right <= 0 || r.left >= window.innerWidth) return;
+        var chars = splitChars(el);
+        gsap.set(chars, foldFrom);
         var to = foldTo({ delay: delay, clearProps: 'transform,filter', onComplete: function () { unsplit(el); } });
         if (perf.lite) { delete to.filter; gsap.set(chars, { filter: 'none' }); }
         gsap.to(chars, to);
@@ -1511,7 +1603,9 @@
       var chars = el.querySelectorAll('.sf-char');
       // estado inicial em todas as letras já: o fromTo com stagger só aplicava nas
       // primeiras, e as letras de mais adiante apareciam antes da vez delas
-      gsap.set(chars, { willChange: 'opacity, transform', opacity: 0, yPercent: SF.distance, scaleY: SF.stretch, scaleX: Math.pow(SF.stretch, -0.43), transformOrigin: '50% 0%' });
+      // (sem will-change: eram ~300 camadas presas desde o carregamento, pesando a rolagem
+      // da página toda; o GSAP já põe cada letra numa camada só enquanto ela anima)
+      gsap.set(chars, { opacity: 0, yPercent: SF.distance, scaleY: SF.stretch, scaleX: Math.pow(SF.stretch, -0.43), transformOrigin: '50% 0%' });
       all.push.apply(all, chars);
     }
 
@@ -1519,8 +1613,7 @@
     if (!title) return;
     document.querySelectorAll('#quem-somos .about-title, #quem-somos .about-copy > p').forEach(floatText);
     whenSeen(title, function () {
-      gsap.to(all, { duration: SF.duration, stagger: (SF.total - SF.duration) / Math.max(all.length - 1, 1), ease: SF.ease, opacity: 1, yPercent: 0, scaleY: 1, scaleX: 1,
-        onComplete: function () { gsap.set(all, { clearProps: 'willChange' }); } });
+      gsap.to(all, { duration: SF.duration, stagger: (SF.total - SF.duration) / Math.max(all.length - 1, 1), ease: SF.ease, opacity: 1, yPercent: 0, scaleY: 1, scaleX: 1 });
     }, 0.85);
   })();
 

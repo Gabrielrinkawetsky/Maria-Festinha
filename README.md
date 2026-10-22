@@ -22,35 +22,37 @@ Cada espaço de foto já aponta para um arquivo. Basta salvar a foto em `img/fot
 
 Todos os espaços de foto dos cards são **quadrados** (como no Instagram). Salve a foto já quadrada, 900×900: se a original não for quadrada, deixe-a inteira no centro e preencha as sobras com ela mesma desfocada, assim nada fica cortado no site.
 
+As fotos ficam em **WebP**, em dois tamanhos: `nome.webp` (900×900, qualidade 80) e `nome-480.webp` (480×480). O `<img>` tem `srcset` com os dois e o navegador baixa só o que a tela precisa (computador: o de 480; celular de tela densa: o de 900). Foto nova: gere os dois arquivos (por exemplo em squoosh.app) e copie a linha `src`/`srcset`/`sizes` de outro card.
+
 | Seção | Arquivo | Origem no Instagram |
 |---|---|---|
-| Serviços — Decoração | `img/fotos/servico-decoracao.jpg` | post DadP1Ijumnu |
-| Serviços — Recreação infantil | `img/fotos/servico-recreacao.jpg` | post CU_ZrMwtB59 (castelo inflável) |
-| Serviços — Casamentos | `img/fotos/servico-casamentos.jpg` | post CtsDSsJufzj, foto 10 |
-| Serviços — Aniversários | `img/fotos/servico-aniversarios.jpg` | post Dc6sjHCgzOs |
-| Serviços — Buffet de Pizza | `img/fotos/servico-buffet-pizza.jpg` | post DXV2zymAeeq de @flordelotuspizzariaa (Calabresa Especial) |
-| Serviços — Espaço | `img/fotos/servico-espaco.jpg` | post Dans_dklnPD, foto 3 |
-| Serviços — Infláveis | `img/fotos/servico-inflaveis.jpg` | post CdvuVOwO1uk (pula-pula inflável) |
-| Serviços — Pipoca e Algodão-doce | `img/fotos/servico-pipoca-algodao-doce.jpg` | imagem gerada por IA (`dev-web/output/imagegen/pipoca-e-algodao-doce.png`, 1254→900) |
-| Serviços — Decoração Minimalista | `img/fotos/servico-minimalista.jpg` | post CkHQ1uuujUP |
-| Celebrações — 15 Anos | `img/fotos/celebracao-1.jpg` | post fixado DbtH_bLuvBM |
-| Celebrações — Chá de Bebê | `img/fotos/celebracao-2.jpg` | post fixado DBbcdnxOX5M |
-| Celebrações — Chá Revelação | `img/fotos/celebracao-cha-revelacao.jpg` | post Ck_zRcsOEsY (legenda “a festa mais procurada e vendida por aqui”) |
-| Celebrações — Chá Revelação na Praia | `img/fotos/celebracao-cha-revelacao-praia.jpg` | post DHL-4zyOSMq |
-| Celebrações — Batizado | `img/fotos/celebracao-batizado.jpg` | post C9-S1UcOKsp, foto 1 |
-| Celebrações — Decoração Floral | `img/fotos/celebracao-3.jpg` | post fixado CkoPRhHOTe9, foto 7 |
-| Celebrações — Minimalista | `img/fotos/celebracao-minimalista.jpg` | post DeezLPHxnlW (14/10/2026) |
-| Celebrações — Bolofofos | `img/fotos/celebracao-bolofofos.jpg` | post Ccx39n4OZgv, foto 3 |
-| Celebrações — Bob Esponja | `img/fotos/celebracao-bob-esponja.jpg` | post CbTARkNO0dw, foto 2 |
-| Celebrações — Sereia | `img/fotos/celebracao-sereia.jpg` | post Cb_DyzvO4n5 |
-| Celebrações — GTA | `img/fotos/celebracao-gta.jpg` | post Cb_DaBIuKIO |
-| Celebrações — Masha e o Urso | `img/fotos/celebracao-masha.jpg` | destaque “Marcha e urso” (story) |
-| Destaques — Casamento | `img/fotos/destaque-casamento.jpg` | post Cle9N9JOUWx |
-| Destaques — Chá de Casa Nova | `img/fotos/destaque-cha-casa-nova.jpg` | post ChAtRz0Ow2u, foto 8 |
-| Destaques — Aniversários | `img/fotos/destaque-aniversarios.jpg` | post DYxG5B3OaO4 |
-| Destaques — Flor de Lótus | `img/fotos/destaque-espaco.jpg` | post Dans_dklnPD, foto 1 |
-| Quem Somos — foto grande | `img/fotos/sobre-mesa.jpg` | post fixado CkoPRhHOTe9, foto 5 (original 854×1068, sem corte) |
-| Quem Somos — foto menor | `img/fotos/sobre-bolo.jpg` | post fixado CkoPRhHOTe9, foto 3 (original 1280×854, sem corte) |
+| Serviços — Decoração | `img/fotos/servico-decoracao.webp` | post DadP1Ijumnu |
+| Serviços — Recreação infantil | `img/fotos/servico-recreacao.webp` | post CU_ZrMwtB59 (castelo inflável) |
+| Serviços — Casamentos | `img/fotos/servico-casamentos.webp` | post CtsDSsJufzj, foto 10 |
+| Serviços — Aniversários | `img/fotos/servico-aniversarios.webp` | post Dc6sjHCgzOs |
+| Serviços — Buffet de Pizza | `img/fotos/servico-buffet-pizza.webp` | post DXV2zymAeeq de @flordelotuspizzariaa (Calabresa Especial) |
+| Serviços — Espaço | `img/fotos/servico-espaco.webp` | post Dans_dklnPD, foto 3 |
+| Serviços — Infláveis | `img/fotos/servico-inflaveis.webp` | post CdvuVOwO1uk (pula-pula inflável) |
+| Serviços — Pipoca e Algodão-doce | `img/fotos/servico-pipoca-algodao-doce.webp` | imagem gerada por IA (`dev-web/output/imagegen/pipoca-e-algodao-doce.png`, 1254→900) |
+| Serviços — Decoração Minimalista | `img/fotos/servico-minimalista.webp` | post CkHQ1uuujUP |
+| Celebrações — 15 Anos | `img/fotos/celebracao-1.webp` | post fixado DbtH_bLuvBM |
+| Celebrações — Chá de Bebê | `img/fotos/celebracao-2.webp` | post fixado DBbcdnxOX5M |
+| Celebrações — Chá Revelação | `img/fotos/celebracao-cha-revelacao.webp` | post Ck_zRcsOEsY (legenda “a festa mais procurada e vendida por aqui”) |
+| Celebrações — Chá Revelação na Praia | `img/fotos/celebracao-cha-revelacao-praia.webp` | post DHL-4zyOSMq |
+| Celebrações — Batizado | `img/fotos/celebracao-batizado.webp` | post C9-S1UcOKsp, foto 1 |
+| Celebrações — Decoração Floral | `img/fotos/celebracao-3.webp` | post fixado CkoPRhHOTe9, foto 7 |
+| Celebrações — Minimalista | `img/fotos/celebracao-minimalista.webp` | post DeezLPHxnlW (14/10/2026) |
+| Celebrações — Bolofofos | `img/fotos/celebracao-bolofofos.webp` | post Ccx39n4OZgv, foto 3 |
+| Celebrações — Bob Esponja | `img/fotos/celebracao-bob-esponja.webp` | post CbTARkNO0dw, foto 2 |
+| Celebrações — Sereia | `img/fotos/celebracao-sereia.webp` | post Cb_DyzvO4n5 |
+| Celebrações — GTA | `img/fotos/celebracao-gta.webp` | post Cb_DaBIuKIO |
+| Celebrações — Masha e o Urso | `img/fotos/celebracao-masha.webp` | destaque “Marcha e urso” (story) |
+| Destaques — Casamento | `img/fotos/destaque-casamento.webp` | post Cle9N9JOUWx |
+| Destaques — Chá de Casa Nova | `img/fotos/destaque-cha-casa-nova.webp` | post ChAtRz0Ow2u, foto 8 |
+| Destaques — Aniversários | `img/fotos/destaque-aniversarios.webp` | post DYxG5B3OaO4 |
+| Destaques — Flor de Lótus | `img/fotos/destaque-espaco.webp` | post Dans_dklnPD, foto 1 |
+| Quem Somos — foto grande | `img/fotos/sobre-mesa.webp` | post fixado CkoPRhHOTe9, foto 5 (original 854×1068, sem corte) |
+| Quem Somos — foto menor | `img/fotos/sobre-bolo.webp` | post fixado CkoPRhHOTe9, foto 3 (original 1280×854, sem corte) |
 | Avaliações — clientes | `img/fotos/cliente-1.jpg`, `cliente-2.jpg`… | quadrado, 300×300 |
 
 Os títulos das celebrações vêm dos posts e destaques do Instagram citados acima; troque-os em `index.html` se usar outras fotos. O tema futebol já aparece na foto do card “Aniversários” (Serviços), por isso não entrou de novo na galeria. Para ver um post: `instagram.com/p/<código>/`.
@@ -130,7 +132,7 @@ Amarrado ao scroll (`scrub`), em `js/main.js`: no computador um feixe dourado co
 
 No celular (até 640px de largura, ou deitado com até 500px de altura) a troca dos painéis do hero é a mesma do computador (rolagem, ScrollTrigger), mas o fundo **não anda com o scroll**: é o vídeo `public/hero-m.mp4` em loop infinito. O motor de frames não roda no celular e os frames do computador não são baixados.
 
-- Vídeo: 608×1080, 30 fps, 14,3 s, H.264 Baseline (toca em qualquer celular, inclusive iPhone antigo), ~3 MB, com o índice (`moov`) no começo para tocar enquanto baixa. Mudo e `playsinline`: o iPhone só deixa tocar sozinho assim.
+- Vídeo: 608×1080, 30 fps, 14,3 s, H.264 Baseline (toca em qualquer celular, inclusive iPhone antigo), ~1,4 MB (1,6 Mbit/s), com o índice (`moov`) no começo para tocar enquanto baixa. Mudo e `playsinline`: o iPhone só deixa tocar sozinho assim.
 - Loop sem emenda: o vídeo saiu dos 473 frames verticais que o hero do celular usava antes (60 frames do vídeo vertical interpolados 8× com o RIFE). O último 1,5 s se dissolve no começo, então o fim já é o 1º quadro e a volta não "pula".
 - `public/hero-m-poster.webp` é o 1º quadro: aparece enquanto o vídeo carrega e quando o iPhone está em economia de energia (aí o 1º toque na página inicia o vídeo).
 - O `<head>` liga `.hero-vid` com a mesma consulta do `js/main.js`; o `src` do vídeo só entra no celular (o computador não baixa o vídeo). Fora da tela o vídeo pausa. Com "reduzir movimento" fica parado no 1º quadro.
@@ -138,8 +140,13 @@ No celular (até 640px de largura, ou deitado com até 500px de altura) a troca 
 
 Também no celular: menos brilhos animados e sem halo, borda neon sem as camadas desfocadas (fica a linha e a aura), e menos desfoque de fundo no cabeçalho e na barra de diferenciais.
 
-Para refazer o vídeo: grave os frames em sequência num `<canvas>` 608×1080 com `MediaRecorder` (`video/mp4;codecs=avc1.42E01F`, ~3,5 Mbit/s, 30 fps), desenhando por cima, no último 1,5 s, os primeiros frames com opacidade crescente.
+Para refazer o vídeo: grave os frames em sequência num `<canvas>` 608×1080 com `MediaRecorder` (`video/mp4;codecs=avc1.42E01F`, ~1,6 Mbit/s, 30 fps), desenhando por cima, no último 1,5 s, os primeiros frames com opacidade crescente.
 
 ## Publicação (Vercel) e cache
 
-`vercel.json` troca `__V__` no `index.html` pelo commit publicado (`?v=<commit>` no CSS e no JS), então cada publicação obriga os navegadores a baixar o CSS/JS novos. O HTML, o CSS e o JS são sempre revalidados (`max-age=0, must-revalidate`); os frames em `public/` ficam 1 dia em cache.
+`vercel.json` troca `__V__` no `index.html` pelo commit publicado (`?v=<commit>` no CSS e em todos os JS, inclusive os de `js/vendor/`), então cada publicação muda o endereço deles e os navegadores baixam os novos.
+
+- HTML: sempre revalidado (`max-age=0, must-revalidate`).
+- `css/` e `js/`: 1 ano em cache, sem revalidar (`immutable`). Por isso todo `<link>`/`<script>` deles precisa do `?v=__V__`.
+- `img/`, `fonts/` e `public/`: 7 dias em cache e, depois disso, até 30 dias servindo o guardado enquanto confere a versão nova por trás (`stale-while-revalidate`). Trocar uma foto mantendo o mesmo nome pode levar até 7 dias para aparecer para quem já visitou; para valer na hora, salve com outro nome.
+- O `<head>` pede com prioridade alta o fundo do hero (maior elemento da 1ª tela, o LCP): `public/frames/frame-0001.webp` acima de 640px e `public/hero-m-poster.webp` até 640px, a mesma regra do `.hero-sticky` no CSS.

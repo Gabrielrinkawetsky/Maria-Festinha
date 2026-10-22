@@ -508,6 +508,83 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 }
 .feature-bar li:active .gold-icon { transform: scale(.92); }
 
+/* Guia de rolagem da Hero (criado pelo js/main.js só com a sequência ligada):
+   pontos 1-2-3 na lateral e o aviso "Role para ver mais" acima da barra de diferenciais */
+.hero-guide {
+  position: absolute; right: 26px; top: 50%; z-index: 4; transform: translateY(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 22px;
+  animation: hg-in .6s 1.2s both;
+}
+.hg-track {
+  position: absolute; top: 7px; bottom: 7px; left: 50%; width: 2px; margin-left: -1px;
+  background: rgba(255, 255, 255, .7); border-radius: 2px; box-shadow: 0 0 0 1px rgba(154, 125, 208, .18);
+}
+.hg-fill { position: absolute; inset: 0; background: var(--gold-grad); transform-origin: top; transform: scaleY(0); border-radius: inherit; }
+.hg-dot {
+  position: relative; width: 14px; height: 14px; padding: 0; border-radius: 50%; cursor: pointer;
+  background: #fff; border: 2px solid rgba(154, 125, 208, .55);
+  box-shadow: 0 2px 6px rgba(74, 58, 107, .25);
+  transition: transform .3s ease, background .3s ease, border-color .3s ease;
+}
+.hg-dot::before { content: ""; position: absolute; inset: -14px; }   /* área de toque maior */
+.hg-dot.is-done { background: var(--gold-400, #dcb563); border-color: #fff; }
+.hg-dot.is-on { transform: scale(1.35); background: var(--gold-grad); border-color: #fff; box-shadow: 0 0 0 4px rgba(212, 169, 79, .28), 0 2px 8px rgba(74, 58, 107, .3); }
+.hg-dot:focus-visible { outline: 2px solid var(--lilac-600); outline-offset: 4px; }
+.hg-label {
+  position: absolute; right: calc(100% + 14px); top: 50%; transform: translate(6px, -50%) scale(.75);
+  white-space: nowrap; pointer-events: none; opacity: 0;
+  font-family: var(--serif); font-size: 15px; font-weight: 600; color: var(--plum);
+  background: rgba(255, 255, 255, .85); padding: 4px 12px; border-radius: 999px;
+  box-shadow: 0 6px 16px -8px rgba(74, 58, 107, .5);
+  transition: opacity .3s ease, transform .3s ease;
+}
+@media (hover: hover) and (min-width: 1024px) {
+  .hg-dot.is-on .hg-label, .hg-dot:hover .hg-label { opacity: 1; transform: translate(0, -50%) scale(.75); }
+}
+
+.hero-next {
+  display: flex; align-items: center; gap: 10px; margin: 0 auto;
+  padding: 7px 10px 7px 14px; border-radius: 999px; cursor: pointer;
+  font: 600 12.5px/1.2 var(--sans); letter-spacing: .02em; color: var(--plum); white-space: nowrap;
+  background: rgba(255, 255, 255, .8);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 169, 79, .55);
+  box-shadow: 0 8px 20px -12px rgba(74, 58, 107, .55);
+  transition: transform .25s ease, box-shadow .25s ease;
+  animation: hg-in .6s 1.4s both;
+}
+.hero-next:hover { transform: translateY(-2px); box-shadow: 0 12px 24px -12px rgba(74, 58, 107, .6); }
+.hero-next:focus-visible { outline: 2px solid var(--lilac-600); outline-offset: 3px; }
+.hero-next.is-nudge { animation: hn-nudge 1.6s ease-in-out infinite; }
+.hn-step { font-weight: 500; color: #6a5896; padding-left: 10px; border-left: 1px solid rgba(212, 169, 79, .45); }
+.hn-arrow {
+  width: 22px; height: 22px; padding: 3px; border-radius: 50%; background: var(--gold-grad);
+  fill: none; stroke: #5a3f12; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round;
+  animation: hn-bob 1.6s ease-in-out infinite;
+}
+/* mouse com a rodinha descendo / dedo deslizando para cima */
+.hn-icon { position: relative; flex-shrink: 0; width: 16px; height: 24px; border: 2px solid var(--lilac-600); border-radius: 9px; }
+.hn-icon i { position: absolute; left: 50%; width: 4px; margin-left: -2px; border-radius: 2px; background: var(--gold-600); }
+.hn-mouse i { top: 4px; height: 6px; animation: hn-wheel 1.6s ease-in-out infinite; }
+.hn-swipe { border-radius: 5px; }
+.hn-swipe i { bottom: 3px; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; animation: hn-finger 1.6s ease-in-out infinite; }
+@keyframes hg-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes hn-wheel { 0% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(7px); opacity: 0; } 100% { opacity: 0; } }
+@keyframes hn-finger { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: 1; } 80% { transform: translateY(-10px); opacity: 0; } 100% { opacity: 0; } }
+@keyframes hn-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
+@keyframes hn-nudge {
+  0%, 100% { transform: scale(1); box-shadow: 0 8px 20px -12px rgba(74, 58, 107, .55), 0 0 0 0 rgba(212, 169, 79, .5); }
+  50% { transform: scale(1.06); box-shadow: 0 8px 20px -12px rgba(74, 58, 107, .55), 0 0 0 10px rgba(212, 169, 79, 0); }
+}
+/* celular e tablet: a foto ocupa a largura toda e os pontos encostariam nela; o aviso já diz "1 de 3" */
+@media (max-width: 1023px) { .hero-guide { display: none; } }
+@media (max-width: 640px) {
+  .hero-next { margin-top: 8px; padding: 5px 8px 5px 12px; font-size: 12px; gap: 8px; }
+  .hero-next ~ .feature-bar { margin-top: 10px; }
+}
+/* celular deitado: pouca altura, só os pontos */
+@media (orientation: landscape) and (max-height: 500px) { .hero-next { display: none; } }
+
 /* ---------- Seções ---------- */
 .section { position: relative; padding: 70px 0; }
 .section-tight { padding: 40px 0 60px; }

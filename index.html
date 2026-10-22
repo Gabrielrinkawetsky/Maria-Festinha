@@ -9,7 +9,7 @@
   <!-- Endereço oficial (Google), prévia do link (WhatsApp, Instagram, Facebook) e ficha da
        empresa mais abaixo usam endereços completos: se o site ganhar domínio próprio, troque
        maria-festinha.vercel.app aqui, no robots.txt e no sitemap.xml. -->
-  <link rel="canonical" href="https://maria-festinha.vercel.app/">
+  <link rel="canonical" href="https://maria-festinha.vercel.app/"> <!-- nosemgrep: html.security.audit.missing-integrity.missing-integrity (canonical não baixa nada; integrity só vale para script/CSS externos) -->
   <meta property="og:type" content="website">
   <meta property="og:locale" content="pt_BR">
   <meta property="og:site_name" content="Maria Festinha Ilhabela">
@@ -25,6 +25,10 @@
   <link rel="icon" type="image/png" href="img/favicon.png">
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
   <link rel="preload" href="fonts/poppins-latin-300-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Fundo do hero = maior elemento da 1ª tela (LCP): pedido já aqui, com prioridade alta,
+       em vez de esperar o CSS chegar. Mesma regra do .hero-sticky no css/style.css -->
+  <link rel="preload" as="image" href="public/frames/frame-0001.webp" media="(min-width: 641px)" fetchpriority="high">
+  <link rel="preload" as="image" href="public/hero-m-poster.webp" media="(max-width: 640px)" fetchpriority="high">
   <link rel="stylesheet" href="css/style.css?v=__V__">
   <!-- Ficha da empresa para o Google (dados estruturados; não aparece na página).
        Mantenha igual ao que o site mostra: endereço, telefone e Instagram. -->
@@ -265,7 +269,7 @@
       <div class="card-slot" id="servico-decoracao">
         <article class="card service-card">
           <figure class="photo">
-            <img src="img/fotos/servico-decoracao.jpg" alt="Decoração Maria Festinha" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/servico-decoracao.webp" srcset="img/fotos/servico-decoracao-480.webp 480w, img/fotos/servico-decoracao.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Decoração Maria Festinha" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-balloon"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -280,7 +284,7 @@
       <div class="card-slot" id="servico-recreacao">
         <article class="card service-card">
           <figure class="photo">
-            <img src="img/fotos/servico-recreacao.jpg" alt="Recreação infantil WR Recreação" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/servico-recreacao.webp" srcset="img/fotos/servico-recreacao-480.webp 480w, img/fotos/servico-recreacao.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Recreação infantil WR Recreação" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-party"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -295,7 +299,7 @@
       <div class="card-slot">
         <article class="card service-card">
           <figure class="photo">
-            <img src="img/fotos/servico-casamentos.jpg" alt="Casamentos Maria Festinha" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/servico-casamentos.webp" srcset="img/fotos/servico-casamentos-480.webp 480w, img/fotos/servico-casamentos.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Casamentos Maria Festinha" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-rings"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -310,7 +314,7 @@
       <div class="card-slot">
         <article class="card service-card">
           <figure class="photo">
-            <img src="img/fotos/servico-aniversarios.jpg" alt="Aniversários Maria Festinha" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/servico-aniversarios.webp" srcset="img/fotos/servico-aniversarios-480.webp 480w, img/fotos/servico-aniversarios.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Aniversários Maria Festinha" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-cake"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -325,7 +329,7 @@
       <div class="card-slot" id="servico-buffet-pizza">
         <article class="card service-card">
           <figure class="photo">
-            <img src="img/fotos/servico-buffet-pizza.jpg" alt="Buffet de pizza Maria Festinha" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/servico-buffet-pizza.webp" srcset="img/fotos/servico-buffet-pizza-480.webp 480w, img/fotos/servico-buffet-pizza.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Buffet de pizza Maria Festinha" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-pizza"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -340,7 +344,7 @@
       <div class="card-slot" id="servico-espaco">
         <article class="card service-card">
           <figure class="photo">
-            <img src="img/fotos/servico-espaco.jpg" alt="Espaço Flor de Lótus para eventos" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/servico-espaco.webp" srcset="img/fotos/servico-espaco-480.webp 480w, img/fotos/servico-espaco.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Espaço Flor de Lótus para eventos" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-castle"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -355,7 +359,7 @@
       <div class="card-slot">
         <article class="card service-card">
           <figure class="photo">
-            <img src="img/fotos/servico-inflaveis.jpg" alt="Pula-pula inflável Maria Festinha" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/servico-inflaveis.webp" srcset="img/fotos/servico-inflaveis-480.webp 480w, img/fotos/servico-inflaveis.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Pula-pula inflável Maria Festinha" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-castle"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -370,7 +374,7 @@
       <div class="card-slot">
         <article class="card service-card">
           <figure class="photo">
-            <img src="img/fotos/servico-pipoca-algodao-doce.jpg" alt="Pipoca e algodão-doce Maria Festinha" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/servico-pipoca-algodao-doce.webp" srcset="img/fotos/servico-pipoca-algodao-doce-480.webp 480w, img/fotos/servico-pipoca-algodao-doce.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Pipoca e algodão-doce Maria Festinha" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-party"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -385,7 +389,7 @@
       <div class="card-slot">
         <article class="card service-card">
           <figure class="photo">
-            <img src="img/fotos/servico-minimalista.jpg" alt="Decoração minimalista Maria Festinha" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/servico-minimalista.webp" srcset="img/fotos/servico-minimalista-480.webp 480w, img/fotos/servico-minimalista.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Decoração minimalista Maria Festinha" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-flower"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -414,7 +418,7 @@
       <div class="card-slot">
         <article class="card celebration-card">
           <figure class="photo">
-            <img src="img/fotos/celebracao-1.jpg" alt="Festa de 15 anos" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/celebracao-1.webp" srcset="img/fotos/celebracao-1-480.webp 480w, img/fotos/celebracao-1.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Festa de 15 anos" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-cake"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -428,7 +432,7 @@
       <div class="card-slot">
         <article class="card celebration-card">
           <figure class="photo">
-            <img src="img/fotos/celebracao-2.jpg" alt="Chá de bebê" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/celebracao-2.webp" srcset="img/fotos/celebracao-2-480.webp 480w, img/fotos/celebracao-2.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Chá de bebê" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-balloon"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -442,7 +446,7 @@
       <div class="card-slot">
         <article class="card celebration-card">
           <figure class="photo">
-            <img src="img/fotos/celebracao-cha-revelacao.jpg" alt="Decoração de chá revelação com ursinhos em rosa e azul" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/celebracao-cha-revelacao.webp" srcset="img/fotos/celebracao-cha-revelacao-480.webp 480w, img/fotos/celebracao-cha-revelacao.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Decoração de chá revelação com ursinhos em rosa e azul" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-balloon"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -456,7 +460,7 @@
       <div class="card-slot">
         <article class="card celebration-card">
           <figure class="photo">
-            <img src="img/fotos/celebracao-cha-revelacao-praia.jpg" alt="Decoração de chá revelação pé na areia, com vista para o mar de Ilhabela" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/celebracao-cha-revelacao-praia.webp" srcset="img/fotos/celebracao-cha-revelacao-praia-480.webp 480w, img/fotos/celebracao-cha-revelacao-praia.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Decoração de chá revelação pé na areia, com vista para o mar de Ilhabela" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-balloon"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -470,7 +474,7 @@
       <div class="card-slot">
         <article class="card celebration-card">
           <figure class="photo">
-            <img src="img/fotos/celebracao-batizado.jpg" alt="Decoração de batizado em branco com anjinhos e flores" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/celebracao-batizado.webp" srcset="img/fotos/celebracao-batizado-480.webp 480w, img/fotos/celebracao-batizado.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Decoração de batizado em branco com anjinhos e flores" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-flower"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -484,7 +488,7 @@
       <div class="card-slot">
         <article class="card celebration-card">
           <figure class="photo">
-            <img src="img/fotos/celebracao-3.jpg" alt="Decoração floral" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/celebracao-3.webp" srcset="img/fotos/celebracao-3-480.webp 480w, img/fotos/celebracao-3.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Decoração floral" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-flower"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -498,7 +502,7 @@
       <div class="card-slot">
         <article class="card celebration-card">
           <figure class="photo">
-            <img src="img/fotos/celebracao-minimalista.jpg" alt="Decoração minimalista de 15 anos" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/celebracao-minimalista.webp" srcset="img/fotos/celebracao-minimalista-480.webp 480w, img/fotos/celebracao-minimalista.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Decoração minimalista de 15 anos" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-flower"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -512,7 +516,7 @@
       <div class="card-slot">
         <article class="card celebration-card">
           <figure class="photo">
-            <img src="img/fotos/celebracao-bolofofos.jpg" alt="Decoração de 1 aninho com tema Bolofofos" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/celebracao-bolofofos.webp" srcset="img/fotos/celebracao-bolofofos-480.webp 480w, img/fotos/celebracao-bolofofos.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Decoração de 1 aninho com tema Bolofofos" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-party"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -526,7 +530,7 @@
       <div class="card-slot">
         <article class="card celebration-card">
           <figure class="photo">
-            <img src="img/fotos/celebracao-bob-esponja.jpg" alt="Decoração de aniversário com tema Bob Esponja" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/celebracao-bob-esponja.webp" srcset="img/fotos/celebracao-bob-esponja-480.webp 480w, img/fotos/celebracao-bob-esponja.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Decoração de aniversário com tema Bob Esponja" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-balloon"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -540,7 +544,7 @@
       <div class="card-slot">
         <article class="card celebration-card">
           <figure class="photo">
-            <img src="img/fotos/celebracao-sereia.jpg" alt="Decoração de aniversário com tema sereia e fundo do mar" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/celebracao-sereia.webp" srcset="img/fotos/celebracao-sereia-480.webp 480w, img/fotos/celebracao-sereia.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Decoração de aniversário com tema sereia e fundo do mar" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-balloon"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -554,7 +558,7 @@
       <div class="card-slot">
         <article class="card celebration-card">
           <figure class="photo">
-            <img src="img/fotos/celebracao-gta.jpg" alt="Decoração de aniversário com tema GTA" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/celebracao-gta.webp" srcset="img/fotos/celebracao-gta-480.webp 480w, img/fotos/celebracao-gta.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Decoração de aniversário com tema GTA" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-party"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -568,7 +572,7 @@
       <div class="card-slot">
         <article class="card celebration-card">
           <figure class="photo">
-            <img src="img/fotos/celebracao-masha.jpg" alt="Decoração de aniversário com tema Masha e o Urso" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/celebracao-masha.webp" srcset="img/fotos/celebracao-masha-480.webp 480w, img/fotos/celebracao-masha.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 380px" alt="Decoração de aniversário com tema Masha e o Urso" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-cake"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -640,7 +644,7 @@
       <div class="card-slot">
         <article class="card venue-card">
           <figure class="photo">
-            <img src="img/fotos/destaque-casamento.jpg" alt="Casamento" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/destaque-casamento.webp" srcset="img/fotos/destaque-casamento-480.webp 480w, img/fotos/destaque-casamento.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 280px" alt="Casamento" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-rings"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -654,7 +658,7 @@
       <div class="card-slot">
         <article class="card venue-card">
           <figure class="photo">
-            <img src="img/fotos/destaque-cha-casa-nova.jpg" alt="Chá de casa nova" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/destaque-cha-casa-nova.webp" srcset="img/fotos/destaque-cha-casa-nova-480.webp 480w, img/fotos/destaque-cha-casa-nova.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 280px" alt="Chá de casa nova" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-glasses"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -668,7 +672,7 @@
       <div class="card-slot">
         <article class="card venue-card">
           <figure class="photo">
-            <img src="img/fotos/destaque-aniversarios.jpg" alt="Aniversários" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/destaque-aniversarios.webp" srcset="img/fotos/destaque-aniversarios-480.webp 480w, img/fotos/destaque-aniversarios.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 280px" alt="Aniversários" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-cake"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -682,7 +686,7 @@
       <div class="card-slot">
         <article class="card venue-card">
           <figure class="photo">
-            <img src="img/fotos/destaque-espaco.jpg" alt="Espaço Flor de Lótus" loading="lazy" onerror="this.hidden=true">
+            <img src="img/fotos/destaque-espaco.webp" srcset="img/fotos/destaque-espaco-480.webp 480w, img/fotos/destaque-espaco.webp 900w" sizes="(max-width: 640px) 82vw, (max-width: 960px) 45vw, 280px" alt="Espaço Flor de Lótus" loading="lazy" onerror="this.hidden=true">
             <div class="photo-ph" aria-hidden="true"><svg><use href="#i-castle"/></svg></div>
             <div class="photo-curtain" aria-hidden="true"></div>
           </figure>
@@ -707,10 +711,10 @@
       <!-- fotos e selo animados pelo GSAP (js/main.js, "Quem Somos: fotos e selo") -->
       <div class="about-media">
         <figure class="about-photo about-photo-main">
-          <img src="img/fotos/sobre-mesa.jpg" alt="Mesa de doces com flores e painel floral montada pela Maria Festinha" width="854" height="1068" loading="lazy" decoding="async">
+          <img src="img/fotos/sobre-mesa.webp" srcset="img/fotos/sobre-mesa-480.webp 480w, img/fotos/sobre-mesa.webp 854w" sizes="(max-width: 960px) 88vw, 520px" alt="Mesa de doces com flores e painel floral montada pela Maria Festinha" width="854" height="1068" loading="lazy" decoding="async">
         </figure>
         <figure class="about-photo about-photo-detail">
-          <img src="img/fotos/sobre-bolo.jpg" alt="Bolo de 15 anos com doces na mesa decorada" width="1280" height="854" loading="lazy" decoding="async">
+          <img src="img/fotos/sobre-bolo.webp" srcset="img/fotos/sobre-bolo-480.webp 480w, img/fotos/sobre-bolo.webp 1280w" sizes="(max-width: 960px) 52vw, 300px" alt="Bolo de 15 anos com doces na mesa decorada" width="1280" height="854" loading="lazy" decoding="async">
         </figure>
         <div class="about-seal" aria-hidden="true">
           <span>desde</span>
@@ -939,9 +943,9 @@
   <svg><use href="#i-whats"/></svg>
 </a>
 
-<script src="js/vendor/lenis.min.js"></script>
-<script src="js/vendor/gsap.min.js"></script>
-<script src="js/vendor/ScrollTrigger.min.js"></script>
+<script src="js/vendor/lenis.min.js?v=__V__"></script>
+<script src="js/vendor/gsap.min.js?v=__V__"></script>
+<script src="js/vendor/ScrollTrigger.min.js?v=__V__"></script>
 <script src="js/main.js?v=__V__"></script>
 </body>
 </html>
