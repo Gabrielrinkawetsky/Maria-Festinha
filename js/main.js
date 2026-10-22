@@ -457,7 +457,7 @@
     var limit = order.length;
     [8, 4, 2, 1].forEach(function (s) { for (var j = 0; j < total; j += s) enqueue(j); });
     function fillAll() {
-      if (limit === order.length) return;
+      if (mobile || limit === order.length) return;   // celular: o fundo é o vídeo, nada de frames
       limit = order.length;
       pump();
     }
@@ -948,6 +948,23 @@
       // mapa real do computador: carrega logo depois da página, sem esperar o scroll.
       // (loading="lazy" saiu: o Chrome adiava o mapa escondido dentro da Hero presa)
       setTimeout(loadMap, 1500);
+      // meio-termo dos frames: quem fica uns segundos no site já tem tudo quando começar
+      // a rolar (sem "pulinhos"); quem abre e sai logo não baixa os ~21 MB. Não roda com
+      // economia de dados ou internet 2G, nem com a aba escondida (espera ela voltar).
+      // No celular o fundo é o vídeo: nada de frames.
+      var conn = navigator.connection;
+      if (mobile || (conn && (conn.saveData || /2g/.test(conn.effectiveType || '')))) return;
+      setTimeout(function later() {
+        if (document.hidden) {
+          document.addEventListener('visibilitychange', function back() {
+            if (document.hidden) return;
+            document.removeEventListener('visibilitychange', back);
+            later();
+          });
+          return;
+        }
+        fillAll();
+      }, 4500);
     });
     resize();
   })();
