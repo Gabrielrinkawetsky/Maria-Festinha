@@ -267,21 +267,8 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 }
 .sparkle-group.floaty { animation: twinkle var(--d, 3s) ease-in-out var(--delay, 0s) infinite, drift var(--fd, 14s) ease-in-out var(--delay, 0s) infinite alternate; }
 .sparkle-field.off .sparkle-group { animation: none !important; }   /* !important: o .lite .sparkle-group.floaty empatava e ganhava */
-.sparkle {
-  position: absolute; display: block; border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #fff7dc 0%, #e7c26a 45%, #b98a33 100%);
-  box-shadow: 0 0 6px rgba(240, 205, 120, .8);
-  transform: scale(var(--s, 1)) rotate(var(--r, 0deg));
-  opacity: .9;
-}
-.sparkle.bokeh {
-  background: radial-gradient(circle, rgba(255,255,255,.9) 0%, rgba(255,240,210,.35) 45%, transparent 70%);
-  box-shadow: none; filter: blur(1px);
-}
-.sparkle.heart {
-  border-radius: 0; background: none; box-shadow: none;
-}
-.sparkle.heart svg { width: 100%; height: 100%; fill: url(#gGold); filter: drop-shadow(0 0 3px rgba(240,205,120,.7)); }
+/* cada brilho é um dos fundos do grupo (posição e tamanho sorteados no js/main.js) */
+.sparkle-group { background-repeat: no-repeat; }
 
 @keyframes twinkle {
   0%, 100% { opacity: .35; }
@@ -1281,11 +1268,9 @@ html:not(.curtain-on) .photo-curtain { display: none; }
   }
   .site-header.is-solid::before { opacity: 1; }
 
-  /* Leveza no celular: 1º quadro do vídeo enquanto ele carrega, menos desfoque ao vivo, brilhos sem halo */
+  /* Leveza no celular: 1º quadro do vídeo enquanto ele carrega, menos desfoque ao vivo */
   .hero-sticky { background-image: url("../public/hero-m-poster.webp"); }
   .feature-bar { backdrop-filter: none; background: linear-gradient(100deg, #efe6fd 0%, #e2d3f9 50%, #efe6fd 100%); }
-  .sparkle { box-shadow: none; }
-  .sparkle.heart svg { filter: none; }
 
   /* Fotos dos painéis 1 e 2 do hero, trocam junto com o texto */
   /* Hero no celular: medidas menores (a estrutura em coluna está no bloco <= 1023px) */
@@ -1488,9 +1473,8 @@ html, body { overflow-x: clip; }
 
 /* Modo leve (js/main.js liga .lite: economia de energia, bateria baixa, FPS baixo).
    Mesmo visual, menos trabalho contínuo para o celular/computador. */
-.lite .sparkle:nth-child(2n) { display: none; }                  /* metade dos brilhos */
+.lite .sparkle-group:nth-child(2n) { display: none; }            /* metade dos brilhos (2 dos 4 grupos) */
 .lite .sparkle-group.floaty { animation: twinkle var(--d, 3s) ease-in-out var(--delay, 0s) infinite; }  /* sem deriva */
-.lite .sparkle, .lite .sparkle.heart svg { box-shadow: none; filter: none; }
 .lite .neon-glow { display: none; }                               /* neon: linha + aura fixa */
 .lite .header-bar { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(250, 246, 255, .86); }
 .lite .map-chip { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(255, 255, 255, .92); }

@@ -150,8 +150,22 @@
   }
 
 
-  /* ---------- Brilhos dourados (confete, corações e bokeh) ---------- */
-  var HEART = '<svg viewBox="0 0 32 30"><use href="#heart"/></svg>';
+  /* ---------- Brilhos dourados (confete, corações e bokeh) ----------
+     Cada grupo de brilhos é UM elemento, e cada brilho é um dos fundos dele (vários
+     background-image, cada um com posição e tamanho). Com um <span> por brilho (~300,
+     cada um com transform, filtro e sombra), o navegador comparava cada brilho com tudo
+     que fica por cima a cada quadro, e as faixas "Vamos celebrar juntos?" e do FAQ
+     travavam ao rolar. O brilho em volta das bolinhas vai no próprio degradê; o coração
+     é uma imagem SVG com o dourado, o brilho e o giro já desenhados (6 ângulos prontos,
+     que o navegador desenha uma vez e reaproveita). */
+  var HEARTS = [-35, -20, -6, 8, 22, 35].map(function (deg) {
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-6 -6 44 42">' +
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e2a6"/>' +
+      '<stop offset=".45" stop-color="#d4a94f"/><stop offset=".75" stop-color="#b8862f"/><stop offset="1" stop-color="#f1d58c"/></linearGradient>' +
+      '<filter id="f" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="0" stdDeviation="2.4" flood-color="#f0cd78" flood-opacity=".7"/></filter></defs>' +
+      '<path transform="rotate(' + deg + ' 16 15)" filter="url(#f)" fill="url(#g)" d="M16 29S2 20 2 10a7 7 0 0114-2 7 7 0 0114 2c0 10-14 19-14 19z"/></svg>';
+    return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+  });
 
   function rand(min, max) { return Math.random() * (max - min) + min; }
 
@@ -164,46 +178,56 @@
   document.querySelectorAll('.sparkle-field').forEach(function (field) {
     var total = parseInt(field.getAttribute('data-sparkles'), 10) || 80;
     if (window.innerWidth < 640) total = Math.round(total * 0.2);   // celular: menos brilhos
+    // Faixa alta no computador (FAQ): brilhos só nas laterais, ao lado da coluna das
+    // perguntas (atrás dos cards quase não apareciam). Cada grupo vira uma camada estreita
+    // em vez de uma do tamanho da faixa inteira (~1600 x 2000 px), que pesava ao rolar.
+    var sides = window.innerWidth >= 900 && field.parentElement.offsetHeight > window.innerHeight * 1.2;
+    if (sides) total = Math.round(total * 0.5);
     var groups = [];
     for (var g = 0; g < SPARKLE_GROUPS; g++) {
       var group = document.createElement('span');
       group.className = 'sparkle-group';
+      if (sides) group.style[g % 2 ? 'left' : 'right'] = '78%';
       if (!reduceMotion && window.innerWidth >= 640 && g < SPARKLE_DRIFT) group.className += ' floaty';   // celular: sem deriva
       group.style.setProperty('--d', rand(2.4, 4.6).toFixed(2) + 's');
       group.style.setProperty('--delay', (-g * 0.8 - rand(0, 0.6)).toFixed(2) + 's');   // fases espalhadas
       group.style.setProperty('--fd', rand(10, 20).toFixed(1) + 's');
       group.style.setProperty('--dx', rand(-20, 20).toFixed(0) + 'px');
       group.style.setProperty('--dy', rand(-40, 10).toFixed(0) + 'px');
-      groups.push(group);
+      groups.push({ el: group, img: [], pos: [], size: [] });
     }
 
     for (var i = 0; i < total; i++) {
-      var s = document.createElement('span');
-      var roll = Math.random();
-      var size;
-
+      var roll = Math.random(), img, box;
+      var k = rand(0.8, 1.1);   // variação de tamanho
       if (roll < 0.22) {
-        s.className = 'sparkle heart';
-        s.innerHTML = HEART;
-        size = rand(8, 22);
+        // coração: a imagem tem margem para o brilho (viewBox 44 em vez de 32)
+        img = HEARTS[Math.floor(Math.random() * HEARTS.length)];
+        box = rand(8, 22) * 1.375 * k;
       } else if (roll < 0.34) {
-        s.className = 'sparkle bokeh';
-        size = rand(14, 38);
+        // bokeh: bolha clara de bordas esfumadas
+        box = rand(14, 38) * k;
+        img = 'radial-gradient(circle, rgba(255,255,255,.85) 0%, rgba(255,240,210,.3) 42%, rgba(255,240,210,.08) 58%, transparent 72%)';
       } else {
-        s.className = 'sparkle';
-        size = rand(2, 9);
+        // bolinha dourada com brilho em volta (antes: box-shadow 0 0 6px)
+        var r = rand(1, 4.5) * k;
+        box = r * 2 + 12;
+        img = 'radial-gradient(circle closest-side, #fff7dc 0, #e7c26a ' + (r * 0.45).toFixed(1) + 'px, #b98a33 ' + r.toFixed(1) +
+          'px, rgba(240,205,120,.55) ' + (r + 0.8).toFixed(1) + 'px, rgba(240,205,120,0) 100%)';
       }
-
-      s.style.width = size + 'px';
-      s.style.height = size + 'px';
-      s.style.left = rand(0, 100) + '%';
-      s.style.top = rand(0, 100) + '%';
-      s.style.setProperty('--r', rand(-35, 35).toFixed(0) + 'deg');
-      s.style.setProperty('--s', rand(0.8, 1.1).toFixed(2));
-      groups[Math.floor(Math.random() * SPARKLE_GROUPS)].appendChild(s);
+      var gr = groups[Math.floor(Math.random() * SPARKLE_GROUPS)];
+      gr.img.push(img);
+      gr.pos.push(rand(0, 100).toFixed(2) + '% ' + rand(0, 100).toFixed(2) + '%');
+      gr.size.push(box.toFixed(1) + 'px ' + box.toFixed(1) + 'px');
     }
     var frag = document.createDocumentFragment();
-    groups.forEach(function (group) { frag.appendChild(group); });
+    groups.forEach(function (gr) {
+      if (!gr.img.length) return;
+      gr.el.style.backgroundImage = gr.img.join(',');
+      gr.el.style.backgroundPosition = gr.pos.join(',');
+      gr.el.style.backgroundSize = gr.size.join(',');
+      frag.appendChild(gr.el);
+    });
     field.appendChild(frag);
   });
 
@@ -1521,7 +1545,14 @@
       var shape = document.createElement('div');
       shape.className = 'curve-bg curve-top';
       shape.setAttribute('aria-hidden', 'true');
-      el.querySelectorAll(':scope > .sparkle-field, :scope > .ribbon').forEach(function (d) { shape.appendChild(d); });
+      // Faixa alta (FAQ): os brilhos ficam fora do recorte do arco e começam abaixo dele.
+      // Dentro do arco, a camada dos brilhos (do tamanho da faixa, ~2000 px) era recortada
+      // de novo a cada quadro e a faixa travava ao rolar.
+      var tall = el.offsetHeight > window.innerHeight * 1.2;
+      el.querySelectorAll(':scope > .sparkle-field, :scope > .ribbon').forEach(function (d) {
+        if (tall && d.classList.contains('sparkle-field')) { d.style.top = c[2] + 'px'; return; }
+        shape.appendChild(d);
+      });
       el.insertBefore(shape, el.firstChild);
       var edge = document.createElement('div');   // sombra e fio do arco (ver .curve-edge no CSS)
       edge.className = 'curve-edge curve-top';
