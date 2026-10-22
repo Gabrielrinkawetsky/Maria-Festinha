@@ -241,6 +241,8 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   background: var(--gold-grad); transition: left .3s ease, right .3s ease;
 }
 .main-nav a:hover::after { left: 0; right: 0; }
+/* itens só do menu suspenso (até 960px): no menu em linha do computador não cabem */
+@media (min-width: 961px) { .main-nav .nav-mobile { display: none; } }
 
 .menu-toggle {
   display: none; margin-left: auto;
@@ -850,6 +852,14 @@ html:not(.curtain-on) .photo-curtain { display: none; }
   border: 1px dashed rgba(184,134,47,.5); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px;
 }
 .testimonial-name { font-family: var(--serif); font-size: 16px; color: var(--plum); font-weight: 600; }
+.testimonial-name a { color: inherit; border-bottom: 1px solid var(--gold-200); overflow-wrap: anywhere; }
+.testimonial-name a:hover { color: var(--gold-700); }
+/* depoimento do Instagram (sem nota): no lugar das estrelas, de onde veio e o tipo de festa */
+.testimonial-source {
+  display: flex; align-items: center; gap: 6px; margin: 0 0 10px;
+  font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--gold-700);
+}
+.testimonial-source svg { width: 15px; height: 15px; flex-shrink: 0; }
 .reviews-link { text-align: center; margin-top: 30px; font-size: 14px; color: var(--plum); }
 .reviews-link a { color: var(--lilac-700); font-weight: 600; border-bottom: 1px solid var(--gold-400); }
 .reviews-link a:hover { color: var(--gold-700); }
@@ -1181,7 +1191,7 @@ html:not(.curtain-on) .photo-curtain { display: none; }
   .hero-copy { padding-left: 0; }
   .hero-veil { background: linear-gradient(180deg, rgba(251,248,255,.55) 0%, rgba(251,248,255,.2) 50%, rgba(251,248,255,0) 75%); }
   .testimonial-card { flex-direction: column; align-items: center; text-align: center; }
-  .stars { justify-content: center; }
+  .stars, .testimonial-source { justify-content: center; }
 }
 
 @media (max-width: 640px) {

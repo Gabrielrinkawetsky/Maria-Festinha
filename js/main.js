@@ -991,6 +991,27 @@
     if (nav.classList.contains('open') && !nav.contains(e.target) && !toggle.contains(e.target)) closeMenu();
   });
 
+  /* Links #secao: o Lenis calcula o destino na hora do clique, mas no caminho a página
+     pode mudar um pouco (títulos virando letras ao entrar na tela). No celular o FAQ
+     parava com o título cortado no topo. Quando o deslize termina, confere onde a seção
+     ficou e, se precisar, completa com um deslize curto. */
+  if (lenis) {
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a[href^="#"]');
+      if (!a || a.classList.contains('feature-link')) return;   // esses têm o próprio controle
+      var el = document.getElementById(a.getAttribute('href').slice(1));
+      if (!el) return;
+      var tries = 0;
+      var settle = function () {
+        if (lenis.isScrolling && ++tries < 40) { setTimeout(settle, 150); return; }
+        var pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+        var off = el.getBoundingClientRect().top - pad;
+        if (Math.abs(off) > 4 && !zoomed()) lenis.scrollTo(window.scrollY + off, { duration: 0.45 });
+      };
+      setTimeout(settle, 200);   // dá tempo de o deslize do Lenis começar
+    });
+  }
+
   /* ---------- Entradas pela posição real na tela ----------
      Cards e títulos aparecem quando o topo deles chega a 98% da altura da tela
      (ou quando já passaram, em saltos por link). Isso lê a posição real de cada
