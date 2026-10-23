@@ -1709,7 +1709,13 @@
     gsap.fromTo(bars[1], barFrom, Object.assign({ delay: 0.45 }, barTo));
     var charsOf = function (sel) {
       var list = [];
-      document.querySelectorAll(sel).forEach(function (el) { list.push.apply(list, splitChars(el)); });
+      document.querySelectorAll(sel).forEach(function (el) {
+        // só o que está à vista: no celular os links do menu fechado (invisível) e as
+        // descrições da barra (escondidas) eram divididos em letras e animados à toa,
+        // ~0,3 s de processador no celular básico antes da página responder
+        if (!el.getClientRects().length || getComputedStyle(el).visibility === 'hidden') return;
+        list.push.apply(list, splitChars(el));
+      });
       return list;
     };
     var unsplitAll = function (sel) { return function () { document.querySelectorAll(sel).forEach(unsplit); }; };

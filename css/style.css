@@ -1450,7 +1450,11 @@ html:not(.js-fold) .photo-curtain { display: none; }
   animation: lilac-wave-bg 4s linear infinite;
 }
 @keyframes lilac-wave-bg { from { background-position: 100% 0; } to { background-position: -150% 0; } }
-.lite .h1-lilac.wave .fold-char { text-shadow: none !important; }   /* modo leve: só a cor, sem brilho */
+/* Modo leve (celular fraco, sem placa de vídeo): a onda fica parada no lilás. Cor e brilho
+   animando em cada letra repintam o título a cada quadro; no celular básico isso dobrava
+   os quadros travados da rolagem (~10% para ~22%). Nos aparelhos bons a onda segue igual. */
+.lite .h1-lilac.wave .fold-char { animation: none !important; text-shadow: none !important; color: var(--lilac-600); }
+.lite .hero-title:not(.is-split) .h1-lilac.wave { animation: none; background: none; color: var(--lilac-600); -webkit-background-clip: border-box; background-clip: border-box; }
 
 /* Celulares bem baixos (ex.: 320×568): com o mapa, o selo "Desde 2014" do painel final não cabe */
 @media (max-width: 640px) and (max-height: 600px) {
