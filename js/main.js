@@ -1262,9 +1262,29 @@
   }
   // Avaliações no computador: o quebra-cabeça (abaixo) faz a entrada no lugar do AnimatedContent
   var puzzleOn = !!(gsap && ST && !reduceMotion && window.matchMedia('(min-width: 961px)').matches);
+  /* Avaliações no celular (carrossel, até 640px): só a 1ª entra, na diagonal, vindo da
+     direita e um pouco de baixo, girada, e assenta; as outras ficam paradas no lugar e
+     o carrossel funciona normal. Anima o card de dentro (não a vaga do carrossel, que
+     guarda o encaixe), dentro da folga do carrossel (26px embaixo) para não ser cortado,
+     e por cima da beirada do 2º card enquanto entra. */
+  function reviewsFirstIn(el) {
+    if (!el.hasAttribute('data-puzzle') || !gsap || reduceMotion || !window.matchMedia('(max-width: 640px)').matches) return false;
+    var slot = el.firstElementChild, card = slot && slot.firstElementChild;
+    el.style.visibility = 'visible';
+    if (!card) return true;
+    gsap.set(slot, { position: 'relative', zIndex: 2 });
+    gsap.set(card, { xPercent: 62, y: 16, rotation: 3, autoAlpha: 0 });
+    whenSeen(el, function () {
+      gsap.to(card, { xPercent: 0, y: 0, rotation: 0, autoAlpha: 1, duration: 0.9, ease: 'power3.out',
+        onComplete: function () { gsap.set(card, { clearProps: 'transform,opacity,visibility' }); gsap.set(slot, { clearProps: 'position,zIndex' }); } });
+    }, 0.85);
+    return true;
+  }
+
   later(function () {
     document.querySelectorAll('[data-ac]').forEach(function (el) {
       if (puzzleOn && el.hasAttribute('data-puzzle')) { el.style.visibility = 'visible'; return; }
+      if (reviewsFirstIn(el)) return;
       if (gsap && !reduceMotion) animatedContent(el);
       else el.style.visibility = 'visible';
     });
