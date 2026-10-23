@@ -1428,7 +1428,7 @@ html:not(.js-fold) .photo-curtain { display: none; }
 .is-split .h1-gold { color: #bf8f37; text-shadow: 0 -1px 0 rgba(255, 244, 214, .7), 0 2px 2px rgba(255, 255, 255, .6); }
 .promo-gold.is-split { color: #f0cf7a; text-shadow: 0 2px 4px rgba(74, 58, 107, .35); }
 
-/* Onda de cor no "Sua Festa" do hero (.h1-lilac.wave): cada letra passa pelo lilás do
+/* Onda de cor nas linhas lilás do hero ("Sua Festa" e "Momentos que", .h1-lilac.wave): cada letra passa pelo lilás do
    site, um roxo profundo (com brilho suave) e um lavanda claro, e volta. Cada letra vai
    180 ms atrás da anterior (--i, posto pelo js/main.js ao separar as letras): numa
    palavra de ~9 letras a faixa de cor cobre metade do ciclo e se vê correndo da
