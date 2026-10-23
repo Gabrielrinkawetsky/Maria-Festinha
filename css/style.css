@@ -1428,6 +1428,30 @@ html:not(.js-fold) .photo-curtain { display: none; }
 .is-split .h1-gold { color: #bf8f37; text-shadow: 0 -1px 0 rgba(255, 244, 214, .7), 0 2px 2px rgba(255, 255, 255, .6); }
 .promo-gold.is-split { color: #f0cf7a; text-shadow: 0 2px 4px rgba(74, 58, 107, .35); }
 
+/* Onda de cor no "Sua Festa" do hero (.h1-lilac.wave): cada letra passa pelo lilás do
+   site, um roxo profundo (com brilho suave) e um lavanda claro, e volta. Cada letra vai
+   180 ms atrás da anterior (--i, posto pelo js/main.js ao separar as letras): numa
+   palavra de ~9 letras a faixa de cor cobre metade do ciclo e se vê correndo da
+   esquerda para a direita sem parar. O atraso negativo faz a onda já estar correndo
+   quando o título aparece. Com "reduzir movimento" fica o lilás parado. */
+.h1-lilac.wave .fold-char {
+  animation: lilac-wave 3.2s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 180ms - 3.2s);
+}
+@keyframes lilac-wave {
+  0%, 100% { color: var(--lilac-600); text-shadow: none; }
+  35%      { color: #5a3aa8; text-shadow: 0 0 18px rgba(124, 92, 200, .35); }
+  62%      { color: #a684e2; text-shadow: 0 0 14px rgba(194, 162, 242, .55); }
+}
+/* título inteiro (sem as letras separadas): a mesma onda num degradê que corre pelo texto */
+.hero-title:not(.is-split) .h1-lilac.wave {
+  background: linear-gradient(100deg, var(--lilac-600) 0%, #5a3aa8 22%, #a684e2 40%, var(--lilac-600) 58%, var(--lilac-600) 100%) 0 0 / 250% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: lilac-wave-bg 4s linear infinite;
+}
+@keyframes lilac-wave-bg { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+.lite .h1-lilac.wave .fold-char { text-shadow: none !important; }   /* modo leve: só a cor, sem brilho */
+
 /* Celulares bem baixos (ex.: 320×568): com o mapa, o selo "Desde 2014" do painel final não cabe */
 @media (max-width: 640px) and (max-height: 600px) {
   .hero-panel--final .hero-badge { display: none; }

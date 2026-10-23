@@ -145,6 +145,7 @@
     el.setAttribute('aria-label', el.textContent.replace(/\s+/g, ' ').trim());
     var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
     var nodes = [];
+    var idx = 0;   // posição da letra (--i no CSS: onda de cor do "Sua Festa" no hero)
     while (walker.nextNode()) nodes.push(walker.currentNode);
     nodes.forEach(function (node) {
       var frag = document.createDocumentFragment();
@@ -158,6 +159,7 @@
           var c = document.createElement('span');
           c.className = 'fold-char';
           c.textContent = ch;
+          c.style.setProperty('--i', idx++);
           word.appendChild(c);
         });
         frag.appendChild(word);
@@ -1110,6 +1112,21 @@
   window.addEventListener('scroll', queueSweep, { passive: true });
   window.addEventListener('resize', queueSweep);
 
+  /* ---------- Montagem em pedaços ----------
+     O que fica mais abaixo na página (entradas dos cards, passos, Quem Somos, flores,
+     arcos, títulos, carrosséis...) é montado logo depois, um pedaço por vez, cada um
+     numa tarefa curta. Antes era tudo numa tarefa só de ~0,8 a 1,1 s no celular básico,
+     em que a tela não respondia ao toque. O que aparece logo de cara (hero, cabeçalho,
+     menu, cortinas, brilhos, contagem do Desde 2014) continua montando na hora. */
+  var laterQueue = [];
+  function later(fn) { laterQueue.push(fn); }
+  function runLater() {
+    var fn = laterQueue.shift();
+    if (!fn) return;
+    try { fn(); } catch (e) { setTimeout(function () { throw e; }); }   // um pedaço com erro não trava os outros
+    if (laterQueue.length) setTimeout(runLater, 0);
+  }
+
   /* Recalcula o ScrollTrigger quando a página muda de tamanho depois do cálculo
      inicial (fontes do Google, imagens, girar a tela...). Posição desatualizada
      fazia a Hero soltar na hora errada e seções passarem por cima dela. */
@@ -1245,10 +1262,12 @@
   }
   // Avaliações no computador: o quebra-cabeça (abaixo) faz a entrada no lugar do AnimatedContent
   var puzzleOn = !!(gsap && ST && !reduceMotion && window.matchMedia('(min-width: 961px)').matches);
-  document.querySelectorAll('[data-ac]').forEach(function (el) {
-    if (puzzleOn && el.hasAttribute('data-puzzle')) { el.style.visibility = 'visible'; return; }
-    if (gsap && !reduceMotion) animatedContent(el);
-    else el.style.visibility = 'visible';
+  later(function () {
+    document.querySelectorAll('[data-ac]').forEach(function (el) {
+      if (puzzleOn && el.hasAttribute('data-puzzle')) { el.style.visibility = 'visible'; return; }
+      if (gsap && !reduceMotion) animatedContent(el);
+      else el.style.visibility = 'visible';
+    });
   });
 
   /* ---------- Avaliações em quebra-cabeça (só computador, acima de 960px) ----------
@@ -1258,7 +1277,7 @@
      encaixam todos juntos (com pequenas diferenças de tempo), amarrados à rolagem:
      rolar para cima desmonta. Quando a última peça assenta, um brilho dourado passa
      pelos cards. Modo leve: sem o desfoque (o que mais pesa). */
-  if (puzzleOn) (function () {
+  if (puzzleOn) later(function () {
     var grid = document.querySelector('[data-puzzle]');
     var pieces = grid ? Array.prototype.slice.call(grid.children) : [];
     if (pieces.length < 2) return;
@@ -1294,7 +1313,7 @@
         duration: 1, ease: 'power2.inOut' };
       tl.fromTo(p, from, to, lag[i % lag.length]);
     });
-  })();
+  });
 
   /* ---------- CountUp (React Bits, versão sem React, modo "count") ----------
      <span class="count-up" data-count="2014" data-count-from="1990">2014</span>
@@ -1424,7 +1443,7 @@
      quando a luz chega no centro dele.
      Tudo amarrado ao scroll (rolar para cima apaga); o lampejo é por tempo e só
      na descida. Com "reduzir movimento" fica o desenho estático de sempre. */
-  (function () {
+  later(function () {
     var list = document.querySelector('.steps');
     if (!list || !gsap || !ST || reduceMotion) return;
     var steps = [].slice.call(list.children).map(function (li) {
@@ -1511,13 +1530,13 @@
       rebuildTimer = setTimeout(build, 200);
     });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(build);
-  })();
+  });
 
   /* ---------- Destaques do Quem Somos acendendo com o scroll ----------
      Mesmo efeito dos passos acima, sempre na vertical: a luz desce pela linha
      dourada entre os 3 ícones e cada um acende (anel carregando, brilho, lampejo)
      quando ela chega no centro dele. Reusa o CSS .step-* e .steps-track. */
-  (function () {
+  later(function () {
     var list = document.querySelector('.about-points');
     if (!list || !gsap || !ST || reduceMotion) return;
     var items = [].slice.call(list.children).map(function (li) {
@@ -1589,14 +1608,14 @@
       rebuildTimer = setTimeout(build, 200);
     });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(build);
-  })();
+  });
 
   /* ---------- Flores desabrochando com o scroll ----------
      Começam fechadas no canto (invisíveis, pequenas e giradas) e se abrem
      conforme a seção entra na tela: o buquê cresce a partir do canto e
      "desenrola" a rotação. Sem recorte: só o PNG transparente aparece.
      scrub amarra o progresso ao scroll: rolar para cima fecha de novo. */
-  if (gsap && ST && !reduceMotion) {
+  if (gsap && ST && !reduceMotion) later(function () {
     document.querySelectorAll('.bloom').forEach(function (el) {
       var img = el.querySelector('img');
       var o = el.getAttribute('data-origin');
@@ -1612,7 +1631,7 @@
           { rotation: 20 * dir, scale: 0.8 },
           { rotation: 0, scale: 1, ease: 'back.out(1.4)', duration: 1 }, 0);
     });
-  }
+  });
 
   /* ---------- Borda curva na troca de seção ----------
      A seção nova sobe com o topo em arco (bordas mais baixas que o meio) e o arco
@@ -1620,7 +1639,7 @@
      página faz isso por cima da Hero parada; as faixas lilás, por cima do conteúdo
      claro. Amarrado ao scroll: rolar para cima curva de novo. */
   // computador (sequência) e celular (vídeo): nos dois a Hero fica presa enquanto o resto sobe
-  if (gsap && ST && !reduceMotion && /\bhero-(seq|vid)\b/.test(document.documentElement.className)) {
+  if (gsap && ST && !reduceMotion && /\bhero-(seq|vid)\b/.test(document.documentElement.className)) later(function () {
     [
       // [elemento, altura do arco (fração da largura, máximo em px), onde fica reto]
       ['.page-rest', 0.18, 240, 'top 6%'],
@@ -1657,13 +1676,13 @@
         { '--curve': '0px', ease: 'none',
           scrollTrigger: { trigger: el, start: 'top bottom', end: c[3], scrub: true, invalidateOnRefresh: true } });
     });
-  }
+  });
 
   /* ---------- Balão dourado em Celebrações ----------
      Aparece aos poucos embaixo, sobe em zigue-zague acompanhando o scroll e
      some perto do topo da seção. scrub: rolar para cima traz o balão de volta. */
   var balloon = document.querySelector('.balloon');
-  if (balloon && gsap && ST && !reduceMotion) {
+  if (balloon && gsap && ST && !reduceMotion) later(function () {
     var sec = balloon.parentElement;
     var rise = function (f) { return function () { return -sec.offsetHeight * f; }; };
     var step = { duration: 1, ease: 'sine.inOut' };
@@ -1676,7 +1695,7 @@
       .to(balloon, Object.assign({ y: rise(0.5), x: 34, rotation: 5 }, step))
       .to(balloon, Object.assign({ y: rise(0.68), x: 0, rotation: -4 }, step))
       .to(balloon, Object.assign({ y: rise(0.86), x: 28, rotation: 4, autoAlpha: 0 }, step));
-  }
+  });
 
   /* ---------- Entrada do cabeçalho e da barra de diferenciais ----------
      Ao abrir o site, a barra do cabeçalho e a barra de diferenciais do hero
@@ -1705,7 +1724,7 @@
       foldTo({ delay: 0.7, stagger: 0.012, clearProps: 'transform,filter', onComplete: unsplitAll('.feature-bar strong, .feature-bar div > span') }));
   }
 
-  if (foldOn) {
+  if (foldOn) later(function () {
     document.querySelectorAll(
       '.section-title h2, .promo-band h2, .promo-gold, .final-inner h2, .final-script, ' +
       '.service-card h3, .celebration-card h3, .venue-card h3, .steps h3, .site-footer h2'
@@ -1728,7 +1747,7 @@
         gsap.to(chars, to);
       });
     });
-  }
+  });
 
   /* ---------- ScrollFloat (Quem Somos) ----------
      Versão sem React do ScrollFloat do React Bits, efeito "float": cada letra sobe
@@ -1737,7 +1756,7 @@
      escrevem sozinhos, em sequência (os pontos, parceiros e botões aparecem
      normais). Toca uma vez só, sem depender do scroll. O texto original fica num
      .sr-only para leitores de tela; sem GSAP ou com "reduzir movimento" tudo aparece normal. */
-  (function () {
+  later(function () {
     if (!gsap || !ST || reduceMotion) return;
     // letra a letra, em ordem de leitura: cada letra dura pouco perto do intervalo entre
     // elas, então só umas poucas estão subindo ao mesmo tempo
@@ -1791,7 +1810,7 @@
     whenSeen(title, function () {
       gsap.to(all, { duration: SF.duration, stagger: (SF.total - SF.duration) / Math.max(all.length - 1, 1), ease: SF.ease, opacity: 1, yPercent: 0, scaleY: 1, scaleX: 1 });
     }, 0.85);
-  })();
+  });
 
   /* ---------- Quem Somos: fotos e selo ----------
      Ao chegar na tela: a foto grande sobe e a imagem dentro dela desfaz um zoom;
@@ -1800,7 +1819,7 @@
      pequena e o selo andam um pouco mais rápido que a grande (profundidade).
      Disparo pelo whenSeen, como o AnimatedContent. Sem GSAP ou com "reduzir
      movimento" tudo fica parado no lugar. */
-  (function () {
+  later(function () {
     var media = document.querySelector('#quem-somos .about-media');
     if (!media || !gsap || !ST || reduceMotion) return;
     var main = media.querySelector('.about-photo-main');
@@ -1825,7 +1844,7 @@
     gsap.timeline({ scrollTrigger: { trigger: media, start: 'top bottom', end: 'bottom top', scrub: 1 } })
       .fromTo(detail, { y: 40 }, { y: -40, ease: 'none' }, 0)
       .fromTo(seal, { yPercent: 40 }, { yPercent: -40, ease: 'none' }, 0);
-  })();
+  });
 
   /* ---------- Brilhos só animam quando a seção está na tela ---------- */
   if (ST) {
@@ -1860,6 +1879,7 @@
      (anterior/próximo) e bolinhas mostrando em qual card você está. No computador e
      no tablet o CSS esconde. As contas usam offsetLeft (e não getBoundingClientRect)
      porque o AnimatedContent ainda pode estar empurrando os cards com transform. */
+  later(function () {
   function centerCard(grid, slot, smooth) {
     var left = slot.offsetLeft + slot.offsetWidth / 2 - grid.clientWidth / 2;
     grid.scrollTo({ left: left, behavior: smooth && !reduceMotion ? 'smooth' : 'auto' });
@@ -1929,6 +1949,7 @@
       io.observe(slot);
     });
   });
+  });
 
   /* ---------- Cabeçalho do celular ganha fundo depois do hero ----------
      Sobre o hero o menu e o "Orçamento" ficam soltos, sem barra. Quando o resto da
@@ -1967,7 +1988,7 @@
      Baseado num componente React (SpecularButton); aqui só o efeito visual,
      recriado em CSS vars + mousemove. Some fora de um raio de 250px do botão
      e em toque/"reduzir movimento" (fica só a borda normal do btn-outline). */
-  (function () {
+  later(function () {
     if (reduceMotion) return;
     var els = document.querySelectorAll('.btn-specular');
     if (!els.length || matchMedia('(pointer: coarse)').matches) return;
@@ -1996,7 +2017,7 @@
       mx = e.clientX; my = e.clientY;
       if (!raf) raf = requestAnimationFrame(update);
     }, { passive: true });
-  })();
+  });
 
   /* ---------- WhatsApp flutuante some sobre as perguntas e o formulário ----------
      No celular e no tablet o botão fica em cima do "+" das perguntas do FAQ e do
@@ -2025,6 +2046,9 @@
     targets.forEach(function (el) { io.observe(el); });
     window.addEventListener('resize', check);
   })();
+
+  // pedaços de baixo: um por tarefa, depois de tudo que monta na hora
+  setTimeout(runLater, 0);
 
   /* ---------- Ano no rodapé ---------- */
   var yearEl = document.getElementById('year');
