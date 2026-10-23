@@ -566,11 +566,29 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   0%, 100% { transform: scale(1); box-shadow: 0 8px 20px -12px rgba(74, 58, 107, .55), 0 0 0 0 rgba(212, 169, 79, .5); }
   50% { transform: scale(1.06); box-shadow: 0 8px 20px -12px rgba(74, 58, 107, .55), 0 0 0 10px rgba(212, 169, 79, 0); }
 }
-/* celular e tablet: a foto ocupa a largura toda e os pontos encostariam nela; o aviso já diz "1 de 3" */
-@media (max-width: 1023px) { .hero-guide { display: none; } }
+/* Computador: sem guia (pedido do usuário: Hero do PC rola como era antes, sem aviso nem pontos).
+   Celular e tablet: só o aviso; os pontos encostariam na foto, e o aviso já diz "1 de 3". */
+.hero-guide { display: none; }
+@media (min-width: 1024px) { .hero-next { display: none; } }
 @media (max-width: 640px) {
-  .hero-next { margin-top: 8px; padding: 5px 8px 5px 12px; font-size: 12px; gap: 8px; }
-  .hero-next ~ .feature-bar { margin-top: 10px; }
+  /* celular: aviso pequeno e discreto (pedido do usuário: a Hero estava poluída) */
+  .hero-next {
+    margin-top: 6px; padding: 3px 4px 3px 9px; font-size: 10.5px; gap: 6px;
+    background: rgba(255, 255, 255, .62); border-color: rgba(212, 169, 79, .35);
+    backdrop-filter: none; -webkit-backdrop-filter: none;
+    box-shadow: 0 4px 12px -8px rgba(74, 58, 107, .5);
+  }
+  .hero-next.is-nudge { animation-name: hn-nudge-sm; }
+  .hn-step { padding-left: 6px; font-size: 10px; }
+  .hn-arrow { width: 16px; height: 16px; padding: 2px; stroke-width: 2.4; }
+  .hn-icon { width: 11px; height: 17px; border-width: 1.5px; border-radius: 6px; }
+  .hn-swipe { border-radius: 4px; }
+  .hn-swipe i { bottom: 2px; width: 5px; height: 5px; margin-left: -2.5px; }
+  .hero-next ~ .feature-bar { margin-top: 8px; }
+}
+@keyframes hn-nudge-sm {
+  0%, 100% { transform: scale(1); box-shadow: 0 4px 12px -8px rgba(74, 58, 107, .5), 0 0 0 0 rgba(212, 169, 79, .35); }
+  50% { transform: scale(1.03); box-shadow: 0 4px 12px -8px rgba(74, 58, 107, .5), 0 0 0 6px rgba(212, 169, 79, 0); }
 }
 /* celular deitado: pouca altura, só os pontos */
 @media (orientation: landscape) and (max-height: 500px) { .hero-next { display: none; } }
@@ -647,6 +665,17 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .75) 0%, rgba(255, 255, 255, 0) 45%);
 }
 .photo-ph svg { width: 64px; height: 64px; color: var(--gold-600); opacity: .85; filter: drop-shadow(0 2px 6px rgba(255, 255, 255, .9)); }
+/* Cortina branca que cobre a foto do card e desce revelando-a quando ela aparece na tela
+   e já baixou (js/main.js). Cobre desde a 1ª pintura (o <head> liga .js-fold): em celular
+   fraco ou internet lenta, em vez do fundo roxo listrado aparece o branco, até a foto
+   chegar. Sem JavaScript, com "reduzir movimento" ou sem GSAP, o js/main.js tira as cortinas. */
+.photo-curtain {
+  position: absolute; inset: 0; z-index: 3; background: #fff; pointer-events: none;
+  animation: curtain-safe 0s 8s forwards;   /* trava: se o JS não assumir em 8 s, some sozinha */
+}
+.curtain-on .photo-curtain { animation: none; }
+html:not(.js-fold) .photo-curtain { display: none; }
+@keyframes curtain-safe { to { visibility: hidden; } }
 
 /* Serviços */
 .service-card { display: flex; flex-direction: column; }

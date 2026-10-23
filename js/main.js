@@ -1127,8 +1127,14 @@
   }
 
   /* ---------- Animação de entrada ---------- */
-  // (a cortina branca que cobria as fotos dos cards e descia ao aparecer foi removida:
-  //  as fotos aparecem direto, junto com o card)
+  // abre a cortina branca de uma foto de card quando a foto já chegou
+  function openCurtain(box, delay) {
+    var curtain = box.querySelector('.photo-curtain');
+    var img = box.querySelector('img');
+    var go = function () { gsap.to(curtain, { yPercent: 100, duration: 0.45, delay: delay, ease: 'power3.inOut' }); };
+    if (!img || img.complete) go();
+    else { img.addEventListener('load', go, { once: true }); img.addEventListener('error', go, { once: true }); }
+  }
   function done(el) {
     // devolve o elemento ao CSS normal (hover dos cards volta a funcionar)
     el.classList.remove('reveal');
@@ -1142,8 +1148,30 @@
       });
     };
     document.querySelectorAll('.reveal').forEach(function (el) { whenSeen(el, show); });
+
+    // cortina branca das fotos dos cards (Serviços, Celebrações, Destaques): cobre a foto
+    // desde a 1ª pintura (CSS) e desce saindo por baixo quando a foto aparece na tela e
+    // já baixou. Celular fraco ou internet lenta: fica o branco até a foto chegar, em vez
+    // do fundo roxo listrado. IntersectionObserver (e não whenSeen): no celular os cards
+    // viram carrossel horizontal e cada foto só abre quando é arrastada para a tela.
+    var cardCurtains = document.querySelectorAll('.photo > .photo-curtain');
+    if ('IntersectionObserver' in window) {
+      document.documentElement.classList.add('curtain-on');
+      var curtainIO = new IntersectionObserver(function (entries) {
+        var n = 0;
+        entries.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          curtainIO.unobserve(e.target);
+          openCurtain(e.target, 0.05 + Math.min(n++ * 0.05, 0.2));
+        });
+      }, { threshold: 0.2 });
+      cardCurtains.forEach(function (c) { curtainIO.observe(c.parentElement); });
+    } else {
+      cardCurtains.forEach(function (c) { c.remove(); });
+    }
   } else {
     document.querySelectorAll('.reveal').forEach(done);
+    document.querySelectorAll('.photo-curtain').forEach(function (c) { c.remove(); });
   }
 
   /* ---------- AnimatedContent (React Bits, versão sem React) ----------
